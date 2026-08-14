@@ -305,7 +305,7 @@
       '<div class="chart-card"><div class="chart-title">标签分布（已做）</div><canvas id="cTag"></canvas></div>' +
       '</div>' +
       '<div class="chart-card"><div class="chart-title">近 30 天打卡数</div><canvas id="c30"></canvas></div>' +
-      '<div class="chart-card"><div class="chart-title">近 12 周打卡热力图</div><div id="heat"></div></div>' +
+      '<div class="chart-card"><div class="chart-title">近一年打卡热力图</div><div id="heat"></div></div>' +
       '<div class="chart-card"><div class="chart-title">数据备份</div>' +
       '<div class="backup">' +
       '<button class="btn btn-ghost" id="btnExport">导出 JSON</button>' +

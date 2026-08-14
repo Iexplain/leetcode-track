@@ -279,13 +279,21 @@ main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
 }
 .chart-title { font-weight: 700; font-size: 14px; margin-bottom: 10px; color: #e7e7ef; }
 
-/* 热力图 */
-.heat-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-.heat-grid { display: grid; grid-template-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; min-width: 360px; }
-.heat-cell { width: 13px; height: 13px; border-radius: 3px; }
-.heat-cell.future { border: 1px dashed rgba(255, 255, 255, 0.14); background: transparent !important; }
-.heat-legend { display: flex; align-items: center; gap: 4px; justify-content: flex-end; margin-top: 8px; font-size: 11px; color: var(--muted); }
-.heat-legend .heat-cell { width: 11px; height: 11px; }
+/* 热力图（GitHub Contribution 风格） */
+.gh-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-bottom: 4px; }
+.gh-cal { display: inline-block; min-width: 100%; }
+.gh-top { display: flex; gap: 6px; align-items: flex-end; margin-bottom: 4px; }
+.gh-spacer { width: 16px; flex: 0 0 auto; }
+.gh-months { display: grid; grid-template-columns: repeat(53, 12px); gap: 3px; height: 14px; }
+.gh-month { font-size: 10px; color: var(--faint); line-height: 14px; white-space: nowrap; }
+.gh-main { display: flex; gap: 6px; }
+.gh-days { display: grid; grid-template-rows: repeat(7, 12px); gap: 3px; width: 16px; }
+.gh-day { font-size: 10px; color: var(--faint); line-height: 12px; text-align: right; }
+.gh-grid { display: grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; grid-auto-columns: 12px; gap: 3px; }
+.gh-cell { width: 12px; height: 12px; border-radius: 2px; box-sizing: border-box; }
+.gh-cell.future { background: transparent !important; border: 1px dashed rgba(255, 255, 255, 0.14) !important; }
+.heat-legend { display: flex; align-items: center; gap: 4px; justify-content: flex-end; margin-top: 10px; font-size: 11px; color: var(--muted); }
+.heat-legend .gh-cell { width: 11px; height: 11px; }
 
 /* 备份 */
 .backup { display: flex; gap: 10px; flex-wrap: wrap; }

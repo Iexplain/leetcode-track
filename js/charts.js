@@ -143,45 +143,65 @@
     }));
   }
 
-  function heatColor(n) {
-    if (n <= 0) return 'rgba(255,255,255,0.07)';
-    if (n === 1) return '#1f6f43';
-    if (n <= 3) return '#2ea043';
-    if (n <= 5) return '#3fb950';
-    return '#56d364';
+  // GitHub 暗色 5 级绿阶（0 = 空）
+  var GH_GREEN = ['rgba(255,255,255,0.04)', '#0e4429', '#006d32', '#26a641', '#39d353'];
+  var MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+  function levelOf(n) {
+    if (n <= 0) return 0;
+    if (n === 1) return 1;
+    if (n <= 3) return 2;
+    if (n <= 6) return 3;
+    return 4;
   }
 
   function renderHeatmap(checkins) {
-    var weeks = 12;
-    var cells = weeks * 7;
-    var today = new Date();
-    // 对齐到周末：从 (today - (cells-1)) 开始
-    var start = new Date(today);
-    start.setDate(start.getDate() - (cells - 1));
-    // 调整 start 到本周周日（让列对齐周）
-    var dow = start.getDay();
-    start.setDate(start.getDate() - dow);
+    var weeks = 53; // 接近一年
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    // 以「今天所在周的周日」为最后一周起点，向前推 53 周
+    var endSunday = new Date(today); endSunday.setDate(endSunday.getDate() - today.getDay());
+    var startSunday = new Date(endSunday); startSunday.setDate(startSunday.getDate() - (weeks - 1) * 7);
 
-    var html = '<div class="heat-wrap"><div class="heat-grid">';
-    var cur = new Date(start);
-    var nowStr = fmt(today);
-    var cellsCount = weeks * 7;
-    for (var i = 0; i < cellsCount; i++) {
-      var key = fmt(cur);
-      var cnt = (checkins[key] || []).length;
-      var future = key > nowStr;
-      var cls = future ? 'heat-cell future' : 'heat-cell';
-      var title = key + '：' + cnt + ' 题';
-      html += '<div class="' + cls + '" style="background:' + (future ? 'transparent' : heatColor(cnt)) + '" title="' + title + '"></div>';
-      cur.setDate(cur.getDate() + 1);
+    // 月份标签：每周首日的月份变化时记录一列
+    var monthAt = [];
+    var lastMonth = -1;
+    for (var w = 0; w < weeks; w++) {
+      var md = new Date(startSunday); md.setDate(md.getDate() + w * 7);
+      var m = md.getMonth();
+      monthAt.push(m !== lastMonth ? MONTHS[m] : '');
+      lastMonth = m;
     }
-    html += '</div>';
-    html += '<div class="heat-legend">少<span class="heat-cell" style="background:rgba(255,255,255,0.07)"></span>' +
-      '<span class="heat-cell" style="background:#1f6f43"></span>' +
-      '<span class="heat-cell" style="background:#2ea043"></span>' +
-      '<span class="heat-cell" style="background:#3fb950"></span>' +
-      '<span class="heat-cell" style="background:#56d364"></span>多</div>';
-    html += '</div>';
+    var monthsHtml = monthAt.map(function (t) { return '<span class="gh-month">' + t + '</span>'; }).join('');
+
+    // 单元格：53 列 × 7 行（周日在上）
+    var cells = '';
+    for (var col = 0; col < weeks; col++) {
+      for (var row = 0; row < 7; row++) {
+        var d = new Date(startSunday); d.setDate(d.getDate() + col * 7 + row);
+        var key = fmt(d);
+        var future = d > today;
+        var cnt = (checkins[key] || []).length;
+        var lvl = future ? -1 : levelOf(cnt);
+        var bg = future ? 'transparent' : GH_GREEN[lvl];
+        var border = future ? '1px dashed rgba(255,255,255,0.14)' : '1px solid rgba(255,255,255,0.08)';
+        cells += '<div class="gh-cell' + (future ? ' future' : '') + '" style="background:' + bg + ';border:' + border + '" title="' + key + '：' + cnt + ' 题"></div>';
+      }
+    }
+
+    // 星期标签：仅一/三/五（GitHub 习惯）
+    var dayLabels = ['', '一', '', '三', '', '五', ''];
+    var daysHtml = dayLabels.map(function (t) { return '<span class="gh-day">' + t + '</span>'; }).join('');
+
+    var legendCells = GH_GREEN.map(function (c) {
+      return '<span class="gh-cell" style="background:' + c + ';border:1px solid rgba(255,255,255,0.08)"></span>';
+    }).join('');
+
+    var html =
+      '<div class="gh-scroll"><div class="gh-cal">' +
+        '<div class="gh-top"><div class="gh-spacer"></div><div class="gh-months">' + monthsHtml + '</div></div>' +
+        '<div class="gh-main"><div class="gh-days">' + daysHtml + '</div><div class="gh-grid">' + cells + '</div></div>' +
+      '</div></div>' +
+      '<div class="heat-legend">少' + legendCells + '多</div>';
+
     document.getElementById('heat').innerHTML = html;
   }
 
