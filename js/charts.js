@@ -13,8 +13,11 @@
   function fmt(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 
   function diffColor(d) {
-    return d === '简单' ? '#16a34a' : d === '中等' ? '#d97706' : d === '困难' ? '#dc2626' : '#6b7280';
+    return d === '简单' ? '#34d399' : d === '中等' ? '#fbbf24' : d === '困难' ? '#f87171' : '#6b7280';
   }
+
+  function axisText() { return '#9a9aab'; }
+  function gridless() { return false; }
 
   function destroyAll() {
     instances.forEach(function (c) { try { c.destroy(); } catch (e) {} });
@@ -48,8 +51,11 @@
     var ctx = document.getElementById('cDiff');
     instances.push(new Chart(ctx, {
       type: 'doughnut',
-      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#16a34a', '#d97706', '#dc2626'], borderWidth: 2, borderColor: '#fff' }] },
-      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }
+      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#34d399', '#fbbf24', '#f87171'], borderWidth: 3, borderColor: '#08080c', hoverOffset: 6 }] },
+      options: {
+        responsive: true, maintainAspectRatio: true, cutout: '62%',
+        plugins: { legend: { position: 'bottom', labels: { color: axisText(), font: { size: 12 }, padding: 14, usePointStyle: true, pointStyle: 'circle' } } }
+      }
     }));
   }
 
@@ -68,8 +74,15 @@
     var ctx = document.getElementById('cTag');
     instances.push(new Chart(ctx, {
       type: 'bar',
-      data: { labels: entries.map(function (e) { return e[0]; }), datasets: [{ label: '已做题数', data: entries.map(function (e) { return e[1]; }), backgroundColor: '#3b82f6', borderRadius: 4 }] },
-      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { precision: 0, font: { size: 11 } }, grid: { color: '#eef2f7' } }, y: { ticks: { font: { size: 11 } }, grid: { display: false } } } }
+      data: { labels: entries.map(function (e) { return e[0]; }), datasets: [{ label: '已做题数', data: entries.map(function (e) { return e[1]; }), backgroundColor: '#6366f1', borderRadius: 5, barThickness: 'flex', maxBarThickness: 16 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: true,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.parsed.x + ' 题'; } } } },
+        scales: {
+          x: { ticks: { precision: 0, color: axisText(), font: { size: 11 } }, grid: { display: gridless() }, border: { display: false } },
+          y: { ticks: { color: axisText(), font: { size: 11 } }, grid: { display: gridless() }, border: { display: false } }
+        }
+      }
     }));
   }
 
@@ -84,20 +97,58 @@
       days.push((checkins[key] || []).length);
       labels.push(pad(d.getMonth() + 1) + '-' + pad(d.getDate()));
     }
-    var ctx = document.getElementById('c30');
-    instances.push(new Chart(ctx, {
-      type: 'bar',
-      data: { labels: labels, datasets: [{ label: '打卡题数', data: days, backgroundColor: '#10b981', borderRadius: 3 }] },
-      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 9 }, maxRotation: 90, minRotation: 45 }, grid: { display: false } }, y: { ticks: { precision: 0, font: { size: 11 } }, grid: { color: '#eef2f7' }, beginAtZero: true } } }
+    var canvas = document.getElementById('c30');
+    var ctx = canvas.getContext('2d');
+    // 紫 → 蓝 渐变描边；上方半透明 → 下方透明的渐变填充
+    function lineGrad(c) {
+      var area = c.chart.chartArea;
+      if (!area) return '#8b5cf6';
+      var g = ctx.createLinearGradient(area.left, 0, area.right, 0);
+      g.addColorStop(0, '#a78bfa'); g.addColorStop(1, '#3b82f6');
+      return g;
+    }
+    function fillGrad(c) {
+      var area = c.chart.chartArea;
+      if (!area) return 'rgba(139,92,246,0.25)';
+      var g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+      g.addColorStop(0, 'rgba(139,92,246,0.38)');
+      g.addColorStop(1, 'rgba(59,130,246,0.02)');
+      return g;
+    }
+    instances.push(new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '打卡题数', data: days,
+          fill: true, tension: 0.4, borderWidth: 2.5,
+          borderColor: lineGrad, backgroundColor: fillGrad,
+          pointRadius: 0, pointHoverRadius: 4,
+          pointBackgroundColor: '#a78bfa', pointBorderColor: '#fff', pointBorderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: { legend: { display: false }, tooltip: {
+          backgroundColor: 'rgba(8,8,12,0.9)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1,
+          titleColor: '#ececf1', bodyColor: '#c4b5fd', padding: 10, displayColors: false,
+          callbacks: { label: function (c) { return c.parsed.y + ' 题'; } }
+        } },
+        scales: {
+          x: { ticks: { color: axisText(), font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: gridless() }, border: { display: false } },
+          y: { ticks: { precision: 0, color: axisText(), font: { size: 11 } }, grid: { display: gridless() }, border: { display: false }, beginAtZero: true }
+        }
+      }
     }));
   }
 
   function heatColor(n) {
-    if (n <= 0) return '#ebedf0';
-    if (n === 1) return '#9be9a8';
-    if (n <= 3) return '#40c463';
-    if (n <= 5) return '#30a14e';
-    return '#216e39';
+    if (n <= 0) return 'rgba(255,255,255,0.07)';
+    if (n === 1) return '#1f6f43';
+    if (n <= 3) return '#2ea043';
+    if (n <= 5) return '#3fb950';
+    return '#56d364';
   }
 
   function renderHeatmap(checkins) {
@@ -125,11 +176,11 @@
       cur.setDate(cur.getDate() + 1);
     }
     html += '</div>';
-    html += '<div class="heat-legend">少<span class="heat-cell" style="background:#ebedf0"></span>' +
-      '<span class="heat-cell" style="background:#9be9a8"></span>' +
-      '<span class="heat-cell" style="background:#40c463"></span>' +
-      '<span class="heat-cell" style="background:#30a14e"></span>' +
-      '<span class="heat-cell" style="background:#216e39"></span>多</div>';
+    html += '<div class="heat-legend">少<span class="heat-cell" style="background:rgba(255,255,255,0.07)"></span>' +
+      '<span class="heat-cell" style="background:#1f6f43"></span>' +
+      '<span class="heat-cell" style="background:#2ea043"></span>' +
+      '<span class="heat-cell" style="background:#3fb950"></span>' +
+      '<span class="heat-cell" style="background:#56d364"></span>多</div>';
     html += '</div>';
     document.getElementById('heat').innerHTML = html;
   }
