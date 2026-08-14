@@ -1,4 +1,4 @@
-// app.js — 路由与视图渲染（题目列表 / 题目详情 / 统计 / 关于）
+// app.js — 路由与视图渲染（题目列表 / 题目详情 / 统计）
 (function () {
   'use strict';
   var app = document.getElementById('app');
@@ -59,7 +59,6 @@
     if (parts.length === 0 || parts[0] === 'list') return renderList();
     if (parts[0] === 'problem' && parts[1]) return renderProblem(parts[1]);
     if (parts[0] === 'stats') return renderStats();
-    if (parts[0] === 'about') return renderAbout();
     return renderList();
   }
 
@@ -347,28 +346,6 @@
         renderStats();
       }
     });
-  }
-
-  // ---------- 关于 ----------
-  function renderAbout() {
-    setNav('about');
-    var cnt = indexData ? indexData.problems.length : '…';
-    app.innerHTML =
-      '<div class="page">' +
-      '<h2>关于</h2>' +
-      '<p>力扣刷题小助手 —— 一个可添加到手机主屏幕的 PWA，离线可用。</p>' +
-      '<ul class="about">' +
-      '<li>当前题库样例：<b>' + cnt + '</b> 题（你可用「热题 100 + 面试经典 150」替换 data/ 目录数据）</li>' +
-      '<li>每题含三种解法（简单 / 中等 / 困难）与 ACM Python3 完整代码。</li>' +
-      '<li>打卡数据保存在本机 localStorage，支持导出 / 导入备份。</li>' +
-      '<li>纯静态站点，可直接部署到 GitHub Pages。</li>' +
-      '</ul>' +
-      '<h3 style="margin-top:20px;font-size:16px;">添加到主屏幕</h3>' +
-      '<ul class="about">' +
-      '<li><b>iOS（Safari）：</b>点击底部分享按钮 <span style="font-size:16px;">⬆️</span> → 选择「添加到主屏幕」。</li>' +
-      '<li><b>Android（Chrome）：</b>菜单（⋮）→「添加到主屏幕」或「安装应用」。</li>' +
-      '</ul>' +
-      '</div>';
   }
 
   // ---------- Service Worker ----------
