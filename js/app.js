@@ -298,7 +298,9 @@
     setNav('stats');
     app.innerHTML =
       '<div class="page">' +
-      '<h2>打卡统计</h2>' +
+      '<h2 class="stats-title">打卡统计' +
+      '<button class="add-btn" id="backupBtn" aria-label="数据备份">＋</button>' +
+      '</h2>' +
       '<div id="kpiRow" class="kpi-row"></div>' +
       '<div class="grid2">' +
       '<div class="chart-card"><div class="chart-title">难度分布（已做）</div><canvas id="cDiff"></canvas></div>' +
@@ -306,12 +308,16 @@
       '</div>' +
       '<div class="chart-card"><div class="chart-title">近 30 天打卡数</div><canvas id="c30"></canvas></div>' +
       '<div class="chart-card"><div class="chart-title">近一年打卡热力图</div><div id="heat"></div></div>' +
-      '<div class="chart-card"><div class="chart-title">数据备份</div>' +
-      '<div class="backup">' +
-      '<button class="btn btn-ghost" id="btnExport">导出 JSON</button>' +
-      '<label class="btn btn-ghost">导入 JSON<input type="file" id="fileImport" accept="application/json" hidden /></label>' +
-      '<button class="btn btn-danger" id="btnClear">清空全部记录</button>' +
-      '</div></div>' +
+      '<div class="action-sheet-backdrop" id="backupSheet" hidden>' +
+      '<div class="action-sheet">' +
+      '<div class="action-sheet-handle"></div>' +
+      '<div class="action-sheet-title">数据备份</div>' +
+      '<button class="action-sheet-item" data-act="export">⬇︎ 导出全部记录 (JSON)</button>' +
+      '<label class="action-sheet-item" data-act="import">⬆︎ 导入 JSON 备份<input type="file" id="fileImport" accept="application/json" hidden /></label>' +
+      '<button class="action-sheet-item danger" data-act="clear">🗑 清空全部记录</button>' +
+      '<button class="action-sheet-item cancel" data-act="cancel">取消</button>' +
+      '</div>' +
+      '</div>' +
       '</div>';
 
     Charts.render();
@@ -319,33 +325,67 @@
   }
 
   function wireBackup() {
-    $('btnExport').addEventListener('click', function () {
-      var blob = new Blob([Store.exportData()], { type: 'application/json' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'leetcode-pwa-backup-' + Store.todayStr() + '.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-    $('fileImport').addEventListener('change', function (e) {
-      var f = e.target.files[0];
-      if (!f) return;
-      var r = new FileReader();
-      r.onload = function () {
-        try {
-          Store.importData(r.result);
-          alert('导入成功');
+    var btn = $('backupBtn');
+    var sheet = $('backupSheet');
+
+    function closeSheet() {
+      if (!sheet) return;
+      sheet.classList.remove('open');
+      setTimeout(function () { sheet.hidden = true; }, 260);
+    }
+    function openSheet() {
+      if (!sheet) return;
+      sheet.hidden = false;
+      requestAnimationFrame(function () { sheet.classList.add('open'); });
+    }
+
+    if (btn) btn.addEventListener('click', openSheet);
+
+    if (sheet) {
+      // 点击遮罩空白处关闭
+      sheet.addEventListener('click', function (e) {
+        if (e.target === sheet) closeSheet();
+      });
+
+      var cancel = sheet.querySelector('[data-act="cancel"]');
+      if (cancel) cancel.addEventListener('click', closeSheet);
+
+      var exp = sheet.querySelector('[data-act="export"]');
+      if (exp) exp.addEventListener('click', function () {
+        closeSheet();
+        var blob = new Blob([Store.exportData()], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'leetcode-pwa-backup-' + Store.todayStr() + '.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+
+      var cle = sheet.querySelector('[data-act="clear"]');
+      if (cle) cle.addEventListener('click', function () {
+        closeSheet();
+        if (confirm('确定清空所有打卡与已做记录吗？此操作不可恢复。')) {
+          Store.clearAll();
           renderStats();
-        } catch (err) { alert('导入失败：' + err.message); }
-      };
-      r.readAsText(f);
-    });
-    $('btnClear').addEventListener('click', function () {
-      if (confirm('确定清空所有打卡与已做记录吗？此操作不可恢复。')) {
-        Store.clearAll();
-        renderStats();
-      }
-    });
+        }
+      });
+
+      var imp = $('fileImport');
+      if (imp) imp.addEventListener('change', function (e) {
+        var f = e.target.files[0];
+        if (!f) return;
+        var r = new FileReader();
+        r.onload = function () {
+          try {
+            Store.importData(r.result);
+            alert('导入成功');
+            closeSheet();
+            renderStats();
+          } catch (err) { alert('导入失败：' + err.message); }
+        };
+        r.readAsText(f);
+      });
+    }
   }
 
   // ---------- Service Worker ----------
