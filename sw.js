@@ -1,10 +1,13 @@
 // sw.js — Service Worker：应用外壳预缓存 + 运行时 stale-while-revalidate
-var VERSION = 'lc-pwa-v1';
+var VERSION = 'lc-pwa-v2';
 var SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon.svg',
+  './apple-touch-icon.png',
+  './icon-192.png',
+  './icon-512.png',
   './css/style.css',
   './js/store.js',
   './js/charts.js',

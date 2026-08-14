@@ -34,6 +34,24 @@
   }
   function $(id) { return document.getElementById(id); }
 
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  function isStandalone() {
+    return window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  }
+  function maybeRenderIosHint() {
+    if (!isIOS() || isStandalone()) return '';
+    if (localStorage.getItem('ios-hint-dismissed') === '1') return '';
+    return '<div class="ios-hint" id="iosHint"><div class="ios-hint-body">' +
+      '<span class="ios-hint-icon">📲</span>' +
+      '<span>在 Safari 中点击 <b>分享</b> 按钮 → 选择 <b>添加到主屏幕</b>，即可像 App 一样离线使用</span>' +
+      '<button class="ios-hint-close" id="iosHintClose" aria-label="关闭">✕</button>' +
+      '</div></div>';
+  }
+
   // ---------- 路由 ----------
   function router() {
     var hash = location.hash.replace(/^#/, '') || '/';
@@ -59,6 +77,7 @@
     setNav('list');
     app.innerHTML =
       '<div class="page">' +
+      maybeRenderIosHint() +
       '<h2>题目列表</h2>' +
       '<div class="toolbar">' +
       '<input id="search" class="search" placeholder="搜索题号 / 标题" value="' + esc(state.search) + '" />' +
@@ -111,6 +130,16 @@
       state.onlyUnsolved = e.target.checked;
       drawList();
     });
+
+    // iOS 安装提示关闭
+    var closeBtn = $('iosHintClose');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        try { localStorage.setItem('ios-hint-dismissed', '1'); } catch (e) {}
+        var el = $('iosHint');
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      });
+    }
   }
 
   function drawList() {
@@ -334,7 +363,11 @@
       '<li>打卡数据保存在本机 localStorage，支持导出 / 导入备份。</li>' +
       '<li>纯静态站点，可直接部署到 GitHub Pages。</li>' +
       '</ul>' +
-      '<p>添加到主屏幕：在浏览器菜单选择「添加到主屏幕 / 安装应用」即可像 App 一样使用。</p>' +
+      '<h3 style="margin-top:20px;font-size:16px;">添加到主屏幕</h3>' +
+      '<ul class="about">' +
+      '<li><b>iOS（Safari）：</b>点击底部分享按钮 <span style="font-size:16px;">⬆️</span> → 选择「添加到主屏幕」。</li>' +
+      '<li><b>Android（Chrome）：</b>菜单（⋮）→「添加到主屏幕」或「安装应用」。</li>' +
+      '</ul>' +
       '</div>';
   }
 
