@@ -1,0 +1,35 @@
+{
+  "id": 15,
+  "title": "三数之和",
+  "titleEn": "3Sum",
+  "difficulty": "中等",
+  "tags": ["数组", "双指针", "排序"],
+  "description": "给你一个整数数组 nums ，判断是否存在三元组 [nums[i], nums[j], nums[k]] 满足 i != j、i != k 且 j != k ，同时还满足 nums[i] + nums[j] + nums[k] == 0。请你返回所有和为 0 且不重复的三元组。答案中不可以包含重复的三元组。",
+  "examples": [
+    { "input": "nums = [-1,0,1,2,-1,-4]", "output": "[[-1,-1,2],[-1,0,1]]", "explanation": "不同的三元组是 [-1,0,1] 和 [-1,-1,2]。" },
+    { "input": "nums = [0,1,1]", "output": "[]", "explanation": "不存在和为 0 的三元组。" },
+    { "input": "nums = [0,0,0]", "output": "[[0,0,0]]", "explanation": "" }
+  ],
+  "constraints": [
+    "3 <= nums.length <= 3000",
+    "-10^5 <= nums[i] <= 10^5"
+  ],
+  "ioFormat": "输入：一行空格分隔的整数 nums；输出：每行一个三元组（空格分隔），或空。",
+  "solutions": [
+    {
+      "level": "简单",
+      "idea": "三重循环枚举所有三元组求和为 0，用集合去重。O(n^3)，仅用于理解题意，规模大必超时。",
+      "code": "def three_sum(nums):\n    n = len(nums)\n    res = set()\n    for i in range(n):\n        for j in range(i + 1, n):\n            for k in range(j + 1, n):\n                if nums[i] + nums[j] + nums[k] == 0:\n                    res.add(tuple(sorted((nums[i], nums[j], nums[k]))))\n    return [list(t) for t in res]\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    for t in three_sum(nums):\n        print(' '.join(map(str, t)))\n\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "level": "中等",
+      "idea": "排序后固定一个数、对剩余区间用双指针找两数之和等于相反数；移动时跳过重复值避免重复三元组，O(n^2)。",
+      "code": "def three_sum(nums):\n    nums.sort()\n    n = len(nums)\n    res = []\n    for i in range(n - 2):\n        if nums[i] > 0:\n            break\n        if i > 0 and nums[i] == nums[i - 1]:\n            continue\n        l, r = i + 1, n - 1\n        while l < r:\n            s = nums[i] + nums[l] + nums[r]\n            if s < 0:\n                l += 1\n            elif s > 0:\n                r -= 1\n            else:\n                res.append([nums[i], nums[l], nums[r]])\n                while l < r and nums[l] == nums[l + 1]:\n                    l += 1\n                while l < r and nums[r] == nums[r - 1]:\n                    r -= 1\n                l += 1\n                r -= 1\n    return res\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    for t in three_sum(nums):\n        print(' '.join(map(str, t)))\n\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "level": "困难",
+      "idea": "在双指针解法上加入剪枝：固定数大于 0 直接 break、以及「当前数 + 最小两数 > 0」或「当前数 + 最大两数 < 0」时跳过，进一步降低常数。",
+      "code": "def three_sum(nums):\n    nums.sort()\n    n = len(nums)\n    res = []\n    for i in range(n - 2):\n        if nums[i] > 0:\n            break\n        if i > 0 and nums[i] == nums[i - 1]:\n            continue\n        if nums[i] + nums[i + 1] + nums[i + 2] > 0:\n            break\n        if nums[i] + nums[n - 2] + nums[n - 1] < 0:\n            continue\n        l, r = i + 1, n - 1\n        while l < r:\n            s = nums[i] + nums[l] + nums[r]\n            if s < 0:\n                l += 1\n            elif s > 0:\n                r -= 1\n            else:\n                res.append([nums[i], nums[l], nums[r]])\n                while l < r and nums[l] == nums[l + 1]:\n                    l += 1\n                while l < r and nums[r] == nums[r - 1]:\n                    r -= 1\n                l += 1\n                r -= 1\n    return res\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    for t in three_sum(nums):\n        print(' '.join(map(str, t)))\n\n\nif __name__ == \"__main__\":\n    main()"
+    }
+  ]
+}

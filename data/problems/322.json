@@ -1,0 +1,36 @@
+{
+  "id": 322,
+  "title": "零钱兑换",
+  "titleEn": "Coin Change",
+  "difficulty": "中等",
+  "tags": ["动态规划", "广度优先搜索"],
+  "description": "给你一个整数数组 coins ，表示不同面额的硬币；以及一个整数 amount ，表示总金额。计算并返回可以凑成总金额所需的最少硬币个数。如果没有任何一种硬币组合能组成该金额，返回 -1。每种硬币的数量是无限的。",
+  "examples": [
+    { "input": "coins = [1,2,5], amount = 11", "output": "3", "explanation": "11 = 5 + 5 + 1，共 3 枚。" },
+    { "input": "coins = [2], amount = 3", "output": "-1", "explanation": "无法用面额 2 凑出 3。" },
+    { "input": "coins = [1], amount = 0", "output": "0", "explanation": "金额为 0 不需要硬币。" }
+  ],
+  "constraints": [
+    "1 <= coins.length <= 12",
+    "1 <= coins[i] <= 2^31 - 1",
+    "0 <= amount <= 10^4"
+  ],
+  "ioFormat": "输入：第一行 coins（空格分隔），第二行 amount；输出：最少硬币数或 -1。",
+  "solutions": [
+    {
+      "level": "简单",
+      "idea": "暴力递归：对每个金额尝试所有硬币取最小，无记忆化，指数级时间，仅适合极小金额。",
+      "code": "def coin_change(coins, amount):\n    if amount == 0:\n        return 0\n    best = float('inf')\n    for c in coins:\n        if c <= amount:\n            sub = coin_change(coins, amount - c)\n            if sub != -1:\n                best = min(best, sub + 1)\n    return -1 if best == float('inf') else best\n\n\ndef main():\n    coins = list(map(int, input().split()))\n    amount = int(input())\n    print(coin_change(coins, amount))\n\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "level": "中等",
+      "idea": "动态规划：dp[a] 表示凑出金额 a 的最少硬币数，dp[a]=min(dp[a-c]+1)，O(amount * n) 时间与空间。",
+      "code": "def coin_change(coins, amount):\n    dp = [float('inf')] * (amount + 1)\n    dp[0] = 0\n    for a in range(1, amount + 1):\n        for c in coins:\n            if c <= a and dp[a - c] + 1 < dp[a]:\n                dp[a] = dp[a - c] + 1\n    return -1 if dp[amount] == float('inf') else dp[amount]\n\n\ndef main():\n    coins = list(map(int, input().split()))\n    amount = int(input())\n    print(coin_change(coins, amount))\n\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "level": "困难",
+      "idea": "把问题看成最短路：从金额 0 出发 BFS，每步加一枚硬币，首次到达 amount 即为最少硬币数，配合 visited 剪枝。直觉清晰、避免大 DP 表。",
+      "code": "from collections import deque\n\n\ndef coin_change(coins, amount):\n    if amount == 0:\n        return 0\n    visited = [False] * (amount + 1)\n    q = deque([(0, 0)])  # (当前金额, 已用硬币数)\n    visited[0] = True\n    while q:\n        cur, step = q.popleft()\n        for c in coins:\n            nxt = cur + c\n            if nxt == amount:\n                return step + 1\n            if nxt < amount and not visited[nxt]:\n                visited[nxt] = True\n                q.append((nxt, step + 1))\n    return -1\n\n\ndef main():\n    coins = list(map(int, input().split()))\n    amount = int(input())\n    print(coin_change(coins, amount))\n\n\nif __name__ == \"__main__\":\n    main()"
+    }
+  ]
+}

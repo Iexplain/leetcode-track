@@ -1,0 +1,356 @@
+// app.js — 路由与视图渲染（题目列表 / 题目详情 / 统计 / 关于）
+(function () {
+  'use strict';
+  var app = document.getElementById('app');
+  var indexData = null;
+  var problemCache = {};
+  var state = { search: '', diff: '全部', tag: '全部', onlyUnsolved: false };
+
+  // ---------- 数据加载 ----------
+  function fetchIndex() {
+    if (indexData) return Promise.resolve(indexData);
+    return fetch('data/index.json', { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) throw new Error('无法加载题目列表 data/index.json');
+      return r.json();
+    }).then(function (d) { indexData = d; return d; });
+  }
+
+  function fetchProblem(id) {
+    if (problemCache[id]) return Promise.resolve(problemCache[id]);
+    return fetch('data/problems/' + id + '.json', { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) throw new Error('题目 ' + id + ' 数据缺失（data/problems/' + id + '.json）');
+      return r.json();
+    }).then(function (p) { problemCache[id] = p; return p; });
+  }
+
+  // ---------- 工具 ----------
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function diffClass(d) {
+    return d === '简单' ? 'easy' : d === '中等' ? 'medium' : d === '困难' ? 'hard' : '';
+  }
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- 路由 ----------
+  function router() {
+    var hash = location.hash.replace(/^#/, '') || '/';
+    var parts = hash.split('/').filter(Boolean);
+    if (parts.length === 0 || parts[0] === 'list') return renderList();
+    if (parts[0] === 'problem' && parts[1]) return renderProblem(parts[1]);
+    if (parts[0] === 'stats') return renderStats();
+    if (parts[0] === 'about') return renderAbout();
+    return renderList();
+  }
+
+  function setNav(active) {
+    var links = document.querySelectorAll('.nav a');
+    links.forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('data-nav') === active);
+    });
+  }
+
+  function scrollTop() { window.scrollTo(0, 0); }
+
+  // ---------- 题目列表 ----------
+  function renderList() {
+    setNav('list');
+    app.innerHTML =
+      '<div class="page">' +
+      '<h2>题目列表</h2>' +
+      '<div class="toolbar">' +
+      '<input id="search" class="search" placeholder="搜索题号 / 标题" value="' + esc(state.search) + '" />' +
+      '<div class="chips" id="diffChips"></div>' +
+      '<div class="chips" id="tagChips"></div>' +
+      '<label class="switch"><input type="checkbox" id="onlyUnsolved" ' + (state.onlyUnsolved ? 'checked' : '') + ' /> 仅未做</label>' +
+      '</div>' +
+      '<div id="listBody" class="list">加载中…</div>' +
+      '</div>';
+
+    // 难度筛选
+    var diffBox = $('diffChips');
+    ['全部', '简单', '中等', '困难'].forEach(function (d) {
+      diffBox.innerHTML += '<button class="chip ' + (state.diff === d ? 'on' : '') + '" data-diff="' + d + '">' + d + '</button>';
+    });
+    diffBox.addEventListener('click', function (e) {
+      var t = e.target.getAttribute('data-diff');
+      if (!t) return;
+      state.diff = t;
+      renderList();
+    });
+
+    // 标签筛选
+    fetchIndex().then(function (d) {
+      var tagSet = {};
+      d.problems.forEach(function (p) { (p.tags || []).forEach(function (t) { tagSet[t] = 1; }); });
+      var tags = ['全部'].concat(Object.keys(tagSet).sort());
+      var tagBox = $('tagChips');
+      tagBox.innerHTML = '';
+      tags.forEach(function (t) {
+        tagBox.innerHTML += '<button class="chip ' + (state.tag === t ? 'on' : '') + '" data-tag="' + esc(t) + '">' + esc(t) + '</button>';
+      });
+      tagBox.addEventListener('click', function (e) {
+        var t = e.target.getAttribute('data-tag');
+        if (!t) return;
+        state.tag = t;
+        renderList();
+      });
+      drawList();
+    }).catch(function (err) {
+      $('listBody').innerHTML = '<div class="err">' + esc(err.message) + '</div>';
+    });
+
+    // 搜索 & 仅未做
+    $('search').addEventListener('input', function (e) {
+      state.search = e.target.value;
+      drawList();
+    });
+    $('onlyUnsolved').addEventListener('change', function (e) {
+      state.onlyUnsolved = e.target.checked;
+      drawList();
+    });
+  }
+
+  function drawList() {
+    var body = $('listBody');
+    if (!body || !indexData) return;
+    var q = state.search.trim().toLowerCase();
+    var list = indexData.problems.filter(function (p) {
+      if (state.diff !== '全部' && p.difficulty !== state.diff) return false;
+      if (state.tag !== '全部' && !(p.tags || []).includes(state.tag)) return false;
+      if (state.onlyUnsolved && Store.isSolved(p.id)) return false;
+      if (q) {
+        var hay = (p.id + ' ' + p.title + ' ' + (p.titleEn || '')).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    var solved = Store.countSolved();
+    var total = indexData.problems.length;
+    var head = '<div class="list-meta">共 ' + list.length + ' 题 · 已做 ' + solved + '/' + total +
+      ' · 进度 ' + (total ? Math.round(solved / total * 100) : 0) + '%</div>';
+
+    if (list.length === 0) {
+      body.innerHTML = head + '<div class="empty">没有匹配的题目</div>';
+      return;
+    }
+    var html = head + list.map(function (p) {
+      var done = Store.isSolved(p.id);
+      var tags = (p.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('');
+      return '<a class="card ' + diffClass(p.difficulty) + (done ? ' done' : '') + '" href="#/problem/' + p.id + '">' +
+        '<div class="card-top">' +
+        '<span class="num">#' + p.id + '</span>' +
+        '<span class="diff ' + diffClass(p.difficulty) + '">' + esc(p.difficulty) + '</span>' +
+        (done ? '<span class="check">✓</span>' : '') +
+        '</div>' +
+        '<div class="card-title">' + esc(p.title) + '</div>' +
+        '<div class="card-en">' + esc(p.titleEn || '') + '</div>' +
+        '<div class="card-tags">' + tags + '</div>' +
+        '</a>';
+    }).join('');
+    body.innerHTML = html;
+  }
+
+  // ---------- 题目详情 ----------
+  function renderProblem(id) {
+    setNav('');
+    app.innerHTML = '<div class="page"><a href="#/list" class="back">← 返回列表</a><div id="pBody">加载中…</div></div>';
+    fetchProblem(id).then(function (p) {
+      renderProblemDetail(p);
+    }).catch(function (err) {
+      $('pBody').innerHTML = '<div class="err">' + esc(err.message) + '</div>';
+    });
+  }
+
+  function renderProblemDetail(p) {
+    var solved = Store.isSolved(p.id);
+    var sInfo = Store.getSolved(p.id) || {};
+
+    var examples = (p.examples || []).map(function (ex, i) {
+      return '<div class="ex">' +
+        '<div class="ex-label">示例 ' + (i + 1) + '</div>' +
+        '<div class="ex-line"><b>输入：</b>' + esc(ex.input) + '</div>' +
+        '<div class="ex-line"><b>输出：</b>' + esc(ex.output) + '</div>' +
+        (ex.explanation ? '<div class="ex-line"><b>解释：</b>' + esc(ex.explanation) + '</div>' : '') +
+        '</div>';
+    }).join('');
+
+    var constraints = (p.constraints || []).map(function (c) {
+      return '<li>' + esc(c) + '</li>';
+    }).join('');
+
+    var sols = p.solutions || [];
+    var tabs = sols.map(function (s, i) {
+      return '<button class="tab ' + diffClass(s.level) + (i === 0 ? ' on' : '') + '" data-tab="' + i + '">' + esc(s.level) + '</button>';
+    }).join('');
+    var panes = sols.map(function (s, i) {
+      return '<div class="pane" data-pane="' + i + '" style="' + (i === 0 ? '' : 'display:none') + '">' +
+        '<div class="idea">' + esc(s.idea) + '</div>' +
+        '<div class="code-wrap">' +
+        '<button class="copy" data-code="' + i + '">复制</button>' +
+        '<pre class="code"><code>' + esc(s.code) + '</code></pre>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+
+    $('pBody').innerHTML =
+      '<div class="prob">' +
+      '<div class="prob-head">' +
+      '<div class="prob-title">' + esc(p.title) + '</div>' +
+      '<div class="prob-sub"><span class="num">#' + p.id + '</span> · <span class="diff ' + diffClass(p.difficulty) + '">' + esc(p.difficulty) + '</span> · ' + esc(p.titleEn || '') + '</div>' +
+      '<div class="prob-tags">' + (p.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' +
+      '</div>' +
+      '<div class="desc">' + esc(p.description) + '</div>' +
+      (p.ioFormat ? '<div class="iofmt"><b>输入输出格式：</b>' + esc(p.ioFormat) + '</div>' : '') +
+      (examples ? '<div class="ex-list">' + examples + '</div>' : '') +
+      (constraints ? '<div class="cons"><b>约束：</b><ul>' + constraints + '</ul></div>' : '') +
+      '<div class="sol">' +
+      '<div class="sol-title">三种解法</div>' +
+      '<div class="tabs">' + tabs + '</div>' +
+      '<div class="panes">' + panes + '</div>' +
+      '</div>' +
+      '<div class="action">' +
+      '<button id="checkinBtn" class="btn ' + (solved ? 'btn-done' : '') + '">' + (solved ? '✓ 已打卡（' + esc(sInfo.level || '完成') + ' · ' + esc(sInfo.date || '') + '）' : '打卡') + '</button>' +
+      '<a class="btn btn-ghost" href="#/stats">查看统计</a>' +
+      '</div>' +
+      '</div>';
+
+    // 解法切换
+    var pBody = $('pBody');
+    pBody.querySelectorAll('.tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var idx = tab.getAttribute('data-tab');
+        pBody.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('on'); });
+        tab.classList.add('on');
+        pBody.querySelectorAll('.pane').forEach(function (pane) {
+          pane.style.display = pane.getAttribute('data-pane') === idx ? '' : 'none';
+        });
+      });
+    });
+
+    // 复制代码
+    pBody.querySelectorAll('.copy').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = btn.getAttribute('data-code');
+        var code = sols[idx].code;
+        var done = function () { btn.textContent = '已复制'; setTimeout(function () { btn.textContent = '复制'; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(code).then(done, function () { fallbackCopy(code); done(); });
+        } else { fallbackCopy(code); done(); }
+      });
+    });
+
+    // 打卡
+    var btn = $('checkinBtn');
+    btn.addEventListener('click', function () {
+      // 取当前显示的解法难度作为 level
+      var onTab = pBody.querySelector('.tab.on');
+      var level = onTab ? onTab.textContent : '';
+      Store.toggleSolved(p.id, level);
+      renderProblemDetail(p); // 刷新状态
+    });
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ---------- 统计 ----------
+  function renderStats() {
+    setNav('stats');
+    app.innerHTML =
+      '<div class="page">' +
+      '<h2>打卡统计</h2>' +
+      '<div id="kpiRow" class="kpi-row"></div>' +
+      '<div class="grid2">' +
+      '<div class="chart-card"><div class="chart-title">难度分布（已做）</div><canvas id="cDiff"></canvas></div>' +
+      '<div class="chart-card"><div class="chart-title">标签分布（已做）</div><canvas id="cTag"></canvas></div>' +
+      '</div>' +
+      '<div class="chart-card"><div class="chart-title">近 30 天打卡数</div><canvas id="c30"></canvas></div>' +
+      '<div class="chart-card"><div class="chart-title">近 12 周打卡热力图</div><div id="heat"></div></div>' +
+      '<div class="chart-card"><div class="chart-title">数据备份</div>' +
+      '<div class="backup">' +
+      '<button class="btn btn-ghost" id="btnExport">导出 JSON</button>' +
+      '<label class="btn btn-ghost">导入 JSON<input type="file" id="fileImport" accept="application/json" hidden /></label>' +
+      '<button class="btn btn-danger" id="btnClear">清空全部记录</button>' +
+      '</div></div>' +
+      '</div>';
+
+    Charts.render();
+    wireBackup();
+  }
+
+  function wireBackup() {
+    $('btnExport').addEventListener('click', function () {
+      var blob = new Blob([Store.exportData()], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'leetcode-pwa-backup-' + Store.todayStr() + '.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    $('fileImport').addEventListener('change', function (e) {
+      var f = e.target.files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function () {
+        try {
+          Store.importData(r.result);
+          alert('导入成功');
+          renderStats();
+        } catch (err) { alert('导入失败：' + err.message); }
+      };
+      r.readAsText(f);
+    });
+    $('btnClear').addEventListener('click', function () {
+      if (confirm('确定清空所有打卡与已做记录吗？此操作不可恢复。')) {
+        Store.clearAll();
+        renderStats();
+      }
+    });
+  }
+
+  // ---------- 关于 ----------
+  function renderAbout() {
+    setNav('about');
+    var cnt = indexData ? indexData.problems.length : '…';
+    app.innerHTML =
+      '<div class="page">' +
+      '<h2>关于</h2>' +
+      '<p>力扣刷题小助手 —— 一个可添加到手机主屏幕的 PWA，离线可用。</p>' +
+      '<ul class="about">' +
+      '<li>当前题库样例：<b>' + cnt + '</b> 题（你可用「热题 100 + 面试经典 150」替换 data/ 目录数据）</li>' +
+      '<li>每题含三种解法（简单 / 中等 / 困难）与 ACM Python3 完整代码。</li>' +
+      '<li>打卡数据保存在本机 localStorage，支持导出 / 导入备份。</li>' +
+      '<li>纯静态站点，可直接部署到 GitHub Pages。</li>' +
+      '</ul>' +
+      '<p>添加到主屏幕：在浏览器菜单选择「添加到主屏幕 / 安装应用」即可像 App 一样使用。</p>' +
+      '</div>';
+  }
+
+  // ---------- Service Worker ----------
+  function registerSW() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function (e) {
+        console.warn('[sw] register failed', e);
+      });
+    }
+  }
+
+  // ---------- 启动 ----------
+  window.addEventListener('hashchange', function () { router(); scrollTop(); });
+  document.addEventListener('DOMContentLoaded', function () {
+    fetchIndex().then(function () { router(); }).catch(function () { router(); });
+    registerSW();
+  });
+})();

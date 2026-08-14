@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "updated": "2026-08-14",
+  "source": "LeetCode Hot 精选子集（示例 10 题）",
+  "count": 10,
+  "problems": [
+    { "id": 1, "title": "两数之和", "titleEn": "Two Sum", "difficulty": "简单", "tags": ["数组", "哈希表"] },
+    { "id": 20, "title": "有效的括号", "titleEn": "Valid Parentheses", "difficulty": "简单", "tags": ["栈", "字符串"] },
+    { "id": 70, "title": "爬楼梯", "titleEn": "Climbing Stairs", "difficulty": "简单", "tags": ["动态规划", "记忆化搜索"] },
+    { "id": 53, "title": "最大子数组和", "titleEn": "Maximum Subarray", "difficulty": "中等", "tags": ["数组", "动态规划", "分治"] },
+    { "id": 704, "title": "二分查找", "titleEn": "Binary Search", "difficulty": "简单", "tags": ["数组", "二分查找"] },
+    { "id": 206, "title": "反转链表", "titleEn": "Reverse Linked List", "difficulty": "简单", "tags": ["链表", "递归"] },
+    { "id": 11, "title": "盛最多水的容器", "titleEn": "Container With Most Water", "difficulty": "中等", "tags": ["数组", "双指针", "贪心"] },
+    { "id": 3, "title": "无重复字符的最长子串", "titleEn": "Longest Substring Without Repeating Characters", "difficulty": "中等", "tags": ["哈希表", "字符串", "滑动窗口"] },
+    { "id": 15, "title": "三数之和", "titleEn": "3Sum", "difficulty": "中等", "tags": ["数组", "双指针", "排序"] },
+    { "id": 322, "title": "零钱兑换", "titleEn": "Coin Change", "difficulty": "中等", "tags": ["动态规划", "广度优先搜索"] }
+  ]
+}

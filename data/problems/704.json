@@ -1,0 +1,42 @@
+{
+  "id": 704,
+  "title": "二分查找",
+  "titleEn": "Binary Search",
+  "difficulty": "简单",
+  "tags": ["数组", "二分查找"],
+  "description": "给定一个 n 个元素有序的（升序）整型数组 nums 和一个目标值 target ，写一个函数搜索 nums 中的 target，如果目标值存在返回下标，否则返回 -1。",
+  "examples": [
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = 9",
+      "output": "4",
+      "explanation": "9 出现在 nums 中并且下标为 4 。"
+    },
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = 2",
+      "output": "-1",
+      "explanation": "nums 中不存在 2 ，返回 -1 。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^4",
+    "-10^4 < nums[i], target < 10^4",
+    "nums 中的所有元素互不相同"
+  ],
+  "solutions": [
+    {
+      "level": "简单",
+      "idea": "线性扫描整个数组，找到 target 返回下标。O(n)，仅用于对照，未利用有序性。",
+      "code": "def search(nums, target):\n    for i, x in enumerate(nums):\n        if x == target:\n            return i\n    return -1\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    target = int(input())\n    print(search(nums, target))\n\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "level": "中等",
+      "idea": "标准二分：维护左右边界，每次取中点比较，相等返回、偏大收缩右界、偏小收缩左界，O(log n)。",
+      "code": "def search(nums, target):\n    l, r = 0, len(nums) - 1\n    while l <= r:\n        m = (l + r) // 2\n        if nums[m] == target:\n            return m\n        elif nums[m] < target:\n            l = m + 1\n        else:\n            r = m - 1\n    return -1\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    target = int(input())\n    print(search(nums, target))\n\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "level": "困难",
+      "idea": "在二分基础上封装为「查找下界」通用函数（第一个 >= target 的位置），既能处理「不存在返回插入位置」，也便于扩展到去重/边界类问题。",
+      "code": "def lower_bound(nums, target):\n    \"\"\"返回第一个 >= target 的下标；若全部小于 target 则返回 len(nums)。\"\"\"\n    l, r = 0, len(nums)\n    while l < r:\n        m = (l + r) // 2\n        if nums[m] < target:\n            l = m + 1\n        else:\n            r = m\n    return l\n\n\ndef search(nums, target):\n    i = lower_bound(nums, target)\n    if i < len(nums) and nums[i] == target:\n        return i\n    return -1\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    target = int(input())\n    print(search(nums, target))\n\n\nif __name__ == \"__main__\":\n    main()"
+    }
+  ]
+}
