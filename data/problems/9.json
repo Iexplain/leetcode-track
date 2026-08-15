@@ -1,0 +1,46 @@
+{
+  "id": 9,
+  "title": "回文数",
+  "titleEn": "Palindrome Number",
+  "difficulty": "简单",
+  "tags": ["数学"],
+  "description": "给你一个整数 x，判断它是否是回文数。如果是回文数返回 true，否则返回 false。回文数指正序和倒序读都相同的整数，例如 121 是回文而 123 不是。负数一律不是回文，以 0 结尾的正数（除 0 本身）也不是回文。",
+  "examples": [
+    {
+      "input": "121",
+      "output": "true",
+      "explanation": "121 正读和反读相同。"
+    },
+    {
+      "input": "-121",
+      "output": "false",
+      "explanation": "负数不是回文。"
+    },
+    {
+      "input": "10",
+      "output": "false",
+      "explanation": "末位为 0，反读会丢失前导 0。"
+    }
+  ],
+  "constraints": [
+    "-2^31 <= x <= 2^31 - 1"
+  ],
+  "ioFormat": "一行一个整数 x，输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把整数转成字符串，再把字符串反转后与原串比较。思路最直接，但需要 O(d) 额外空间（d 为位数），且涉及字符串与整数的相互转换。",
+      "code": "import sys\n\ndef is_palindrome_brute(x: int) -> bool:\n    s = str(x)\n    return s == s[::-1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        sys.exit(0)\n    x = int(data[0])\n    print('true' if is_palindrome_brute(x) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "先排除负数和末位为 0 的情况（除 0 本身外），再把整数反转后与原值比较。利用整数除法和取模，无需字符串。时间和空间仍为 O(d)，但少一次类型转换，常数更小。",
+      "code": "import sys\n\ndef is_palindrome_opt(x: int) -> bool:\n    if x < 0 or (x % 10 == 0 and x != 0):\n        return False\n    orig, rev = x, 0\n    while x > 0:\n        rev = rev * 10 + x % 10\n        x //= 10\n    return orig == rev\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        sys.exit(0)\n    x = int(data[0])\n    print('true' if is_palindrome_opt(x) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "只反转数字的后半段。一旦反转得到的数 >= 剩余的原数，就说明已经处理了一半。此时比较 rev 与 x（或 x // 10）即可。中间过程只用 O(1) 空间，且当数字位数是奇数时中间的位自然落在 x 上，无需特殊处理。",
+      "code": "import sys\n\ndef is_palindrome_best(x: int) -> bool:\n    if x < 0 or (x % 10 == 0 and x != 0):\n        return False\n    rev = 0\n    while x > rev:\n        rev = rev * 10 + x % 10\n        x //= 10\n    # 偶数位：x == rev；奇数位：x == rev // 10\n    return x == rev or x == rev // 10\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        sys.exit(0)\n    x = int(data[0])\n    print('true' if is_palindrome_best(x) else 'false')\n"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "id": 26,
+  "title": "删除有序数组中的重复项",
+  "titleEn": "Remove Duplicates from Sorted Array",
+  "difficulty": "简单",
+  "tags": ["数组", "双指针"],
+  "description": "给你一个升序排列的数组 nums，请你原地删除重复出现的元素，使每个元素只出现一次，返回删除后数组的新长度。元素的相对顺序应保持一致。由于是原地操作，需保证前 k 个元素就是去重后的结果。",
+  "examples": [
+    {
+      "input": "5\n1 1 2",
+      "output": "2\n1 2",
+      "explanation": "前两个元素为 1、2，返回长度 2。"
+    },
+    {
+      "input": "10\n0 0 1 1 1 2 2 3 3 4",
+      "output": "5\n0 1 2 3 4",
+      "explanation": "去重后为 [0,1,2,3,4]。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 3 * 10^4",
+    "-100 <= nums[i] <= 100",
+    "nums 已按升序排列"
+  ],
+  "ioFormat": "第一行 n 表示数组长度，第二行 n 个整数。输出一行新长度 k，下一行 k 个整数为去重后的数组。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把所有元素放进辅助集合，从集合还原出有序去重数组。优点是写法极简，缺点是使用 O(n) 额外空间，而且丢失了“就地修改”这一原题约束（实际无法真正原地）。",
+      "code": "import sys\n\ndef remove_duplicates_brute(nums):\n    seen = set()\n    res = []\n    for x in nums:\n        if x not in seen:\n            seen.add(x)\n            res.append(x)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    res = remove_duplicates_brute(nums)\n    print(len(res))\n    if res:\n        print(' '.join(map(str, res)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "经典双指针：slow 指向已确定去重部分的末尾，fast 扫描原数组。当 nums[fast] 与 nums[slow-1] 不同时，把它写到 slow 位置，slow++。最终 slow 就是新长度。O(n) 时间、O(1) 额外空间，且确实是就地修改。",
+      "code": "import sys\n\ndef remove_duplicates_opt(nums):\n    if not nums:\n        return 0\n    slow = 1\n    for fast in range(1, len(nums)):\n        if nums[fast] != nums[slow - 1]:\n            nums[slow] = nums[fast]\n            slow += 1\n    return slow, nums[:slow]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k, res = remove_duplicates_opt(nums)\n    print(k)\n    if res:\n        print(' '.join(map(str, res)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "把模板泛化为“允许每个元素最多出现 k 次”，这里 k=2。等价问题用同样的 slow/fast 写法：把与 nums[slow-k] 不同的元素写到 slow。当 k=1 时回到本题。利用切片直接完成就地版本，比手动管理索引更紧凑，时间空间复杂度一致。",
+      "code": "import sys\n\ndef remove_duplicates_general(nums, k=1):\n    # 允许每个值最多出现 k 次（k=1 即本题）\n    slow = 0\n    for x in nums:\n        if slow < k or x != nums[slow - k]:\n            nums[slow] = x\n            slow += 1\n    return slow, nums[:slow]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k, res = remove_duplicates_general(nums, k=1)\n    print(k)\n    if res:\n        print(' '.join(map(str, res)))\n"
+    }
+  ]
+}

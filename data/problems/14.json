@@ -1,0 +1,43 @@
+{
+  "id": 14,
+  "title": "最长公共前缀",
+  "titleEn": "Longest Common Prefix",
+  "difficulty": "简单",
+  "tags": ["字符串", "字典树"],
+  "description": "编写一个函数，在一组字符串中找出它们的最长公共前缀。如果不存在公共前缀，返回空字符串 \"\"。",
+  "examples": [
+    {
+      "input": "3\nflower\nflow\nflight",
+      "output": "fl",
+      "explanation": "所有字符串都以 \"fl\" 开头。"
+    },
+    {
+      "input": "2\ndog\nracecar",
+      "output": "",
+      "explanation": "这两个字符串没有公共前缀。"
+    }
+  ],
+  "constraints": [
+    "1 <= strs.length <= 200",
+    "1 <= strs[i].length <= 200",
+    "strs[i] 仅由小写英文字母组成"
+  ],
+  "ioFormat": "第一行整数 n 表示字符串个数，接下来 n 行每行一个字符串。输出最长公共前缀（若无则输出空行）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "横向扫描：以第一个字符串为初始前缀，依次把它与后面的字符串比较，不断把前缀缩短到当前匹配的最长部分。直观但每次都从头比较，重复计算较多。",
+      "code": "import sys\n\ndef longest_common_prefix_brute(strs):\n    if not strs:\n        return \"\"\n    prefix = strs[0]\n    for s in strs[1:]:\n        i = 0\n        while i < len(prefix) and i < len(s) and prefix[i] == s[i]:\n            i += 1\n        prefix = prefix[:i]\n        if not prefix:\n            break\n    return prefix\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    strs = [data[i + 1].rstrip('\\n') for i in range(n)]\n    print(longest_common_prefix_brute(strs))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "纵向（按列）扫描：依次检查每个字符串在位置 i 上的字符是否一致。一旦遇到不一致或某个字符串长度不足，立刻停止前缀延长。逐列比较更快短路，O(S) 时间 O(1) 额外空间。",
+      "code": "import sys\n\ndef longest_common_prefix_opt(strs):\n    if not strs:\n        return \"\"\n    for i, ch in enumerate(strs[0]):\n        for s in strs[1:]:\n            if i >= len(s) or s[i] != ch:\n                return strs[0][:i]\n    return strs[0]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    strs = [data[i + 1].rstrip('\\n') for i in range(n)]\n    print(longest_common_prefix_opt(strs))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "二分搜索前缀长度。先猜一个最大可能长度 mid，检查所有字符串是否都以 strs[0][:mid] 为前缀。如果都满足则上界提升到 mid+1，否则下界降低。每次把搜索区间减半，最多 log(min_len) 次检查。每次检查扫描所有字符串，总复杂度 O(S · log min_len)，适用于字符串极长或字符串数极多的场景。",
+      "code": "import sys\n\ndef is_common_prefix(strs, length):\n    base = strs[0][:length]\n    for s in strs[1:]:\n        if not s.startswith(base):\n            return False\n    return True\n\ndef longest_common_prefix_best(strs):\n    if not strs:\n        return \"\"\n    lo, hi = 0, min(len(s) for s in strs)\n    while lo < hi:\n        mid = (lo + hi + 1) // 2\n        if is_common_prefix(strs, mid):\n            lo = mid\n        else:\n            hi = mid - 1\n    return strs[0][:lo]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    strs = [data[i + 1].rstrip('\\n') for i in range(n)]\n    print(longest_common_prefix_best(strs))\n"
+    }
+  ]
+}

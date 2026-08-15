@@ -1,0 +1,41 @@
+{
+  "id": 69,
+  "title": "x 的平方根",
+  "titleEn": "Sqrt(x)",
+  "difficulty": "简单",
+  "tags": ["数学", "二分查找"],
+  "description": "给你一个非负整数 x，计算并返回 x 的算术平方根的整数部分（向下取整）。不允许使用任何内置指数函数和浮点库，要求时间复杂度 O(log n)。",
+  "examples": [
+    {
+      "input": "4",
+      "output": "2",
+      "explanation": "sqrt(4) = 2，恰好是整数。"
+    },
+    {
+      "input": "8",
+      "output": "2",
+      "explanation": "sqrt(8) ≈ 2.828，下取整为 2。"
+    }
+  ],
+  "constraints": [
+    "0 <= x <= 2^31 - 1"
+  ],
+  "ioFormat": "输入一个整数 x，输出一个整数表示 floor(sqrt(x))。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "从 i=1 开始逐个尝试 i*i <= x，记录最大的 i。直观但 O(sqrt(x)) 时间，当 x 接近 2^31 时需要 ~46340 次迭代，能过但慢。",
+      "code": "import sys\n\ndef my_sqrt_brute(x: int) -> int:\n    if x < 2:\n        return x\n    i = 1\n    while i * i <= x:\n        i += 1\n    return i - 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    x = int(data[0])\n    print(my_sqrt_brute(x))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "在区间 [0, x] 上做标准的整数二分。循环不变量：ans 永远是“满足 mid*mid <= x”的最大 mid。每次 mid*mid 与 x 比较，更新 ans 后调整边界。当 lo > hi 时结束，返回 ans。注意 mid*mid 可能溢出，用 // 防御：在比较前先判 mid > x // mid 等价于 mid*mid > x。",
+      "code": "import sys\n\ndef my_sqrt_opt(x: int) -> int:\n    if x < 2:\n        return x\n    lo, hi, ans = 1, x // 2, 0\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if mid <= x // mid:\n            ans = mid\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    x = int(data[0])\n    print(my_sqrt_opt(x))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Newton 迭代：求 t = sqrt(x) 等价于找 f(t)=t^2-x 的根。用 t_{k+1} = (t_k + x/t_k)/2，每轮平方误差以二次速率收敛，常数次迭代即可达到 64 位精度。代码极短，常数也比二分小。整型世界里迭代时改用整数除法即可。",
+      "code": "import sys\n\ndef my_sqrt_best(x: int) -> int:\n    if x < 2:\n        return x\n    t = x // 2\n    while True:\n        new_t = (t + x // t) // 2\n        if new_t >= t:\n            return t\n        t = new_t\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    x = int(data[0])\n    print(my_sqrt_best(x))\n"
+    }
+  ]
+}

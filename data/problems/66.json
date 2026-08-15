@@ -1,0 +1,43 @@
+{
+  "id": 66,
+  "title": "加一",
+  "titleEn": "Plus One",
+  "difficulty": "简单",
+  "tags": ["数组", "数学"],
+  "description": "给定一个表示大整数的非空整数数组 digits，其中 digits[i] 是该整数第 i 位上的数字。数字按高位到低位顺序排列，每个元素取值 [0,9]。请你将这个整数加 1，并以同样形式返回结果数组。",
+  "examples": [
+    {
+      "input": "4\n1 2 3 4",
+      "output": "1 2 3 5",
+      "explanation": "1234 + 1 = 1235。"
+    },
+    {
+      "input": "4\n9 9 9 9",
+      "output": "1 0 0 0 0",
+      "explanation": "9999 + 1 = 10000，结果多出一位。"
+    }
+  ],
+  "constraints": [
+    "1 <= digits.length <= 100",
+    "0 <= digits[i] <= 9",
+    "digits 不含前导零（除 digits 本身为 \"0\" 的情形外）"
+  ],
+  "ioFormat": "第一行 n 表示位数，第二行 n 个数字。输出一行新的数字序列。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把数组还原成 Python 整数（用 int(''.join(digits))），加 1，再拆分成字符数组 str(num)。代码极短，但整数转换受限于语言内置整数长度（Python 虽无硬上限，但 n=100 时仍可能极慢；强类型语言如 C++/Java 则会溢出）。",
+      "code": "import sys\n\ndef plus_one_brute(digits):\n    num = int(''.join(map(str, digits))) + 1\n    return list(map(int, str(num)))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    digits = list(map(int, data[1:1 + n]))\n    res = plus_one_brute(digits)\n    print(' '.join(map(str, res)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "从数组末位开始反向遍历，遇到 9 就把它变 0 并把进位传给前一位；遇到非 9 就直接加 1 返回。若全部位都处理完仍存在进位，说明是 999 这种情况，在数组头插入 1。完全按位运算，无视语言整数长度，O(n) 时间 O(1) 额外空间（最坏 O(n) 用于新数组）。",
+      "code": "import sys\n\ndef plus_one_opt(digits):\n    n = len(digits)\n    for i in range(n - 1, -1, -1):\n        if digits[i] < 9:\n            digits[i] += 1\n            return digits\n        digits[i] = 0\n    digits.insert(0, 1)\n    return digits\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    digits = list(map(int, data[1:1 + n]))\n    res = plus_one_opt(digits)\n    print(' '.join(map(str, res)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与优化版等价，但通过 carry 标志走统一的位运算循环写法，让任何一位都不被特殊处理：digits[i] += carry; carry = digits[i] // 10; digits[i] %= 10。逻辑更通用，方便后续扩展到“加 k”这种变种。面试中展示这种通用模板，往往比直接写 if 9 更受青睐。",
+      "code": "import sys\n\ndef plus_one_best(digits, k=1):\n    n = len(digits)\n    carry = k\n    for i in range(n - 1, -1, -1):\n        carry, digits[i] = divmod(digits[i] + carry, 10)\n        if carry == 0:\n            return digits\n    if carry:\n        digits.insert(0, carry)\n    return digits\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    digits = list(map(int, data[1:1 + n]))\n    res = plus_one_best(digits)\n    print(' '.join(map(str, res)))\n"
+    }
+  ]
+}

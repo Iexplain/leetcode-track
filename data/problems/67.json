@@ -1,0 +1,43 @@
+{
+  "id": 67,
+  "title": "二进制求和",
+  "titleEn": "Add Binary",
+  "difficulty": "简单",
+  "tags": ["数学", "字符串", "位运算", "模拟"],
+  "description": "给你两个二进制字符串 a 和 b，返回它们的和（同样用二进制字符串表示）。输入仅由字符 '0' 和 '1' 组成，且不含前导零（除非字符串本身就是 \"0\"）。",
+  "examples": [
+    {
+      "input": "11\n1",
+      "output": "100",
+      "explanation": "11 (3) + 1 (1) = 100 (4)。"
+    },
+    {
+      "input": "1010\n1011",
+      "output": "10101",
+      "explanation": "1010 (10) + 1011 (11) = 10101 (21)。"
+    }
+  ],
+  "constraints": [
+    "1 <= a.length, b.length <= 10^4",
+    "字符串只包含 '0' 或 '1'",
+    "除 \"0\" 外不含前导零"
+  ],
+  "ioFormat": "第一行为 a，第二行为 b。输出它们的二进制和。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接调用 Python 内置 int() 把二进制串解析成整数，相加后再用 bin()[2:] 转回字符串。代码极简，但利用了大整数类型。当输入长度超过 10^4 时仍能正确，但说明时间复杂度至少 O(n)（int 内部按位处理），且无法用于不支持大整数的语言环境。",
+      "code": "import sys\n\ndef add_binary_brute(a, b):\n    return bin(int(a, 2) + int(b, 2))[2:]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print(add_binary_brute(data[0].strip(), data[1].strip()))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "从两个串的末尾同时反向遍历，按位相加并维护 carry。结果位数 cur = (a位 ^ b位 ^ carry)，新 carry 由当前三者中 1 的个数决定。用列表收集每一位，最后反转并 join，是模板化的“二进制手动加法”。O(max(n,m)) 时间 O(max(n,m)) 空间。",
+      "code": "import sys\n\ndef add_binary_opt(a, b):\n    i, j, carry = len(a) - 1, len(b) - 1, 0\n    res = []\n    while i >= 0 or j >= 0 or carry:\n        x = ord(a[i]) - ord('0') if i >= 0 else 0\n        y = ord(b[j]) - ord('0') if j >= 0 else 0\n        cur = x ^ y ^ carry\n        carry = (x & y) | (x & carry) | (y & carry)\n        res.append(chr(cur + ord('0')))\n        i -= 1\n        j -= 1\n    return ''.join(reversed(res))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print(add_binary_opt(data[0].strip(), data[1].strip()))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在优化版基础上把变量名写得更直观，并加上 zero-extend 的对偶写法：i -= (i >= 0); j -= (j >= 0)，可以省一次内联三元。逻辑等价，但代码读起来更接近“伪代码”，是面试中最常见的展示版本。",
+      "code": "import sys\n\ndef add_binary_best(a, b):\n    i, j, carry = len(a) - 1, len(b) - 1, 0\n    out = []\n    while i >= 0 or j >= 0 or carry:\n        da = ord(a[i]) - 48 if i >= 0 else 0\n        db = ord(b[j]) - 48 if j >= 0 else 0\n        s = da + db + carry\n        out.append('1' if s & 1 else '0')\n        carry = s >> 1\n        i -= 1\n        j -= 1\n    return ''.join(reversed(out))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print(add_binary_best(data[0].strip(), data[1].strip()))\n"
+    }
+  ]
+}

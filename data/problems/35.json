@@ -1,0 +1,44 @@
+{
+  "id": 35,
+  "title": "搜索插入位置",
+  "titleEn": "Search Insert Position",
+  "difficulty": "简单",
+  "tags": ["数组", "二分查找"],
+  "description": "给定一个升序排列的整数数组 nums 和一个目标值 target，在数组中查找 target。如果存在则返回下标，否则返回它按顺序插入数组后的下标。算法必须在 O(log n) 时间复杂度内完成。",
+  "examples": [
+    {
+      "input": "4\n1 3 5 6\n5",
+      "output": "2",
+      "explanation": "5 在数组中，下标为 2。"
+    },
+    {
+      "input": "4\n1 3 5 6\n2",
+      "output": "1",
+      "explanation": "2 不在数组中，应插入到下标 1 的位置。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^4",
+    "-10^4 <= nums[i] <= 10^4",
+    "nums 中元素互不相同且已升序排列",
+    "-10^4 <= target <= 10^4"
+  ],
+  "ioFormat": "第一行 n 表示数组长度，第二行 n 个升序整数，第三行为 target。输出一个整数表示下标。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "顺序扫描数组，遇到 >= target 的元素时返回下标；扫完都没遇到则返回 n。逻辑最直观，但 O(n) 时间，在题目要求 O(log n) 时会超时。",
+      "code": "import sys\n\ndef search_insert_brute(nums, target):\n    for i, x in enumerate(nums):\n        if x >= target:\n            return i\n    return len(nums)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    print(search_insert_brute(nums, target))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "标准闭区间二分：lo=0, hi=n-1。每次取 mid，比较 nums[mid] 与 target，相等返回 mid，否则缩半边。循环结束后 lo 即为插入位置。O(log n) 时间 O(1) 空间，是面试最常写版本。",
+      "code": "import sys\n\ndef search_insert_opt(nums, target):\n    lo, hi = 0, len(nums) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return lo\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    print(search_insert_opt(nums, target))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 bisect_left 的思想写“左边界”二分：搜索区间是 [lo, hi)，终止条件 lo == hi。此时 lo 恰好是第一个 >= target 的下标，无需后处理。比起闭区间版本省了一次“返回 vs 插入位置”的分支讨论，循环不变量更清晰。Python 等价实现是 bisect.bisect_left。",
+      "code": "import sys\n\ndef search_insert_best(nums, target):\n    lo, hi = 0, len(nums)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if nums[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid\n    return lo\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    print(search_insert_best(nums, target))\n"
+    }
+  ]
+}

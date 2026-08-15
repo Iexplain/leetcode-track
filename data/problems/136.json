@@ -1,0 +1,43 @@
+{
+  "id": 136,
+  "title": "只出现一次的数字",
+  "titleEn": "Single Number",
+  "difficulty": "简单",
+  "tags": ["位运算", "数组"],
+  "description": "给你一个非空整数数组 nums，除某个元素只出现一次外，其余每个元素均恰出现两次。找出那个只出现一次的元素。要求时间 O(n)、空间 O(1)。",
+  "examples": [
+    {
+      "input": "5\n2 2 1",
+      "output": "1",
+      "explanation": "1 只出现一次。"
+    },
+    {
+      "input": "7\n4 1 2 1 2",
+      "output": "4",
+      "explanation": "4 只出现一次，其余都成对。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 3 * 10^4",
+    "-3 * 10^4 <= nums[i] <= 3 * 10^4",
+    "除一个元素外，每个元素都出现两次"
+  ],
+  "ioFormat": "第一行 n 表示数组长度，第二行 n 个整数。输出仅出现一次的元素。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用一个哈希集合遍历：出现过的数字删掉，没出现的加入。最后集合里剩下的就是答案。直白但 O(n) 额外空间，违反空间复杂度要求。",
+      "code": "import sys\n\ndef single_number_brute(nums):\n    seen = set()\n    for x in nums:\n        if x in seen:\n            seen.remove(x)\n        else:\n            seen.add(x)\n    return next(iter(seen))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(single_number_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "先排序再扫描：排序后相同数字必然相邻，单次出现的那一个就落在 i 为奇数且与上一个不同的位置。O(n log n) 时间 O(1) 额外空间（如允许就地排序），但仍慢于位运算解。",
+      "code": "import sys\n\ndef single_number_opt(nums):\n    nums = sorted(nums)\n    for i in range(1, len(nums), 2):\n        if nums[i] != nums[i - 1]:\n            return nums[i - 1]\n    return nums[-1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(single_number_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "利用位运算性质 a ^ a = 0、a ^ 0 = a，且异或满足交换律和结合律。把整个数组连续异或，成对元素互相抵消为 0，剩下的就是只出现一次的数。一行代码完成，O(n) 时间 O(1) 空间，是面试必须掌握的标准解。",
+      "code": "import sys\n\ndef single_number_best(nums):\n    ans = 0\n    for x in nums:\n        ans ^= x\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(single_number_best(nums))\n"
+    }
+  ]
+}

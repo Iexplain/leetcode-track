@@ -1,0 +1,43 @@
+{
+  "id": 58,
+  "title": "最后一个单词的长度",
+  "titleEn": "Length of Last Word",
+  "difficulty": "简单",
+  "tags": ["字符串"],
+  "description": "给你一个字符串 s，由若干英文单词组成，单词之间用空格分隔。返回最后一个单词的长度。所谓单词指仅由字母组成、不含空格的连续子串。可以假设 s 中至少存在一个单词。",
+  "examples": [
+    {
+      "input": "Hello World",
+      "output": "5",
+      "explanation": "最后一个单词是 \"World\"，长度 5。"
+    },
+    {
+      "input": "   fly me   to   the moon  ",
+      "output": "4",
+      "explanation": "最后一个单词是 \"moon\"，长度 4。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 10^4",
+    "s 仅由英文字母和空格 ' ' 组成",
+    "s 中至少存在一个单词"
+  ],
+  "ioFormat": "输入一行字符串 s（可能含首尾空格），输出一个整数表示最后一个单词长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 strip() 去首尾空格，再 split() 按空格切分，直接取最后一个元素的长度。代码极短，但 split 会复制整串并分配所有单词列表，时间 O(n) 空间 O(n)。",
+      "code": "import sys\n\ndef length_of_last_word_brute(s: str) -> int:\n    return len(s.strip().split()[-1])\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print(length_of_last_word_brute(s))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "从串尾往前扫描：先跳过所有末尾空格，再开始统计连续字母的个数，遇到空格就停。无需分词、无需辅助数组，O(n) 时间 O(1) 空间。",
+      "code": "import sys\n\ndef length_of_last_word_opt(s: str) -> int:\n    i = len(s) - 1\n    while i >= 0 and s[i] == ' ':\n        i -= 1\n    end = i\n    while i >= 0 and s[i] != ' ':\n        i -= 1\n    return end - i\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print(length_of_last_word_opt(s))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在优化版基础上做一次扫描合并：用单个 while 从尾部左移，遇到空格且当前还在计数中就终止。代码更紧凑，逻辑和优化版等价，是面试中推荐的“一气呵成”写法。",
+      "code": "import sys\n\ndef length_of_last_word_best(s: str) -> int:\n    n = len(s)\n    i, length = n - 1, 0\n    while i >= 0:\n        if s[i] == ' ':\n            if length > 0:\n                break\n        else:\n            length += 1\n        i -= 1\n    return length\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print(length_of_last_word_best(s))\n"
+    }
+  ]
+}

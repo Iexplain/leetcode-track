@@ -1,0 +1,43 @@
+{
+  "id": 21,
+  "title": "合并两个有序链表",
+  "titleEn": "Merge Two Sorted Lists",
+  "difficulty": "简单",
+  "tags": ["递归", "链表"],
+  "description": "将两个升序链表合并为一个新的升序链表并返回。新链表通过将原链表节点拼接而成。",
+  "examples": [
+    {
+      "input": "3 4\n1 2 4\n1 3 4",
+      "output": "1 1 2 3 4 4",
+      "explanation": "两个升序链表 [1,2,4] 与 [1,3,4] 合并得到 [1,1,2,3,4,4]。"
+    },
+    {
+      "input": "0 1\n\n0",
+      "output": "0",
+      "explanation": "第一个链表为空，结果就是第二个。"
+    }
+  ],
+  "constraints": [
+    "两个链表结点数范围 [0, 50]",
+    "-100 <= Node.val <= 100",
+    "l1 与 l2 均按非递减排列"
+  ],
+  "ioFormat": "第一行两个整数 m n，分别表示两链表长度；第二行 m 个整数是第一个链表；第三行 n 个整数是第二个链表。输出一行合并后的链表值（用空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把两条链表的值分别收集成数组，合并后整体排序，再按顺序构造新链表（或直接输出数组）。思路简单，但 O((m+n) log(m+n)) 的排序时间并没有利用输入已经有序这一条件。",
+      "code": "import sys\n\ndef merge_brute(l1, l2):\n    vals = l1 + l2\n    vals.sort()\n    return vals\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data or not data[0].strip():\n        sys.exit(0)\n    m_n = data[0].split()\n    m, n = int(m_n[0]), int(m_n[1])\n    l1 = list(map(int, data[1].split())) if m > 0 and len(data) > 1 else []\n    l2 = list(map(int, data[2].split())) if n > 0 and len(data) > 2 else []\n    print(' '.join(map(str, merge_brute(l1, l2))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "迭代双指针：用一个 dummy 头结点简化边界处理，比较两个链表的当前节点，把较小者接到结果末尾，并把对应指针后移。某一链表为空后，把另一链表剩余部分全部接上。O(m+n) 时间、O(1) 额外空间。",
+      "code": "import sys\n\ndef merge_opt(l1, l2):\n    res = []\n    i = j = 0\n    while i < len(l1) and j < len(l2):\n        if l1[i] <= l2[j]:\n            res.append(l1[i])\n            i += 1\n        else:\n            res.append(l2[j])\n            j += 1\n    res.extend(l1[i:])\n    res.extend(l2[j:])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data or not data[0].strip():\n        sys.exit(0)\n    m_n = data[0].split()\n    m, n = int(m_n[0]), int(m_n[1])\n    l1 = list(map(int, data[1].split())) if m > 0 and len(data) > 1 else []\n    l2 = list(map(int, data[2].split())) if n > 0 and len(data) > 2 else []\n    print(' '.join(map(str, merge_opt(l1, l2))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归写法：把“合并两个有序链表”分解为“取较小值 + 合并其 next 与另一条链表”。递归基是任一链表为空，直接返回另一条。逻辑清晰，无需 dummy。代价是递归栈 O(m+n)，在 m+n 极大（如 10^5）时可能栈溢出，工程上更推荐迭代版本；本写法是面试表达递归思维的最佳选择。",
+      "code": "import sys\n\ndef merge_rec(l1, l2):\n    if not l1 or not l2:\n        return l1 or l2\n    if l1[0] <= l2[0]:\n        return [l1[0]] + merge_rec(l1[1:], l2)\n    else:\n        return [l2[0]] + merge_rec(l1, l2[1:])\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data or not data[0].strip():\n        sys.exit(0)\n    m_n = data[0].split()\n    m, n = int(m_n[0]), int(m_n[1])\n    l1 = list(map(int, data[1].split())) if m > 0 and len(data) > 1 else []\n    l2 = list(map(int, data[2].split())) if n > 0 and len(data) > 2 else []\n    print(' '.join(map(str, merge_rec(l1, l2))))\n"
+    }
+  ]
+}
