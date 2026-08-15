@@ -22,17 +22,17 @@
   ],
   "solutions": [
     {
-      "level": "简单",
+      "level": "暴力",
       "idea": "递归枚举每次走 1 或 2 阶，到达顶端计数。最易理解，但重复子问题导致指数级时间，仅适合极小 n。",
       "code": "def climb_stairs(n: int) -> int:\n    if n <= 1:\n        return 1\n    return climb_stairs(n - 1) + climb_stairs(n - 2)\n\n\ndef main():\n    n = int(input())\n    print(climb_stairs(n))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "中等",
+      "level": "优化",
       "idea": "用记忆化（缓存）消除重复子问题，或自底向上 DP：dp[i]=dp[i-1]+dp[i-2]，时间复杂度降为 O(n)。",
       "code": "def climb_stairs(n: int) -> int:\n    if n <= 2:\n        return n\n    a, b = 1, 2  # dp[1], dp[2]\n    for _ in range(3, n + 1):\n        a, b = b, a + b\n    return b\n\n\ndef main():\n    n = int(input())\n    print(climb_stairs(n))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "困难",
+      "level": "最优",
       "idea": "当 n 很大时用矩阵快速幂把递推优化到 O(log n)；本题 n<=45 用滚动变量已足够，但掌握矩阵法可应对超大 n 的取模场景。",
       "code": "def mat_mul(a, b):\n    return [\n        [a[0][0]*b[0][0] + a[0][1]*b[1][0], a[0][0]*b[0][1] + a[0][1]*b[1][1]],\n        [a[1][0]*b[0][0] + a[1][1]*b[1][0], a[1][0]*b[0][1] + a[1][1]*b[1][1]],\n    ]\n\n\ndef mat_pow(m, p):\n    res = [[1, 0], [0, 1]]\n    while p:\n        if p & 1:\n            res = mat_mul(res, m)\n        m = mat_mul(m, m)\n        p >>= 1\n    return res\n\n\ndef climb_stairs(n: int) -> int:\n    if n <= 2:\n        return n\n    m = [[1, 1], [1, 0]]\n    return mat_pow(m, n - 1)[0][0]\n\n\ndef main():\n    n = int(input())\n    print(climb_stairs(n))\n\n\nif __name__ == \"__main__\":\n    main()"
     }

@@ -17,17 +17,17 @@
   "ioFormat": "输入：一行空格分隔的整数表示链表各节点值；输出：反转后空格分隔的节点值。",
   "solutions": [
     {
-      "level": "简单",
+      "level": "暴力",
       "idea": "把链表值收集到列表里反转后重建链表。最易写，但用了额外 O(n) 空间，没有真正「原地」反转。",
       "code": "class ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\n\ndef build(vals):\n    dummy = ListNode(0)\n    p = dummy\n    for v in vals:\n        p.next = ListNode(v)\n        p = p.next\n    return dummy.next\n\n\ndef to_vals(head):\n    res = []\n    while head:\n        res.append(head.val)\n        head = head.next\n    return res\n\n\ndef reverse_list(head):\n    vals = to_vals(head)\n    return build(vals[::-1])\n\n\ndef main():\n    line = input().strip()\n    vals = list(map(int, line.split())) if line else []\n    print(' '.join(map(str, to_vals(reverse_list(build(vals))))))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "中等",
+      "level": "优化",
       "idea": "迭代原地反转：用 prev/cur 两个指针，逐个把 next 指向前驱，O(n) 时间 O(1) 空间。",
       "code": "class ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\n\ndef build(vals):\n    dummy = ListNode(0)\n    p = dummy\n    for v in vals:\n        p.next = ListNode(v)\n        p = p.next\n    return dummy.next\n\n\ndef to_vals(head):\n    res = []\n    while head:\n        res.append(head.val)\n        head = head.next\n    return res\n\n\ndef reverse_list(head):\n    prev = None\n    cur = head\n    while cur:\n        nxt = cur.next\n        cur.next = prev\n        prev = cur\n        cur = nxt\n    return prev\n\n\ndef main():\n    line = input().strip()\n    vals = list(map(int, line.split())) if line else []\n    print(' '.join(map(str, to_vals(reverse_list(build(vals))))))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "困难",
+      "level": "最优",
       "idea": "递归反转：reverse(head.next) 返回新头，再把后继指回当前、当前断尾。代码极简但栈深 O(n)，用于体会递归的「自相似」结构。",
       "code": "class ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\n\ndef build(vals):\n    dummy = ListNode(0)\n    p = dummy\n    for v in vals:\n        p.next = ListNode(v)\n        p = p.next\n    return dummy.next\n\n\ndef to_vals(head):\n    res = []\n    while head:\n        res.append(head.val)\n        head = head.next\n    return res\n\n\ndef reverse_list(head):\n    if not head or not head.next:\n        return head\n    new_head = reverse_list(head.next)\n    head.next.next = head\n    head.next = None\n    return new_head\n\n\ndef main():\n    line = input().strip()\n    vals = list(map(int, line.split())) if line else []\n    print(' '.join(map(str, to_vals(reverse_list(build(vals))))))\n\n\nif __name__ == \"__main__\":\n    main()"
     }

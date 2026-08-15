@@ -24,17 +24,17 @@
   ],
   "solutions": [
     {
-      "level": "简单",
+      "level": "暴力",
       "idea": "线性扫描整个数组，找到 target 返回下标。O(n)，仅用于对照，未利用有序性。",
       "code": "def search(nums, target):\n    for i, x in enumerate(nums):\n        if x == target:\n            return i\n    return -1\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    target = int(input())\n    print(search(nums, target))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "中等",
+      "level": "优化",
       "idea": "标准二分：维护左右边界，每次取中点比较，相等返回、偏大收缩右界、偏小收缩左界，O(log n)。",
       "code": "def search(nums, target):\n    l, r = 0, len(nums) - 1\n    while l <= r:\n        m = (l + r) // 2\n        if nums[m] == target:\n            return m\n        elif nums[m] < target:\n            l = m + 1\n        else:\n            r = m - 1\n    return -1\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    target = int(input())\n    print(search(nums, target))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "困难",
+      "level": "最优",
       "idea": "在二分基础上封装为「查找下界」通用函数（第一个 >= target 的位置），既能处理「不存在返回插入位置」，也便于扩展到去重/边界类问题。",
       "code": "def lower_bound(nums, target):\n    \"\"\"返回第一个 >= target 的下标；若全部小于 target 则返回 len(nums)。\"\"\"\n    l, r = 0, len(nums)\n    while l < r:\n        m = (l + r) // 2\n        if nums[m] < target:\n            l = m + 1\n        else:\n            r = m\n    return l\n\n\ndef search(nums, target):\n    i = lower_bound(nums, target)\n    if i < len(nums) and nums[i] == target:\n        return i\n    return -1\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    target = int(input())\n    print(search(nums, target))\n\n\nif __name__ == \"__main__\":\n    main()"
     }

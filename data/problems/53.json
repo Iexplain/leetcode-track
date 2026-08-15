@@ -28,17 +28,17 @@
   ],
   "solutions": [
     {
-      "level": "简单",
+      "level": "暴力",
       "idea": "枚举所有起点与终点（双重循环）求每段和取最大。最直白，但 O(n^2) 在 10^5 规模会超时。",
       "code": "def max_sub_array(nums):\n    n = len(nums)\n    best = nums[0]\n    for i in range(n):\n        s = 0\n        for j in range(i, n):\n            s += nums[j]\n            if s > best:\n                best = s\n    return best\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    print(max_sub_array(nums))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "中等",
+      "level": "优化",
       "idea": "贪心/动态规划：维护「以当前元素结尾的最大子段和」，若前一段为负则抛弃，从头开始；边遍历边更新全局最大值，O(n)。",
       "code": "def max_sub_array(nums):\n    best = cur = nums[0]\n    for x in nums[1:]:\n        cur = x if cur < 0 else cur + x\n        if cur > best:\n            best = cur\n    return best\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    print(max_sub_array(nums))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "困难",
+      "level": "最优",
       "idea": "分治法：最大子段和要么在左半、要么在右半、要么跨越中点。递归合并，O(n log n)，是理解「分治+跨越合并」思想的经典范例。",
       "code": "def cross_max(nums, l, m, r):\n    left = -10**9\n    s = 0\n    for i in range(m, l - 1, -1):\n        s += nums[i]\n        left = max(left, s)\n    right = -10**9\n    s = 0\n    for i in range(m + 1, r + 1):\n        s += nums[i]\n        right = max(right, s)\n    return left + right\n\n\ndef dc(nums, l, r):\n    if l == r:\n        return nums[l]\n    m = (l + r) // 2\n    return max(dc(nums, l, m), dc(nums, m + 1, r), cross_max(nums, l, m, r))\n\n\ndef max_sub_array(nums):\n    return dc(nums, 0, len(nums) - 1)\n\n\ndef main():\n    nums = list(map(int, input().split()))\n    print(max_sub_array(nums))\n\n\nif __name__ == \"__main__\":\n    main()"
     }

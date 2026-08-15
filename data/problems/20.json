@@ -28,17 +28,17 @@
   ],
   "solutions": [
     {
-      "level": "简单",
+      "level": "暴力",
       "idea": "用栈维护左括号，遇到右括号时弹出栈顶匹配，不匹配或栈为空则无效；最后栈需为空。最直观的栈应用。",
       "code": "def is_valid(s: str) -> bool:\n    stack = []\n    pair = {')': '(', '}': '{', ']': '['}\n    for ch in s:\n        if ch in '({[':\n            stack.append(ch)\n        else:\n            if not stack or stack.pop() != pair[ch]:\n                return False\n    return not stack\n\n\ndef main():\n    s = input().strip()\n    print(str(is_valid(s)).lower())\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "中等",
+      "level": "优化",
       "idea": "在栈解法基础上提前处理奇数长度剪枝，并用字典做映射，代码更紧凑；配合早退提升平均性能。",
       "code": "def is_valid(s: str) -> bool:\n    if len(s) % 2 == 1:\n        return False\n    stack = []\n    mp = {')': '(', '}': '{', ']': '['}\n    for ch in s:\n        if ch not in mp:\n            stack.append(ch)\n        elif not stack or stack.pop() != mp[ch]:\n            return False\n    return not stack\n\n\ndef main():\n    s = input().strip()\n    print(str(is_valid(s)).lower())\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "困难",
+      "level": "最优",
       "idea": "支持多种括号类型与转义字符的通用校验器：先预处理过滤非括号字符，再统一走栈逻辑，并给出首个出错位置，便于调试复杂表达式。",
       "code": "def is_valid_ext(s: str):\n    \"\"\"返回 (是否有效, 首个错误下标或 -1)。\"\"\"\n    stack = []\n    mp = {')': '(', '}': '{', ']': '['}\n    for i, ch in enumerate(s):\n        if ch not in mp and ch not in mp.values():\n            continue  # 忽略非括号字符\n        if ch not in mp:\n            stack.append((ch, i))\n        else:\n            if not stack or stack.pop()[0] != mp[ch]:\n                return False, i\n    return (len(stack) == 0), (stack[0][1] if stack else -1)\n\n\ndef main():\n    s = input().strip()\n    ok, pos = is_valid_ext(s)\n    print(str(ok).lower())\n\n\nif __name__ == \"__main__\":\n    main()"
     }

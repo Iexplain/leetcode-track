@@ -17,17 +17,17 @@
   "ioFormat": "输入：一行空格分隔的整数 height；输出：最大水量。",
   "solutions": [
     {
-      "level": "简单",
+      "level": "暴力",
       "idea": "双重循环枚举所有线对，计算面积取最大。O(n^2)，超大数据会超时，仅用于理解题意。",
       "code": "def max_area(height):\n    n = len(height)\n    best = 0\n    for i in range(n):\n        for j in range(i + 1, n):\n            area = (j - i) * min(height[i], height[j])\n            if area > best:\n                best = area\n    return best\n\n\ndef main():\n    height = list(map(int, input().split()))\n    print(max_area(height))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "中等",
+      "level": "优化",
       "idea": "双指针从两端向内收缩：每次移动较矮的一侧（因为移动较高的一侧不可能让面积变大），O(n) 贪心最优。",
       "code": "def max_area(height):\n    l, r = 0, len(height) - 1\n    best = 0\n    while l < r:\n        h = min(height[l], height[r])\n        best = max(best, (r - l) * h)\n        if height[l] < height[r]:\n            l += 1\n        else:\n            r -= 1\n    return best\n\n\ndef main():\n    height = list(map(int, input().split()))\n    print(max_area(height))\n\n\nif __name__ == \"__main__\":\n    main()"
     },
     {
-      "level": "困难",
+      "level": "最优",
       "idea": "在双指针基础上加入「跳过」优化：移动指针时若新位置高度不大于当前侧则连续跳过，减少无效计算；逻辑等价但常数更优。",
       "code": "def max_area(height):\n    l, r = 0, len(height) - 1\n    best = 0\n    while l < r:\n        hl, hr = height[l], height[r]\n        best = max(best, (r - l) * min(hl, hr))\n        if hl < hr:\n            l += 1\n            while l < r and height[l] <= hl:\n                l += 1\n        else:\n            r -= 1\n            while l < r and height[r] <= hr:\n                r -= 1\n    return best\n\n\ndef main():\n    height = list(map(int, input().split()))\n    print(max_area(height))\n\n\nif __name__ == \"__main__\":\n    main()"
     }

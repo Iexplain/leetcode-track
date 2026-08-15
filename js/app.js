@@ -30,7 +30,7 @@
     });
   }
   function diffClass(d) {
-    return d === '简单' ? 'easy' : d === '中等' ? 'medium' : d === '困难' ? 'hard' : '';
+    return (d === '简单' || d === '暴力') ? 'easy' : (d === '中等' || d === '优化') ? 'medium' : (d === '困难' || d === '最优') ? 'hard' : '';
   }
   function $(id) { return document.getElementById(id); }
 
@@ -234,20 +234,14 @@
     }).join('');
 
     var sols = p.solutions || [];
-    var TIERS = ['暴力', '优化', '最优'];
-    var tierName = function (i) { return TIERS[i] || ('解法' + (i + 1)); };
     var unlockedSet = getUnlocked(p.id);
     var solTabs = sols.map(function (s, i) {
-      return '<button class="sol-tab ' + diffClass(s.level) + (i === 0 ? ' on' : '') + '" data-sol="' + i + '">' + tierName(i) + '</button>';
+      return '<button class="sol-tab ' + diffClass(s.level) + (i === 0 ? ' on' : '') + '" data-sol="' + i + '">' + esc(s.level) + '</button>';
     }).join('');
     var solCards = sols.map(function (s, i) {
       var locked = unlockedSet.has(i) ? '' : ' locked';
       var active = i === 0 ? ' active' : '';
       return '<div class="sol-card' + locked + active + '" data-sol="' + i + '">' +
-        '<div class="sol-card-head">' +
-          '<span class="sol-lvl ' + diffClass(s.level) + '">' + esc(s.level) + '</span>' +
-          '<span class="sol-idx">第 ' + (i + 1) + ' 层 / 共 ' + sols.length + ' 层</span>' +
-        '</div>' +
         '<div class="sol-body">' +
           '<div class="idea"><b>核心思想 · </b>' + esc(s.idea) + '</div>' +
           '<div class="code-block">' +

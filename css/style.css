@@ -277,18 +277,6 @@ main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
   animation: solIn 0.25s ease;
 }
 @keyframes solIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.sol-card-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-.sol-lvl {
-  font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 999px;
-  border: 1px solid transparent;
-}
-.sol-lvl.easy { background: rgba(52, 211, 153, 0.16); color: #6ee7b7; border-color: rgba(52, 211, 153, 0.4); }
-.sol-lvl.medium { background: rgba(251, 191, 36, 0.16); color: #fcd34d; border-color: rgba(251, 191, 36, 0.4); }
-.sol-lvl.hard { background: rgba(248, 113, 113, 0.16); color: #fca5a5; border-color: rgba(248, 113, 113, 0.4); }
-.sol-idx { font-size: 11px; color: var(--muted); letter-spacing: 0.3px; }
 .sol-body { position: relative; padding: 14px; }
 .code-block { position: relative; }
 .sol-card.locked .code-wrap {
