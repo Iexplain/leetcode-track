@@ -271,9 +271,6 @@
       '<div class="sol-tabs">' + solTabs + '</div>' +
       '<div class="sol-stage">' + solCards + '</div>' +
       '</div>' +
-      '<div class="action">' +
-      '<a class="btn btn-ghost" href="#/stats">查看统计</a>' +
-      '</div>' +
       '</div>';
 
     // 解法解锁（毛玻璃遮罩平滑消散）
