@@ -196,6 +196,7 @@
   function renderProblemDetail(p) {
     var solved = Store.isSolved(p.id);
     var sInfo = Store.getSolved(p.id) || {};
+    var needReview = Store.isReviewScheduled(p.id);
 
     var examples = (p.examples || []).map(function (ex, i) {
       return '<div class="ex">' +
@@ -241,7 +242,11 @@
       '<div class="panes">' + panes + '</div>' +
       '</div>' +
       '<div class="action">' +
-      '<button id="checkinBtn" class="btn ' + (solved ? 'btn-done' : '') + '">' + (solved ? '✓ 已打卡（' + esc(sInfo.level || '完成') + ' · ' + esc(sInfo.date || '') + '）' : '打卡') + '</button>' +
+      (solved
+        ? '<button id="checkinBtn" class="btn btn-done">✓ 已打卡（' + esc(sInfo.level || '完成') + ' · ' + esc(sInfo.date || '') + '）</button>' +
+          '<button id="reviewToggle" class="btn ' + (needReview ? 'btn-done' : 'btn-warn') + '">' + (needReview ? '✓ 已设复习计划' : '看题解才懂') + '</button>'
+        : '<button id="checkinBtn" class="btn">打卡（我做出来的）</button>' +
+          '<button id="reviewMark" class="btn btn-warn">看题解才懂</button>') +
       '<a class="btn btn-ghost" href="#/stats">查看统计</a>' +
       '</div>' +
       '</div>';
@@ -271,14 +276,42 @@
       });
     });
 
-    // 打卡
+    // 打卡（我做出来的）：仅标记已做，不触发复习
     var btn = $('checkinBtn');
     btn.addEventListener('click', function () {
-      // 取当前显示的解法难度作为 level
+      var onTab = pBody.querySelector('.tab.on');
+      var level = onTab ? onTab.textContent : '';
+      var wasSolved = Store.isSolved(p.id);
+      Store.toggleSolved(p.id, level);
+      // 取消已做时，连带移除其复习计划
+      if (wasSolved && !Store.isSolved(p.id) && Store.isReviewScheduled(p.id)) {
+        Store.cancelReview(p.id);
+      }
+      renderProblemDetail(p); // 刷新状态
+    });
+
+    // 看题解才懂：标记已做 + 启动艾宾浩斯复习计划（+1/+3/+7 天）
+    var rm = $('reviewMark');
+    if (rm) rm.addEventListener('click', function () {
       var onTab = pBody.querySelector('.tab.on');
       var level = onTab ? onTab.textContent : '';
       Store.toggleSolved(p.id, level);
-      renderProblemDetail(p); // 刷新状态
+      Store.markNeedsReview(p.id, { title: p.title, difficulty: p.difficulty });
+      renderProblemDetail(p);
+    });
+
+    // 已做状态下：切换/取消复习计划
+    var rt = $('reviewToggle');
+    if (rt) rt.addEventListener('click', function () {
+      if (Store.isReviewScheduled(p.id)) {
+        if (confirm('取消该题的复习计划？已完成的复习进度将清除。')) {
+          Store.cancelReview(p.id);
+          renderProblemDetail(p);
+        }
+      } else {
+        Store.markNeedsReview(p.id, { title: p.title, difficulty: p.difficulty });
+        renderProblemDetail(p);
+      }
     });
   }
 
@@ -293,6 +326,36 @@
     document.body.removeChild(ta);
   }
 
+  // ---------- 今日待复习（艾宾浩斯） ----------
+  function reviewModuleHTML() {
+    var due = Store.getDueReviews(Store.todayStr());
+    var body;
+    if (due.length === 0) {
+      body = '<div class="review-empty">🎉 今天没有待复习的题目，继续保持！</div>';
+    } else {
+      body = '<div class="review-list">' + due.map(function (r) {
+        return '<div class="review-item">' +
+          '<div class="review-meta">' +
+            '<span class="r-num">#' + esc(r.pid) + '</span>' +
+            '<span class="r-title">' + esc(r.title) + '</span>' +
+            '<span class="diff ' + diffClass(r.difficulty) + '">' + esc(r.difficulty) + '</span>' +
+          '</div>' +
+          '<div class="review-acts">' +
+            '<a class="btn btn-ghost r-redo" href="#/problem/' + esc(r.pid) + '">去重刷</a>' +
+            '<button class="btn btn-done r-done" data-pid="' + esc(r.pid) + '" data-idx="' + r.pointIndex + '">完成复习</button>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+    return '<div class="review-card">' +
+      '<div class="review-head">' +
+        '<span class="review-title">今日待复习 <span class="review-en">Review Today</span></span>' +
+        '<span class="review-count' + (due.length ? ' on' : '') + '">' + due.length + '</span>' +
+      '</div>' +
+      body +
+    '</div>';
+  }
+
   // ---------- 统计 ----------
   function renderStats() {
     setNav('stats');
@@ -301,6 +364,7 @@
       '<h2 class="stats-title">打卡统计' +
       '<button class="add-btn" id="backupBtn" aria-label="数据备份">＋</button>' +
       '</h2>' +
+      reviewModuleHTML() +
       '<div id="kpiRow" class="kpi-row"></div>' +
       '<div class="grid2">' +
       '<div class="chart-card"><div class="chart-title">难度分布（已做）</div><canvas id="cDiff"></canvas></div>' +
@@ -321,6 +385,20 @@
       '</div>';
 
     Charts.render();
+    // 完成复习：标记当前节点完成并刷新
+    app.querySelectorAll('.r-done').forEach(function (b) {
+      b.addEventListener('click', function () {
+        Store.completeReview(b.getAttribute('data-pid'), parseInt(b.getAttribute('data-idx'), 10));
+        renderStats();
+      });
+    });
+    // 统计导航红点
+    var badge = $('reviewBadge');
+    if (badge) {
+      var n = Store.countPendingReviews(Store.todayStr());
+      if (n > 0) { badge.textContent = n > 99 ? '99+' : n; badge.hidden = false; }
+      else { badge.hidden = true; }
+    }
     wireBackup();
   }
 
