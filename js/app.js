@@ -379,7 +379,7 @@
     }
     return '<div class="review-card">' +
       '<div class="review-head">' +
-        '<span class="review-title">今日待复习 <span class="review-en">Review Today</span></span>' +
+        '<span class="review-title">今日复习</span>' +
         '<span class="review-count' + (due.length ? ' on' : '') + '">' + due.length + '</span>' +
       '</div>' +
       body +
