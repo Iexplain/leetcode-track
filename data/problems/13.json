@@ -1,0 +1,48 @@
+{
+  "id": 13,
+  "title": "罗马数字转整数",
+  "titleEn": "Roman to Integer",
+  "difficulty": "简单",
+  "tags": ["哈希表", "数学", "字符串"],
+  "description": "罗马数字包含以下七种字符：I（1）、V（5）、X（10）、L（50）、C（100）、D（500）和 M（1000）。例如，数字 2 写作 II。特殊规则：I 可以放在 V 和 X 的左边表示 4 和 9；X 可以放在 L 和 C 的左边表示 40 和 90；C 可以放在 D 和 M 的左边表示 400 和 900。给定一个罗马数字字符串，将其转换成整数。",
+  "examples": [
+    {
+      "input": "III",
+      "output": "3",
+      "explanation": "III = 3。"
+    },
+    {
+      "input": "LVIII",
+      "output": "58",
+      "explanation": "L = 50, V = 5, III = 3。"
+    },
+    {
+      "input": "MCMXCIV",
+      "output": "1994",
+      "explanation": "M = 1000, CM = 900, XC = 90, IV = 4。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 15",
+    "s 仅包含字符 ('I', 'V', 'X', 'L', 'C', 'D', 'M')",
+    "s 是一个有效的罗马数字，表示范围在 [1, 3999]"
+  ],
+  "ioFormat": "输入一个字符串 s，表示罗马数字。输出一个整数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 if-elif 把每个罗马字符映射成对应的数值，然后遍历字符串。遇到 IV、IX、XL、XC、CD、CM 这类组合时，先减去前面较小的值，再加上后面较大的值。代码里用大量条件判断处理减法情况，思路最直白但略显冗长。",
+      "code": "import sys\n\ndef roman_to_int_brute(s):\n    total = 0\n    i = 0\n    while i < len(s):\n        if s[i] == 'I':\n            if i + 1 < len(s) and (s[i+1] == 'V' or s[i+1] == 'X'):\n                total += (-1)\n            else:\n                total += 1\n        elif s[i] == 'V':\n            total += 5\n        elif s[i] == 'X':\n            if i + 1 < len(s) and (s[i+1] == 'L' or s[i+1] == 'C'):\n                total += (-10)\n            else:\n                total += 10\n        elif s[i] == 'L':\n            total += 50\n        elif s[i] == 'C':\n            if i + 1 < len(s) and (s[i+1] == 'D' or s[i+1] == 'M'):\n                total += (-100)\n            else:\n                total += 100\n        elif s[i] == 'D':\n            total += 500\n        elif s[i] == 'M':\n            total += 1000\n        i += 1\n    return total\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().strip()\n    print(roman_to_int_brute(s))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "把所有字符和组合预先存入哈希表，包括 IV、IX 等六种减法组合，然后从左到右遍历。如果当前两位字符组成的组合在表中，就直接加上组合值并跳过两位；否则加上当前一位字符的值。这样减少了大量 if-else 判断，代码更清晰，仍然是 O(n) 时间。",
+      "code": "import sys\n\ndef roman_to_int_opt(s):\n    mapping = {\n        'I': 1, 'V': 5, 'X': 10, 'L': 50,\n        'C': 100, 'D': 500, 'M': 1000,\n        'IV': 4, 'IX': 9, 'XL': 40, 'XC': 90, 'CD': 400, 'CM': 900\n    }\n    total = 0\n    i = 0\n    while i < len(s):\n        if i + 1 < len(s) and s[i:i+2] in mapping:\n            total += mapping[s[i:i+2]]\n            i += 2\n        else:\n            total += mapping[s[i]]\n            i += 1\n    return total\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().strip()\n    print(roman_to_int_opt(s))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "只用单字符映射表，遍历过程中比较当前字符值与下一个字符值。如果当前值小于下一个值，说明是减法组合，先减去当前值；否则加上当前值。最后不要忘了加上最后一个字符的值。只需一次遍历和一个 7 键映射表，O(n) 时间、O(1) 空间，是面试标准写法。",
+      "code": "import sys\n\ndef roman_to_int_best(s):\n    mapping = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}\n    total = 0\n    n = len(s)\n    for i in range(n - 1):\n        if mapping[s[i]] < mapping[s[i+1]]:\n            total -= mapping[s[i]]\n        else:\n            total += mapping[s[i]]\n    total += mapping[s[n-1]]\n    return total\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().strip()\n    print(roman_to_int_best(s))\n"
+    }
+  ]
+}

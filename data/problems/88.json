@@ -1,0 +1,45 @@
+{
+  "id": 88,
+  "title": "合并两个有序数组",
+  "titleEn": "Merge Sorted Array",
+  "difficulty": "简单",
+  "tags": ["数组", "双指针", "排序"],
+  "description": "给你两个按非递减顺序排列的整数数组 nums1 和 nums2，另有两个整数 m 和 n，分别表示 nums1 和 nums2 中的元素个数。请你合并 nums2 到 nums1 中，使合并后的数组同样按非递减顺序排列。注意：nums1 的实际长度为 m+n，后 n 个位置初始为 0，用来存放 nums2 的元素。",
+  "examples": [
+    {
+      "input": "3 3\n1 2 3\n2 5 6",
+      "output": "1 2 2 3 5 6",
+      "explanation": "合并 nums1 = [1,2,3] 和 nums2 = [2,5,6]，得到有序数组 [1,2,2,3,5,6]。"
+    },
+    {
+      "input": "1 0\n1",
+      "output": "1",
+      "explanation": "nums2 为空，直接输出 nums1。"
+    }
+  ],
+  "constraints": [
+    "nums1.length == m + n",
+    "nums2.length == n",
+    "0 <= m, n <= 200",
+    "1 <= m + n <= 200",
+    "-10^9 <= nums1[i], nums2[i] <= 10^9"
+  ],
+  "ioFormat": "第一行两个整数 m、n；第二行 m 个整数表示 nums1 的有效元素；第三行 n 个整数表示 nums2。输出一行 m+n 个整数，为合并后的 nums1。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把 nums2 的元素直接复制到 nums1 的后 n 个位置，然后对 nums1 整体排序。思路简单，但时间复杂度为 O((m+n)log(m+n))，没有利用两个数组已经有序的条件。",
+      "code": "import sys\n\ndef merge_sorted_array_brute(nums1, m, nums2, n):\n    for i in range(n):\n        nums1[m + i] = nums2[i]\n    nums1.sort()\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        sys.exit(0)\n    it = iter(data)\n    m = int(next(it))\n    n = int(next(it))\n    nums1 = [0] * (m + n)\n    for i in range(m):\n        nums1[i] = int(next(it))\n    nums2 = [int(next(it)) for _ in range(n)]\n    merge_sorted_array_brute(nums1, m, nums2, n)\n    print(' '.join(map(str, nums1)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "利用两个数组都已排序的特点，用双指针从头开始比较，把较小者放入一个临时数组，最后再把临时数组复制回 nums1。时间复杂度 O(m+n)，但需要 O(m+n) 的额外空间。",
+      "code": "import sys\n\ndef merge_sorted_array_opt(nums1, m, nums2, n):\n    temp = []\n    i, j = 0, 0\n    while i < m and j < n:\n        if nums1[i] <= nums2[j]:\n            temp.append(nums1[i])\n            i += 1\n        else:\n            temp.append(nums2[j])\n            j += 1\n    while i < m:\n        temp.append(nums1[i])\n        i += 1\n    while j < n:\n        temp.append(nums2[j])\n        j += 1\n    for k in range(m + n):\n        nums1[k] = temp[k]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        sys.exit(0)\n    it = iter(data)\n    m = int(next(it))\n    n = int(next(it))\n    nums1 = [0] * (m + n)\n    for i in range(m):\n        nums1[i] = int(next(it))\n    nums2 = [int(next(it)) for _ in range(n)]\n    merge_sorted_array_opt(nums1, m, nums2, n)\n    print(' '.join(map(str, nums1)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "从后向前填充 nums1。因为 nums1 后半部分是空的，可以直接作为写入位置。三个指针分别指向 nums1 有效末尾、nums2 末尾和 nums1 整体末尾，每次把较大者放到末尾，避免覆盖未处理的数据。时间 O(m+n)，空间 O(1)，无需额外数组。",
+      "code": "import sys\n\ndef merge_sorted_array_best(nums1, m, nums2, n):\n    i, j, k = m - 1, n - 1, m + n - 1\n    while j >= 0:\n        if i >= 0 and nums1[i] > nums2[j]:\n            nums1[k] = nums1[i]\n            i -= 1\n        else:\n            nums1[k] = nums2[j]\n            j -= 1\n        k -= 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        sys.exit(0)\n    it = iter(data)\n    m = int(next(it))\n    n = int(next(it))\n    nums1 = [0] * (m + n)\n    for i in range(m):\n        nums1[i] = int(next(it))\n    nums2 = [int(next(it)) for _ in range(n)]\n    merge_sorted_array_best(nums1, m, nums2, n)\n    print(' '.join(map(str, nums1)))\n"
+    }
+  ]
+}

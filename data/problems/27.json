@@ -1,0 +1,43 @@
+{
+  "id": 27,
+  "title": "移除元素",
+  "titleEn": "Remove Element",
+  "difficulty": "简单",
+  "tags": ["数组", "双指针"],
+  "description": "给你一个数组 nums 和一个值 val，你需要 原地 移除所有数值等于 val 的元素，并返回移除后数组的新长度。元素的相对顺序可以改变。你不需要考虑新长度之后的数组内容。",
+  "examples": [
+    {
+      "input": "4 3\n3 2 2 3",
+      "output": "2\n2 2",
+      "explanation": "数组中等于 3 的元素有两个，移除后剩下 [2,2]，新长度为 2。"
+    },
+    {
+      "input": "5 2\n0 1 2 2 3",
+      "output": "3\n0 1 3",
+      "explanation": "移除所有 2 后，剩余 [0,1,3]，新长度为 3。"
+    }
+  ],
+  "constraints": [
+    "0 <= nums.length <= 100",
+    "0 <= nums[i] <= 50",
+    "0 <= val <= 100"
+  ],
+  "ioFormat": "第一行两个整数 n、val；第二行 n 个整数表示数组 nums。输出两行：第一行为新长度 k，第二行为前 k 个有效元素。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "创建一个新的临时数组，遍历原数组，把所有不等于 val 的元素复制到临时数组中。最后再把临时数组的元素复制回原数组的前 k 个位置。思路直观，但使用了 O(n) 的额外空间，没有做到真正的原地修改。",
+      "code": "import sys\n\ndef remove_element_brute(nums, val):\n    tmp = [x for x in nums if x != val]\n    k = len(tmp)\n    for i in range(k):\n        nums[i] = tmp[i]\n    return k\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        print(0)\n        sys.exit(0)\n    it = iter(data)\n    n = int(next(it))\n    val = int(next(it))\n    nums = [int(next(it)) for _ in range(n)]\n    k = remove_element_brute(nums, val)\n    print(k)\n    print(' '.join(map(str, nums[:k])))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "使用快慢双指针，慢指针指向当前可以写入的位置，快指针遍历数组。当快指针指向的元素不等于 val 时，就复制到慢指针位置，两个指针同时前移；等于 val 时只移动快指针。这样原地修改数组，保持相对顺序，时间 O(n)，空间 O(1)。",
+      "code": "import sys\n\ndef remove_element_opt(nums, val):\n    slow = 0\n    for fast in range(len(nums)):\n        if nums[fast] != val:\n            nums[slow] = nums[fast]\n            slow += 1\n    return slow\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        print(0)\n        sys.exit(0)\n    it = iter(data)\n    n = int(next(it))\n    val = int(next(it))\n    nums = [int(next(it)) for _ in range(n)]\n    k = remove_element_opt(nums, val)\n    print(k)\n    print(' '.join(map(str, nums[:k])))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "使用头尾双指针，右指针从数组末尾开始。当左指针遇到 val 时，把它和右指针指向的元素交换，并把右指针左移；否则左指针右移。由于题目允许改变相对顺序，这种写法赋值次数更少，代码更紧凑，仍然保持 O(n) 时间、O(1) 空间，是面试中推荐的写法。",
+      "code": "import sys\n\ndef remove_element_best(nums, val):\n    left, right = 0, len(nums) - 1\n    while left <= right:\n        if nums[left] == val:\n            nums[left] = nums[right]\n            right -= 1\n        else:\n            left += 1\n    return left\n\nif __name__ == '__main__':\n    data = sys.stdin.read().strip().split()\n    if not data:\n        print(0)\n        sys.exit(0)\n    it = iter(data)\n    n = int(next(it))\n    val = int(next(it))\n    nums = [int(next(it)) for _ in range(n)]\n    k = remove_element_best(nums, val)\n    print(k)\n    print(' '.join(map(str, nums[:k])))\n"
+    }
+  ]
+}
