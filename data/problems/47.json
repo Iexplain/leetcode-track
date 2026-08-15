@@ -1,0 +1,42 @@
+{
+  "id": 47,
+  "title": "全排列 II",
+  "titleEn": "Permutations II",
+  "difficulty": "中等",
+  "tags": ["数组", "回溯"],
+  "description": "给定一个可包含重复数字的序列 nums，按任意顺序返回所有不重复的全排列。",
+  "examples": [
+    {
+      "input": "3\n1 1 2",
+      "output": "1 1 2\n1 2 1\n2 1 1",
+      "explanation": "3 种不同排列。"
+    },
+    {
+      "input": "3\n1 2 3",
+      "output": "1 2 3\n1 3 2\n2 1 3\n2 3 1\n3 1 2\n3 2 1",
+      "explanation": "无重复的全排列共 6 种。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 8",
+    "-10 <= nums[i] <= 10"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数（含重复）。每一行一个排列（共若干行，按字典序升序）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接 used 数组回溯：每次找一个未使用的 nums[i]，加入 path。允许的重复在于“相同数值在不同位置”。为去重，先把 nums 排序，回溯时若 nums[j]==nums[j-1] 且 j-1 未在当前路径用则跳过。",
+      "code": "import sys\n\ndef permute_brute(nums):\n    nums = sorted(nums)\n    res = []\n    used = [False] * len(nums)\n    def dfs(path):\n        if len(path) == len(nums):\n            res.append(path[:])\n            return\n        for j in range(len(nums)):\n            if used[j]:\n                continue\n            if j > 0 and nums[j] == nums[j - 1] and not used[j - 1]:\n                continue\n            used[j] = True\n            path.append(nums[j])\n            dfs(path)\n            path.pop()\n            used[j] = False\n    dfs([])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    res = permute_brute(nums)\n    for p in res:\n        print(' '.join(map(str, p)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用 Counter 在每层挑剩余数字：把“用没用过”抽象成 Counter[left]。每层尝试 Counter 中剩余的 key，加入 path 并减计数；递归完恢复。这样自然去重且常数略小。",
+      "code": "import sys\nfrom collections import Counter\n\ndef permute_opt(nums):\n    counter = Counter(nums)\n    res = []\n    def dfs(path):\n        if len(path) == len(nums):\n            res.append(path[:])\n            return\n        for x in list(counter):\n            if counter[x] == 0:\n                continue\n            path.append(x)\n            counter[x] -= 1\n            dfs(path)\n            path.pop()\n            counter[x] += 1\n    dfs([])\n    return sorted(res)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    res = permute_opt(nums)\n    for p in res:\n        print(' '.join(map(str, p)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "集合操作版：把 nums 排序后逐位用 used 数组 + 跳过同层相同值。代码最紧凑，且当输入很小时常数最低。",
+      "code": "import sys\n\ndef permute_best(nums):\n    nums = sorted(nums)\n    res = []\n    used = [False] * len(nums)\n    def dfs(path):\n        if len(path) == len(nums):\n            res.append(path[:])\n            return\n        for i in range(len(nums)):\n            if used[i]:\n                continue\n            if i > 0 and nums[i] == nums[i - 1] and not used[i - 1]:\n                continue\n            path.append(nums[i])\n            used[i] = True\n            dfs(path)\n            path.pop()\n            used[i] = False\n    dfs([])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    res = permute_best(nums)\n    for p in res:\n        print(' '.join(map(str, p)))\n"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": 75,
+  "title": "颜色分类",
+  "titleEn": "Sort Colors",
+  "difficulty": "中等",
+  "tags": ["数组", "双指针", "排序"],
+  "description": "给定一个包含红色、白色和蓝色、共 n 个元素的数组 nums，原地对它们进行排序，使得相同颜色的元素相邻，并按照红、白、蓝顺序排列。0 红色，1 白色，2 蓝色。不能使用库 sort。",
+  "examples": [
+    {
+      "input": "6\n2 0 2 1 1 0",
+      "output": "0 0 1 1 2 2",
+      "explanation": "红 0、白 1、蓝 2 全部归位。"
+    },
+    {
+      "input": "3\n2 0 1",
+      "output": "0 1 2",
+      "explanation": "三色分别出现一次。"
+    },
+    {
+      "input": "1\n0",
+      "output": "0",
+      "explanation": "单元素。"
+    }
+  ],
+  "constraints": [
+    "n == nums.length",
+    "1 <= n <= 300",
+    "nums[i] 仅含 0、1、2"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数（每个为 0/1/2）。输出按 0、1、2 顺序排序后的数组（原地修改即可）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "统计 0/1/2 出现次数，再用 0、1、2 重新填充原数组。O(n) 时间 O(1) 空间，两趟扫描。不使用库 sort 是题目硬约束。",
+      "code": "import sys\n\ndef sort_brute(nums):\n    cnt = [0, 0, 0]\n    for x in nums:\n        cnt[x] += 1\n    i = 0\n    for c in range(3):\n        for _ in range(cnt[c]):\n            nums[i] = c\n            i += 1\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, sort_brute(nums))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "三路快排分区：维护 lo、mid、hi 三个指针。nums[i]<1 时交换到 lo；nums[i]>1 时交换到 hi；=1 时 mid 自增。交换过来的元素还要检查，所以用 while 循环。O(n) 一趟扫描、原地。",
+      "code": "import sys\n\ndef sort_opt(nums):\n    lo, mid, hi = 0, 0, len(nums) - 1\n    while mid <= hi:\n        if nums[mid] == 0:\n            nums[lo], nums[mid] = nums[mid], nums[lo]\n            lo += 1\n            mid += 1\n        elif nums[mid] == 2:\n            nums[mid], nums[hi] = nums[hi], nums[mid]\n            hi -= 1\n        else:\n            mid += 1\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, sort_opt(nums))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "同样三路分区，但写成 `cur=0` 推进的 while 循环更紧凑：当 nums[cur]==2 时交换到 cur_end 并 cur_end -= 1 但 cur 不前移（因为换过来的元素还要看）。",
+      "code": "import sys\n\ndef sort_best(nums):\n    zero, cur = 0, 0\n    two = len(nums) - 1\n    while cur <= two:\n        if nums[cur] == 0:\n            nums[zero], nums[cur] = nums[cur], nums[zero]\n            zero += 1\n            cur += 1\n        elif nums[cur] == 2:\n            nums[two], nums[cur] = nums[cur], nums[two]\n            two -= 1\n        else:\n            cur += 1\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, sort_best(nums))))\n"
+    }
+  ]
+}

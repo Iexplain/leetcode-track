@@ -1,0 +1,53 @@
+{
+  "id": 49,
+  "title": "字母异位词分组",
+  "titleEn": "Group Anagrams",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "哈希表",
+    "字符串",
+    "排序"
+  ],
+  "description": "给你一个字符串数组，请你将字母异位词组合在一起。字母异位词是由重新排列源单词的所有字母得到的新单词，所有字母使用次数相同。",
+  "examples": [
+    {
+      "input": "6\neat tea tan ate nat bat",
+      "output": "ate eat tea\nbat\nnat tan",
+      "explanation": "三组按最小元素字典序: [ate,eat,tea] / [bat] / [nat,tan]。"
+    },
+    {
+      "input": "1\nabc",
+      "output": "abc",
+      "explanation": "单元素自成一组。"
+    },
+    {
+      "input": "0",
+      "output": "",
+      "explanation": "空数组输出空行。"
+    }
+  ],
+  "constraints": [
+    "1 <= strs.length <= 10^4",
+    "0 <= strs[i].length <= 100",
+    "strs[i] 仅含小写英文字母"
+  ],
+  "ioFormat": "第一行 n（字符串数），第二行 n 个空格分隔的字符串（若无则该行为空）。每一行一个异位词分组（按字典序升序的成员顺序），组与组之间按最小元素排序。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "排序后当 key：用 sorted(s) 作为字典 key 把字符串收集到一起。一行实现可读，复杂度 O(n·k log k)（n 为字符串数，k 为平均长度）。",
+      "code": "import sys\nfrom collections import defaultdict\n\ndef group(strs):\n    groups = defaultdict(list)\n    for s in strs:\n        key = ''.join(sorted(s))\n        groups[key].append(s)\n    return sorted(groups.values(), key=lambda g: sorted(g)[0])\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    n = int(data[0]) if data else 0\n    if n == 0:\n        print(); sys.exit(0)\n    strs = data[1:1 + n]\n    for g in group(strs):\n        print(' '.join(sorted(g)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "字符计数器作 key：freq = [0]*26 为每个字母计数，tuple 化作为 dict key，避免反复排序。同复杂度但常数略小，逻辑清晰。",
+      "code": "import sys\nfrom collections import defaultdict\n\ndef group(strs):\n    groups = defaultdict(list)\n    for s in strs:\n        cnt = [0] * 26\n        for ch in s:\n            cnt[ord(ch) - ord('a')] += 1\n        groups[tuple(cnt)].append(s)\n    return sorted(groups.values(), key=lambda g: sorted(g)[0])\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    n = int(data[0]) if data else 0\n    if n == 0:\n        print(); sys.exit(0)\n    strs = data[1:1 + n]\n    for g in group(strs):\n        print(' '.join(sorted(g)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用素数（26 个不互素的质数）表示每个字母，把字符串对应素数乘积当 key，乘积会唯一对应字母组合。O(n·k)，且生成 key 几乎不需成本。理论上最优，但 Python 大整数乘法常慢，实测与字符计数器法基本持平。",
+      "code": "import sys\nfrom collections import defaultdict\n\nPRIMES = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101]\n\ndef group(strs):\n    groups = defaultdict(list)\n    for s in strs:\n        key = 1\n        for ch in s:\n            key *= PRIMES[ord(ch) - ord('a')]\n        groups[key].append(s)\n    return sorted(groups.values(), key=lambda g: sorted(g)[0])\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    n = int(data[0]) if data else 0\n    if n == 0:\n        print(); sys.exit(0)\n    strs = data[1:1 + n]\n    for g in group(strs):\n        print(' '.join(sorted(g)))\n"
+    }
+  ]
+}

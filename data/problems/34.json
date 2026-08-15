@@ -1,0 +1,49 @@
+{
+  "id": 34,
+  "title": "在排序数组中查找元素的第一个和最后一个位置",
+  "titleEn": "Find First and Last Position of Element in Sorted Array",
+  "difficulty": "中等",
+  "tags": ["数组", "二分查找"],
+  "description": "给你一个按非递减顺序排列的整数数组 nums 和一个目标值 target。请你找出给定目标值在数组中的开始位置和结束位置。要求 O(log n) 时间。",
+  "examples": [
+    {
+      "input": "6\n5 7 7 8 8 10\n8",
+      "output": "3 4",
+      "explanation": "8 出现在下标 3 和 4。"
+    },
+    {
+      "input": "5\n5 7 7 8 8 10\n6",
+      "output": "-1 -1",
+      "explanation": "6 不存在。"
+    },
+    {
+      "input": "1\n1\n1",
+      "output": "0 0",
+      "explanation": "单元素命中。"
+    }
+  ],
+  "constraints": [
+    "0 <= nums.length <= 10^5",
+    "-10^9 <= nums[i] <= 10^9",
+    "nums 非递减",
+    "-10^9 <= target <= 10^9"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数（非递减），第三行 target。输出一行两个整数表示起止下标；不存在则输出两个 -1。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "线性扫描找第一个等于 target 的位置、再从末尾反扫找最后一个。两遍 O(n)。写法简单但未达 O(log n) 要求。",
+      "code": "import sys\n\ndef search_range_brute(nums, target):\n    n = len(nums)\n    first = -1\n    last = -1\n    for i, x in enumerate(nums):\n        if x == target:\n            if first == -1:\n                first = i\n            last = i\n    return first, last\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    t = int(data[1 + n])\n    f, l = search_range_brute(nums, t)\n    print(f, l)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "两次二分：第一次用 lower_bound 找第一个 >= target（可能等于 target 的最早位置），第二次用 upper_bound-1 找最后一个 <= target。注意两次二分的终止条件不同，是典型的“左右边界”二分模板。",
+      "code": "import sys\n\ndef search_range_opt(nums, target):\n    n = len(nums)\n    def lower_bound(nums, t):\n        lo, hi = 0, n - 1\n        while lo <= hi:\n            mid = (lo + hi) // 2\n            if nums[mid] < t:\n                lo = mid + 1\n            else:\n                hi = mid - 1\n        return lo\n    def upper_bound(nums, t):\n        lo, hi = 0, n - 1\n        while lo <= hi:\n            mid = (lo + hi) // 2\n            if nums[mid] <= t:\n                lo = mid + 1\n            else:\n                hi = mid - 1\n        return hi\n    first = lower_bound(nums, target)\n    last = upper_bound(nums, target)\n    if first > last or (first < n and nums[first] != target):\n        return -1, -1\n    return first, last\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    t = int(data[1 + n])\n    f, l = search_range_opt(nums, t)\n    print(f, l)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 bisect_left / bisect_right 代替手写二分。代码短到只有几行，且效率与手写一致。等价于优化版但更 pythonic，是面试首选表达。",
+      "code": "import sys\nfrom bisect import bisect_left, bisect_right\n\ndef search_range_best(nums, target):\n    lo = bisect_left(nums, target)\n    hi = bisect_right(nums, target) - 1\n    if lo > hi:\n        return -1, -1\n    return lo, hi\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    t = int(data[1 + n])\n    f, l = search_range_best(nums, t)\n    print(f, l)\n"
+    }
+  ]
+}

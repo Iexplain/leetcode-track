@@ -1,0 +1,48 @@
+{
+  "id": 50,
+  "title": "Pow(x, n)",
+  "titleEn": "Pow(x, n)",
+  "difficulty": "中等",
+  "tags": ["数学", "递归"],
+  "description": "实现 pow(x, n)，即计算 x 的 n 次幂。要求 O(log n) 时间。",
+  "examples": [
+    {
+      "input": "2.00000\n10",
+      "output": "1024.00000",
+      "explanation": "2^10 = 1024。"
+    },
+    {
+      "input": "2.10000\n3",
+      "output": "9.26100",
+      "explanation": "2.1^3 = 9.261。"
+    },
+    {
+      "input": "2.00000\n-2",
+      "output": "0.25000",
+      "explanation": "2^-2 = 1/4 = 0.25。"
+    }
+  ],
+  "constraints": [
+    "-100.0 < x < 100.0",
+    "-2^31 <= n <= 2^31 - 1",
+    "-10^4 <= x^n <= 10^4"
+  ],
+  "ioFormat": "第一行 x（浮点数），第二行 n（整数）。输出 x^n 保留 5 位小数（如整数末尾 .00000）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "连乘 n 次（绝对值），符号用 n 的正负处理，再处理 0^0 与 n=0 特例。O(|n|) 时间，太慢；仅学习目的。",
+      "code": "import sys\n\ndef pow_brute(x, n):\n    if n == 0:\n        return 1.0\n    sign = 1 if n > 0 else -1\n    n = abs(n)\n    res = 1.0\n    for _ in range(n):\n        res *= x\n    return res if sign > 0 else 1.0 / res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    x = float(data[0]); n = int(data[1])\n    print(f'{pow_brute(x, n):.5f}')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "快速幂：把 n 写成二进制，若低位为 1 乘以当前 x，再平方 x 与左移 n。一位处理。n=INT_MIN 时取绝对值会溢出，单独判断。O(log |n|) 时间，O(1) 空间。",
+      "code": "import sys\n\ndef pow_opt(x, n):\n    if n == 0:\n        return 1.0\n    N = n\n    if N == -2**31:\n        x, N = 1 / x, 2**31\n    else:\n        N = abs(N)\n    res = 1.0\n    cur = x\n    while N > 0:\n        if N & 1:\n            res *= cur\n        cur *= cur\n        N >>= 1\n    if n < 0:\n        res = 1 / res\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    x = float(data[0]); n = int(data[1])\n    print(f'{pow_opt(x, n):.5f}')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "把优化版思路以更紧凑的递归 / 显式栈形式表达。Python 中递归版本不需要额外栈表达，结构等同于写法。",
+      "code": "import sys\n\ndef pow_best(x, n):\n    if n == 0:\n        return 1.0\n    if n < 0:\n        x, n = 1.0 / x, -n\n    def fast(b, e):\n        if e == 0: return 1.0\n        if e == 1: return b\n        half = fast(b, e // 2)\n        return half * half if e % 2 == 0 else half * half * b\n    return fast(x, n)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    x = float(data[0]); n = int(data[1])\n    print(f'{pow_best(x, n):.5f}')\n"
+    }
+  ]
+}

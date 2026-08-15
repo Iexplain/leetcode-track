@@ -1,0 +1,52 @@
+{
+  "id": 40,
+  "title": "组合总和 II",
+  "titleEn": "Combination Sum II",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "回溯"
+  ],
+  "description": "给你一个可能有重复元素的整数数组 candidates 和一个目标整数 target。找出 candidates 中可使数字和为目标 target 的所有不同组合。每个 candidates 中的元素在每个组合里只能用一次。",
+  "examples": [
+    {
+      "input": "7\n10 1 2 7 6 1 5\n8",
+      "output": "1 1 6\n1 2 5\n1 7\n2 6",
+      "explanation": "8 = 1+1+6 / 1+2+5 / 1+7 / 2+6。"
+    },
+    {
+      "input": "7\n10 1 2 7 6 1 5\n8",
+      "output": "1 1 6\n1 2 5\n1 7\n2 6",
+      "explanation": "8 = 1+1+6 / 1+2+5 / 1+7 / 2+6。"
+    },
+    {
+      "input": "4\n4 4 8 8\n8",
+      "output": "4 4\n8",
+      "explanation": "8 = 4+4 = 8（两种组合）。"
+    }
+  ],
+  "constraints": [
+    "1 <= candidates.length <= 100",
+    "1 <= candidates[i] <= 50",
+    "1 <= target <= 30",
+    "candidates 可能有重复"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数（可能含重复），第三行 target。每一行一个组合（按字典序升序）。无解时输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "排序后回溯：第 i 个位置要么不取要么取；为了避免重复组合，跳过“同层同值”的下一项。即同一层递归只让相同数值的第一次出现可以走，其他跳过。",
+      "code": "import sys\n\ndef cs2_brute(cands, target):\n    cands = sorted(cands)\n    res = []\n    def dfs(i, remain, path):\n        if remain == 0:\n            res.append(path[:])\n            return\n        for j in range(i, len(cands)):\n            if j > i and cands[j] == cands[j - 1]:\n                continue\n            x = cands[j]\n            if x > remain:\n                break\n            path.append(x)\n            dfs(j + 1, remain - x, path)\n            path.pop()\n    dfs(0, target, [])\n    return sorted(res)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    cands = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    res = cs2_brute(cands, target)\n    for comb in res:\n        print(' '.join(map(str, comb)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "回溯 + used 数组：维护一个与 candidates 等长的 used 布尔数组。当回溯上一层取过相同元素后，再在同层遇到相同元素即可跳过。比“j>i 且 cands[j]==cands[j-1]” 在某些特殊分布下更直观。",
+      "code": "import sys\n\ndef cs2_opt(cands, target):\n    cands = sorted(cands)\n    res = []\n    used = [False] * len(cands)\n    def dfs(i, remain, path):\n        if remain == 0:\n            res.append(path[:])\n            return\n        for j in range(i, len(cands)):\n            x = cands[j]\n            if x > remain: break\n            if j > i and cands[j] == cands[j - 1] and not used[j - 1]:\n                continue\n            used[j] = True\n            path.append(x)\n            dfs(j + 1, remain - x, path)\n            path.pop()\n            used[j] = False\n    dfs(0, target, [])\n    return sorted(res)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    cands = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    res = cs2_opt(cands, target)\n    for comb in res:\n        print(' '.join(map(str, comb)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "对当前层把相同值合并到同一个分支：先在循环里排序确保 cands 升序，第 j 位的左邻若等于自身且尚未被 visited（即同一个分支还没扩展），就 continue。最简去重写法。",
+      "code": "import sys\n\ndef cs2_best(cands, target):\n    cands = sorted(cands)\n    res = []\n    def dfs(i, remain, path):\n        if remain == 0:\n            res.append(path[:])\n            return\n        for j in range(i, len(cands)):\n            x = cands[j]\n            if x > remain:\n                break\n            if j > i and cands[j - 1] == x:\n                continue\n            path.append(x)\n            dfs(j + 1, remain - x, path)\n            path.pop()\n    dfs(0, target, [])\n    return sorted(res)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    cands = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    res = cs2_best(cands, target)\n    for comb in res:\n        print(' '.join(map(str, comb)))\n"
+    }
+  ]
+}

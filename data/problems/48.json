@@ -1,0 +1,43 @@
+{
+  "id": 48,
+  "title": "旋转图像",
+  "titleEn": "Rotate Image",
+  "difficulty": "中等",
+  "tags": ["数组", "数学", "矩阵"],
+  "description": "给定一个 n × n 的二维矩阵 matrix 表示图像，请你将其顺时针旋转 90 度。原地修改矩阵。",
+  "examples": [
+    {
+      "input": "3\n1 2 3\n4 5 6\n7 8 9",
+      "output": "7 4 1\n8 5 2\n9 6 3",
+      "explanation": "顺时针旋转后行变列。"
+    },
+    {
+      "input": "4\n5 1 9 11\n2 4 8 10\n13 3 6 7\n15 14 12 16",
+      "output": "15 13 2 5\n14 3 4 1\n12 6 8 9\n16 7 10 11",
+      "explanation": "顺时针旋转 4×4 矩阵。"
+    }
+  ],
+  "constraints": [
+    "n == matrix.length == matrix[i].length",
+    "1 <= n <= 20",
+    "-1000 <= matrix[i][j] <= 1000"
+  ],
+  "ioFormat": "第一行 n，接着 n 行每行 n 个整数。输出旋转后的矩阵（按行输出）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用辅助矩阵：matrix[i][j] → new[j][n-1-i]，完成后拷回原矩阵。O(n²) 时间、O(n²) 空间。不是原地但容易写。",
+      "code": "import sys\n\ndef rotate_brute(m):\n    n = len(m)\n    new = [[0] * n for _ in range(n)]\n    for i in range(n):\n        for j in range(n):\n            new[j][n - 1 - i] = m[i][j]\n    for i in range(n):\n        for j in range(n):\n            m[i][j] = new[i][j]\n    return m\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    m = []\n    idx = 1\n    for _ in range(n):\n        m.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    m = rotate_brute(m)\n    for row in m:\n        print(' '.join(map(str, row)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "两层循环互换：先按主对角线翻 (transpose)，再按中线左右翻。两次 O(n²) 互换步骤，原地完成。",
+      "code": "import sys\n\ndef rotate_opt(m):\n    n = len(m)\n    for i in range(n):\n        for j in range(i + 1, n):\n            m[i][j], m[j][i] = m[j][i], m[i][j]\n    for i in range(n):\n        m[i].reverse()\n    return m\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    m = []\n    idx = 1\n    for _ in range(n):\n        m.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    m = rotate_opt(m)\n    for row in m:\n        print(' '.join(map(str, row)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "四元素就地循环：对每层循环只交换对角线四块中的一组。按层数 k 划分子矩阵，每层用一次四元旋转：matrix[i][j] → matrix[j][n-1-i] → matrix[n-1-i][n-1-j] → matrix[n-1-j][i] → 起点。O(n²) 时间 O(1) 空间，是本题最常用就地写法。",
+      "code": "import sys\n\ndef rotate_best(m):\n    n = len(m)\n    for layer in range(n // 2):\n        first, last = layer, n - 1 - layer\n        for i in range(first, last):\n            offset = i - first\n            top = m[first][i]\n            m[first][i] = m[last - offset][first]\n            m[last - offset][first] = m[last][last - offset]\n            m[last][last - offset] = m[i][last]\n            m[i][last] = top\n    return m\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    m = []\n    idx = 1\n    for _ in range(n):\n        m.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    m = rotate_best(m)\n    for row in m:\n        print(' '.join(map(str, row)))\n"
+    }
+  ]
+}

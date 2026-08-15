@@ -1,0 +1,49 @@
+{
+  "id": 39,
+  "title": "组合总和",
+  "titleEn": "Combination Sum",
+  "difficulty": "中等",
+  "tags": ["数组", "回溯"],
+  "description": "给你一个无重复元素的整数数组 candidates 和一个目标整数 target。找出 candidates 中可以使数字和为目标数 target 的所有不同组合，并以列表形式返回。同一数字可被无限制重复使用，但组合之间的顺序无关。",
+  "examples": [
+    {
+      "input": "4\n2 3 6 7\n7",
+      "output": "2 2 3\n7",
+      "explanation": "2+2+3 与 7。"
+    },
+    {
+      "input": "3\n2 3 5\n8",
+      "output": "2 2 2 2\n2 3 3\n3 5",
+      "explanation": "所有用 2/3/5 表示 8 的组合。"
+    },
+    {
+      "input": "1\n2\n1",
+      "output": "",
+      "explanation": "无可行组合（输出空）。"
+    }
+  ],
+  "constraints": [
+    "1 <= candidates.length <= 30",
+    "2 <= candidates[i] <= 40",
+    "1 <= target <= 40",
+    "candidates 元素互不相同"
+  ],
+  "ioFormat": "第一行 n（candidates 长度），第二行 n 个整数，第三行 target。每一行一个组合（升序），共若干行。无解时输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "回溯：维护 path 和剩余 remain。从 i 开始递归，避免组合重复（同一组合只在一处生成）。若 remain<0 剪枝；若 remain==0 收集当前 path。本题 candidates 互不相同，不需要 skip 重复。",
+      "code": "import sys\n\ndef cs_brute(cands, target):\n    res = []\n    def dfs(i, remain, path):\n        if remain == 0:\n            res.append(path[:])\n            return\n        if i >= len(cands):\n            return\n        x = cands[i]\n        if x > remain:\n            return\n        # 不取\n        dfs(i + 1, remain, path)\n        # 取\n        path.append(x)\n        dfs(i, remain - x, path)\n        path.pop()\n    dfs(0, target, [])\n    return sorted(res)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    cands = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    res = cs_brute(cands, target)\n    for comb in res:\n        print(' '.join(map(str, comb)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "回溯的另一种写法：永远只从 i 开始（每个位置可不取或继续取），更简洁、无重复分支；自然升序。由于允许重复取同一索引，剪枝条件仍是 x > remain。",
+      "code": "import sys\n\ndef cs_opt(cands, target):\n    res = []\n    def dfs(i, remain, path):\n        if remain == 0:\n            res.append(path[:])\n            return\n        for j in range(i, len(cands)):\n            x = cands[j]\n            if x > remain:\n                break\n            path.append(x)\n            dfs(j, remain - x, path)\n            path.pop()\n    dfs(0, target, [])\n    return sorted(res)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    cands = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    res = cs_opt(cands, target)\n    for comb in res:\n        print(' '.join(map(str, comb)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "DP 视角：dp[rem] = 所有可凑出 rem 的组合（递归构造）。理论上等价于回溯版，但中间结果可复用。面试中能自然展开成回溯讨论即可。",
+      "code": "import sys\n\ndef cs_best(cands, target):\n    dp = [[] for _ in range(target + 1)]\n    dp[0] = [[]]\n    for x in cands:\n        for r in range(x, target + 1):\n            for pre in dp[r - x]:\n                dp[r].append(pre + [x])\n    return sorted([list(map(int, comb)) for comb in dp[target]])\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    cands = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    res = cs_best(cands, target)\n    for comb in res:\n        print(' '.join(map(str, comb)))\n"
+    }
+  ]
+}
