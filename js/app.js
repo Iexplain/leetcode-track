@@ -206,7 +206,7 @@
   // ---------- 题目详情 ----------
   function renderProblem(id) {
     setNav('');
-    app.innerHTML = '<div class="page"><a href="#/list" class="back">← 返回列表</a><div id="pBody">加载中…</div></div>';
+    app.innerHTML = '<div class="page"><div id="pBody">加载中…</div></div>';
     fetchProblem(id).then(function (p) {
       renderProblemDetail(p);
     }).catch(function (err) {
