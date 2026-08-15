@@ -84,63 +84,6 @@
     }));
   }
 
-  function renderLast30(checkins) {
-    var days = [];
-    var labels = [];
-    var today = new Date();
-    for (var i = 29; i >= 0; i--) {
-      var d = new Date(today);
-      d.setDate(d.getDate() - i);
-      var key = fmt(d);
-      days.push((checkins[key] || []).length);
-      labels.push(pad(d.getMonth() + 1) + '-' + pad(d.getDate()));
-    }
-    var canvas = document.getElementById('c30');
-    var ctx = canvas.getContext('2d');
-    // 紫 → 蓝 渐变描边；上方半透明 → 下方透明的渐变填充
-    function lineGrad(c) {
-      var area = c.chart.chartArea;
-      if (!area) return '#8b5cf6';
-      var g = ctx.createLinearGradient(area.left, 0, area.right, 0);
-      g.addColorStop(0, '#a78bfa'); g.addColorStop(1, '#3b82f6');
-      return g;
-    }
-    function fillGrad(c) {
-      var area = c.chart.chartArea;
-      if (!area) return 'rgba(139,92,246,0.25)';
-      var g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
-      g.addColorStop(0, 'rgba(139,92,246,0.38)');
-      g.addColorStop(1, 'rgba(59,130,246,0.02)');
-      return g;
-    }
-    instances.push(new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: '打卡题数', data: days,
-          fill: true, tension: 0.4, borderWidth: 2.5,
-          borderColor: lineGrad, backgroundColor: fillGrad,
-          pointRadius: 0, pointHoverRadius: 4,
-          pointBackgroundColor: '#a78bfa', pointBorderColor: '#fff', pointBorderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: true,
-        interaction: { intersect: false, mode: 'index' },
-        plugins: { legend: { display: false }, tooltip: {
-          backgroundColor: 'rgba(8,8,12,0.9)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1,
-          titleColor: '#ececf1', bodyColor: '#c4b5fd', padding: 10, displayColors: false,
-          callbacks: { label: function (c) { return c.parsed.y + ' 题'; } }
-        } },
-        scales: {
-          x: { ticks: { color: axisText(), font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: gridless() }, border: { display: false } },
-          y: { ticks: { precision: 0, color: axisText(), font: { size: 11 } }, grid: { display: gridless() }, border: { display: false }, beginAtZero: true }
-        }
-      }
-    }));
-  }
-
   // GitHub 暗色 5 级绿阶（0 = 空）
   var GH_GREEN = ['rgba(255,255,255,0.04)', '#0e4429', '#006d32', '#26a641', '#39d353'];
   var MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
@@ -216,7 +159,6 @@
       buildKPI(total, solved, streak, todayCount);
       renderDifficulty(solvedMap, idx);
       renderTag(solvedMap, idx);
-      renderLast30(checkins);
       renderHeatmap(checkins);
     }).catch(function (err) {
       document.getElementById('kpiRow').innerHTML = '<div class="err">统计加载失败：' + err.message + '</div>';
