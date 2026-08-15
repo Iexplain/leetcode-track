@@ -451,6 +451,8 @@ main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
 
 /* 图表画布：暗色下文字与网格由 Chart.js 选项控制；这里保证圆角容器 */
 .chart-card canvas { max-width: 100%; }
+/* 难度分布圆环：缩小并居中，避免撑满卡片 */
+#cDiff { max-width: 168px; height: auto; display: block; margin: 0 auto; }
 
 /* 响应式：窄屏统计两列变一列 */
 @media (max-width: 560px) {
