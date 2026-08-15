@@ -1,0 +1,56 @@
+{
+  "id": 32,
+  "title": "最长有效括号",
+  "titleEn": "Longest Valid Parentheses",
+  "difficulty": "困难",
+  "tags": [
+    "栈",
+    "字符串",
+    "动态规划"
+  ],
+  "description": "给你一个只包含 '(' 和 ')' 的字符串，找出最长有效（格式正确且连续）括号子串的长度。",
+  "examples": [
+    {
+      "input": "(()",
+      "output": "2",
+      "explanation": "最长有效括号是 \"()\"。"
+    },
+    {
+      "input": ")()())",
+      "output": "4",
+      "explanation": "\"()()\"。"
+    },
+    {
+      "input": "",
+      "output": "0",
+      "explanation": "空串。"
+    },
+    {
+      "input": "()(())",
+      "output": "6",
+      "explanation": "整个串都有效。"
+    }
+  ],
+  "constraints": [
+    "0 <= s.length <= 3 * 10^4",
+    "s 仅由 '(' 和 ')' 组成"
+  ],
+  "ioFormat": "输入一行字符串 s，输出一个整数表示最长有效括号长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举所有起止对 (i, j) 并扫一遍括号维护 balance，若最终为零则有效，记录最大长度。O(n^3) 时间，n=3*10^4 时完全不可用，但写法最直白。",
+      "code": "import sys\n\ndef longest_brute(s):\n    n = len(s)\n    best = 0\n    for i in range(n):\n        bal = 0\n        for j in range(i, n):\n            bal += 1 if s[j] == '(' else -1\n            if bal < 0:\n                break\n            if bal == 0 and j - i + 1 > best:\n                best = j - i + 1\n    return best\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(longest_brute(s))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "标准 DP（1-indexed）：dp[i] 表示以 s[i-1] 结尾的最长有效括号长度。若 s[i]=')', 看 s[i-1]='(' 则是基础对 '+2'，否则在 prev = i - dp[i-1] - 1 处找 '(' 配对，若成功则 dp[i] = dp[i-1] + 2 + dp[prev-1]。",
+      "code": "import sys\n\ndef longest_opt(s):\n    n = len(s)\n    dp = [0] * (n + 1)\n    best = 0\n    for i in range(2, n + 1):\n        if s[i - 1] == ')':\n            if s[i - 2] == '(':\n                dp[i] = dp[i - 2] + 2\n            else:\n                prev = i - dp[i - 1] - 1\n                if prev >= 1 and s[prev - 1] == '(':\n                    dp[i] = dp[i - 1] + 2 + dp[prev - 1]\n            if dp[i] > best:\n                best = dp[i]\n    return best\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(longest_opt(s))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "单调栈：栈底始终放一个“哨兵” -1。遇到 '(' 入栈，遇到 ')' 弹出一次；当弹出后栈空则把当前下标入栈当哨兵。每当栈不为空时，top 与当前下标的差就是当前合法长度。O(n) 时间、O(n) 空间，是本题代码最短常数最小的写法。",
+      "code": "import sys\n\ndef longest_best(s):\n    stack = [-1]\n    best = 0\n    for i, ch in enumerate(s):\n        if ch == '(':\n            stack.append(i)\n        else:\n            stack.pop()\n            if not stack:\n                stack.append(i)\n            elif i - stack[-1] > best:\n                best = i - stack[-1]\n    return best\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(longest_best(s))\n"
+    }
+  ]
+}

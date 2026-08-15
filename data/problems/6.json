@@ -1,0 +1,47 @@
+{
+  "id": 6,
+  "title": "Z 字形变换",
+  "titleEn": "Zigzag Conversion",
+  "difficulty": "中等",
+  "tags": ["字符串"],
+  "description": "将一个给定字符串 s 按 \"Z 字形\" 排列（按行从左到右、按列从上到下、然后斜向上、循环）成 numRows 行后，按行读取得到新字符串。",
+  "examples": [
+    {
+      "input": "PAYPALISHIRING\n3",
+      "output": "PAHNAPLSIIGYIR",
+      "explanation": "Z 字形排列后按行读是 PAHNAPLSIIGYIR。"
+    },
+    {
+      "input": "PAYPALISHIRING\n4",
+      "output": "PINALSIGYAHRPI",
+      "explanation": "4 行排列读出 PINALSIGYAHRPI。"
+    },
+    {
+      "input": "A\n1",
+      "output": "A",
+      "explanation": "单字符单行。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 1000",
+    "1 <= numRows <= 1000"
+  ],
+  "ioFormat": "第一行字符串 s，第二行整数 numRows。输出变换后的字符串。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接构造一个 numRows 行字符串数组，按之字形方向把字符依次填入，最后把所有行拼起来。O(n) 时间 O(numRows) 空间，逻辑最直观。",
+      "code": "import sys\n\ndef convert_brute(s, num_rows):\n    if num_rows == 1 or num_rows >= len(s):\n        return s\n    rows = [''] * num_rows\n    cur, step = 0, -1\n    for ch in s:\n        rows[cur] += ch\n        if cur == 0 or cur == num_rows - 1:\n            step = -step\n        cur += step\n    return ''.join(rows)\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if len(lines) < 2:\n        sys.exit(0)\n    s = lines[0].rstrip()\n    num_rows = int(lines[1].strip())\n    print(convert_brute(s, num_rows))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "周期格式化：每列+斜对角形成 1 个周期，长度 = 2*(num_rows-1)。把行 r 的字符按下标 mod 周期，再根据所在位置是向下（r == k）还是向上（r < k < 周期）分类。O(n) 时间但常数略大，无需显式构造数组。",
+      "code": "import sys\n\ndef convert_opt(s, num_rows):\n    if num_rows == 1 or num_rows >= len(s):\n        return s\n    cycle = 2 * (num_rows - 1)\n    out = []\n    for r in range(num_rows):\n        for k in range(r, len(s), cycle):\n            out.append(s[k])\n            mid = k + cycle - 2 * r\n            if r not in (0, num_rows - 1) and mid < len(s):\n                out.append(s[mid])\n    return ''.join(out)\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if len(lines) < 2:\n        sys.exit(0)\n    s = lines[0].rstrip()\n    num_rows = int(lines[1].strip())\n    print(convert_opt(s, num_rows))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "暴力版的常数优化：用 list 而不是 str 拼接（rows[i].append(ch) 比 rows[i] += ch 快几倍）。加一个小数组代替字符串存储，调换字符串拼接策略可达 5–10× 加速。在 Python 中 “构造行” + “join” 是 Z 字形公认的最快写法。",
+      "code": "import sys\n\ndef convert_best(s, num_rows):\n    if num_rows == 1 or num_rows >= len(s):\n        return s\n    rows = [[] for _ in range(num_rows)]\n    cur, step = 0, -1\n    for ch in s:\n        rows[cur].append(ch)\n        if cur == 0 or cur == num_rows - 1:\n            step = -step\n        cur += step\n    return ''.join(''.join(row) for row in rows)\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if len(lines) < 2:\n        sys.exit(0)\n    s = lines[0].rstrip()\n    num_rows = int(lines[1].strip())\n    print(convert_best(s, num_rows))\n"
+    }
+  ]
+}

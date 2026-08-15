@@ -1,0 +1,47 @@
+{
+  "id": 24,
+  "title": "两两交换链表中的节点",
+  "titleEn": "Swap Nodes in Pairs",
+  "difficulty": "中等",
+  "tags": ["递归", "链表"],
+  "description": "给你一个链表，每两个相邻节点交换位置。返回链表头。要求原地、O(1) 空间。",
+  "examples": [
+    {
+      "input": "4\n1 2 3 4",
+      "output": "2 1 4 3",
+      "explanation": "1-2-3-4 → 2-1-4-3。"
+    },
+    {
+      "input": "2\n1 2",
+      "output": "2 1",
+      "explanation": "单对交换。"
+    },
+    {
+      "input": "1\n1",
+      "output": "1",
+      "explanation": "单节点无变化。"
+    }
+  ],
+  "constraints": [
+    "链表节点数 >= 0",
+    "0 <= 节点值 <= 100"
+  ],
+  "ioFormat": "第一行 n（链表长度），第二行 n 个值。输出交换后的链表，空列表则输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "维护 dummy + prev，prev.next 指向当前一对的头。每次移动 prev 两次。O(L) 时间、O(1) 空间，是迭代最直白写法。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef swap_brute(values):\n    if len(values) < 2: return values\n    head = N(values[0])\n    cur = head\n    for v in values[1:]:\n        cur.nxt = N(v); cur = cur.nxt\n    dummy = N(0, head)\n    prev = dummy\n    while prev.nxt and prev.nxt.nxt:\n        a = prev.nxt\n        b = a.nxt\n        prev.nxt = b\n        a.nxt = b.nxt\n        b.nxt = a\n        prev = a\n    out = []\n    cur = dummy.nxt\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(); sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, swap_brute(vals))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "直观指针操作：先记录 next，再交换 prev→next/next→prev 等。逻辑比 dummy 写法稍繁琐但不依赖额外虚拟头，是另一种“动手派”写法。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef swap_opt(values):\n    head = None\n    for v in reversed(values):\n        head = N(v, head)\n    if head is None or head.nxt is None:\n        return values\n    dummy = N(0, head)\n    prev = dummy\n    while prev.nxt and prev.nxt.nxt:\n        a = prev.nxt\n        b = a.nxt\n        nxt = b.nxt\n        prev.nxt = b\n        b.nxt = a\n        a.nxt = nxt\n        prev = a\n    out = []\n    cur = dummy.nxt\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(); sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, swap_opt(vals))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归：对每两个节点 a、b，交换它们并递归处理 b.next；基准为空或单节点。O(L) 时间、O(L) 递归栈空间。代码最短，仅 k=2 的特例下常数比迭代略优。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef to_list(head):\n    out = []\n    while head:\n        out.append(head.v); head = head.nxt\n    return out\n\ndef swap_pair(node):\n    if not node or not node.nxt:\n        return node\n    nxt = node.nxt\n    node.nxt = swap_pair(nxt.nxt)\n    nxt.nxt = node\n    return nxt\n\ndef swap_best(values):\n    head = None\n    for v in reversed(values):\n        head = N(v, head)\n    return to_list(swap_pair(head))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(); sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, swap_best(vals))))\n"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": 25,
+  "title": "K 个一组翻转链表",
+  "titleEn": "Reverse Nodes in k-Group",
+  "difficulty": "困难",
+  "tags": ["递归", "链表"],
+  "description": "给你链表头节点 head 和整数 k，每 k 个节点一组进行翻转。若剩余不足 k 个则保持原样。要求 O(1) 空间（不计递归栈）。",
+  "examples": [
+    {
+      "input": "5\n1 2 3 4 5\n2",
+      "output": "2 1 4 3 5",
+      "explanation": "1-2 / 3-4 翻转，剩 5 不动。"
+    },
+    {
+      "input": "5\n1 2 3 4 5\n3",
+      "output": "3 2 1 4 5",
+      "explanation": "前 3 翻转为 3-2-1，剩 4-5 保持原样。"
+    },
+    {
+      "input": "5\n1 2 3 4 5\n1",
+      "output": "1 2 3 4 5",
+      "explanation": "k=1 时无变化。"
+    }
+  ],
+  "constraints": [
+    "0 <= 节点数 <= 5000",
+    "1 <= k <= 节点数 + 1",
+    "0 <= 节点值 <= 1000"
+  ],
+  "ioFormat": "第一行 n（链表长度），第二行 n 个值，第三行整数 k。输出 k 组翻转后的链表，空则输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "分组翻转：先遍历拿到首尾指针和分组数。一组一组反转后接上去。O(L) 时间 O(1) 空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef reverse_segment(head, k):\n    prev = None\n    cur = head\n    for _ in range(k):\n        nxt = cur.nxt\n        cur.nxt = prev\n        prev = cur\n        cur = nxt\n    return prev, head, cur\n\ndef reverse_brute(values, k):\n    if not values or k <= 1: return values\n    head = N(values[0])\n    cur = head\n    for v in values[1:]:\n        cur.nxt = N(v); cur = cur.nxt\n    dummy = N(0, head)\n    prev = dummy\n    while True:\n        cur = prev.nxt\n        tail = cur\n        for _ in range(k - 1):\n            if tail is None:\n                break\n            tail = tail.nxt\n        if tail is None:\n            break\n        nxt_group = tail.nxt\n        new_head, old_tail, _ = reverse_segment(cur, k)\n        prev.nxt = new_head\n        old_tail.nxt = nxt_group\n        prev = old_tail\n    out = []\n    cur = dummy.nxt\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(); sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, reverse_brute(vals, k))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "抽出一个 reverse_k(head, k) 工具函数返回 (new_head, rest)；主循环里探测 k 个节点、再决定是否反转。O(L) 时间 O(1) 空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef reverse_k(head, k):\n    prev = None\n    cur = head\n    for _ in range(k):\n        nxt = cur.nxt\n        cur.nxt = prev\n        prev = cur\n        cur = nxt\n    return prev, cur\n\ndef reverse_opt(values, k):\n    if not values or k <= 1: return values\n    head = N(values[0])\n    cur = head\n    for v in values[1:]:\n        cur.nxt = N(v); cur = cur.nxt\n    dummy = N(0, head)\n    prev = dummy\n    while True:\n        cur = prev.nxt\n        nxt = cur\n        cnt = 0\n        while nxt and cnt < k:\n            nxt = nxt.nxt\n            cnt += 1\n        if cnt < k:\n            break\n        new_head, rest = reverse_k(cur, k)\n        prev.nxt = new_head\n        cur.nxt = rest\n        prev = cur\n    out = []\n    cur = dummy.nxt\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(); sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, reverse_opt(vals, k))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上把接链也封装进 reverse_k：探测 k 个节点后一次性反转 + 接好尾巴，避免后续手动找反转尾。代码更短，读起来‘一组完整反转再接上’，是工程实践最清爽的写法。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef reverse_k_with_tail(head, k):\n    prev = None\n    cur = head\n    tail = None\n    for i in range(k):\n        nxt = cur.nxt\n        cur.nxt = prev\n        prev = cur\n        cur = nxt\n        tail = cur\n    return prev, head, tail  # 旧头变成尾\n\ndef reverse_best(values, k):\n    if not values or k <= 1: return values\n    head = N(values[0])\n    cur = head\n    for v in values[1:]:\n        cur.nxt = N(v); cur = cur.nxt\n    dummy = N(0, head)\n    prev = dummy\n    while True:\n        # 探测 k 个\n        probe = prev.nxt\n        cnt = 0\n        while probe and cnt < k:\n            probe = probe.nxt\n            cnt += 1\n        if cnt < k:\n            break\n        new_head, old_tail, next_grp = reverse_k_with_tail(prev.nxt, k)\n        prev.nxt = new_head\n        old_tail.nxt = next_grp\n        prev = old_tail\n    out = []\n    cur = dummy.nxt\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(); sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, reverse_best(vals, k))))\n"
+    }
+  ]
+}

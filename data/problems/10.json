@@ -1,0 +1,59 @@
+{
+  "id": 10,
+  "title": "正则表达式匹配",
+  "titleEn": "Regular Expression Matching",
+  "difficulty": "困难",
+  "tags": [
+    "递归",
+    "字符串",
+    "动态规划"
+  ],
+  "description": "给你一个字符串 s 和一个字符模式 p，请实现一个支持 '.' 和 '*' 的正则表达式匹配。其中 '.' 匹配任意单个字符；'*' 匹配零个或多个前面的那一个元素。所谓“匹配”覆盖整个字符串 s。",
+  "examples": [
+    {
+      "input": "aa\na",
+      "output": "false",
+      "explanation": "\"a\" 无法匹配 \"aa\"。"
+    },
+    {
+      "input": "aa\na*",
+      "output": "true",
+      "explanation": "'*' 表示零或多个 'a'，可匹配全部。"
+    },
+    {
+      "input": "ab\n.*",
+      "output": "true",
+      "explanation": "\".*\" 表示零个或多个任意字符。"
+    },
+    {
+      "input": "mississippi\nmis*is*p*.",
+      "output": "false",
+      "explanation": "通配不能完整覆盖 s。"
+    }
+  ],
+  "constraints": [
+    "0 <= s.length <= 20",
+    "0 <= p.length <= 30",
+    "s 仅由小写英文字母组成",
+    "p 仅由小写英文字母、'.' 与 '*' 组成",
+    "保证 p 每次出现 '*' 时前面都有有效元素"
+  ],
+  "ioFormat": "第一行字符串 s，第二行字符模式 p。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归 + memo：f(i, j) 表示 s[i:] 与 p[j:] 是否匹配。当 p[j+1] 是 '*' 时需要分两种情况（'*' 不消费 / '*' 消费 1 次以上），逻辑分支很多但实现紧凑。O(m·n) 时间、空间。",
+      "code": "import sys\n\ndef match_brute(s, p):\n    from functools import lru_cache\n    @lru_cache(None)\n    def f(i, j):\n        if j == len(p): return i == len(s)\n        first = i < len(s) and p[j] in (s[i], '.')\n        if j + 1 < len(p) and p[j + 1] == '*':\n            # '*' 匹配 0 次、或 1+ 次（首字符匹配则继续）\n            return f(i, j + 2) or (first and f(i + 1, j))\n        return first and f(i + 1, j + 1)\n    return f(0, 0)\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if len(lines) < 2:\n        sys.exit(0)\n    s = lines[0].rstrip()\n    p = lines[1].rstrip()\n    print('true' if match_brute(s, p) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二维 DP：dp[i][j] 表示 s[:i] 与 p[:j] 是否匹配。转移时处理 p[j-1]=='*' 的特殊情况。O(m·n) 时间、空间，逻辑比递归版更不易写错。",
+      "code": "import sys\n\ndef match_opt(s, p):\n    m, n = len(s), len(p)\n    dp = [[False] * (n + 1) for _ in range(m + 1)]\n    dp[0][0] = True\n    for j in range(2, n + 1):\n        if p[j - 1] == '*':\n            dp[0][j] = dp[0][j - 2]\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if p[j - 1] == '*':\n                # '*' 重复 0 次（看 j-2）或重复 1+ 次（看 i 是否与前一个字符匹配）\n                dp[i][j] = dp[i][j - 2] or (\n                    (s[i - 1] == p[j - 2] or p[j - 2] == '.') and dp[i - 1][j]\n                )\n            else:\n                dp[i][j] = dp[i - 1][j - 1] and (s[i - 1] == p[j - 1] or p[j - 1] == '.')\n    return dp[m][n]\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if len(lines) < 2:\n        sys.exit(0)\n    s = lines[0].rstrip()\n    p = lines[1].rstrip()\n    print('true' if match_opt(s, p) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在二维 DP 基础上做一维 DP：用 prev 行表示 dp[i-1][*]，cur 行表示 dp[i][*]，按 j 顺序逐格填。dp[i][j-2] 与 dp[i-1][j] 均从 prev 行读，但 dp[i][j] 自身滚动覆盖之前要先保留 prev 副本。",
+      "code": "import sys\n\ndef match_best(s, p):\n    m, n = len(s), len(p)\n    dp = [False] * (n + 1)\n    dp[0] = True\n    for j in range(2, n + 1):\n        if p[j - 1] == '*':\n            dp[j] = dp[j - 2]\n    for i in range(1, m + 1):\n        prev = dp[:]\n        cur = [False] * (n + 1)\n        for j in range(1, n + 1):\n            if p[j - 1] == '*':\n                # dp[i][j-2] 来自当前行 cur；dp[i-1][j] 来自 prev\n                v1 = cur[j - 2]\n                v2 = (s[i - 1] == p[j - 2] or p[j - 2] == '.') and prev[j]\n                cur[j] = v1 or v2\n            else:\n                cur[j] = (s[i - 1] == p[j - 1] or p[j - 1] == '.') and prev[j - 1]\n        dp = cur\n    return dp[n]\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if len(lines) < 2:\n        sys.exit(0)\n    s = lines[0].rstrip()\n    p = lines[1].rstrip()\n    print('true' if match_best(s, p) else 'false')\n"
+    }
+  ]
+}

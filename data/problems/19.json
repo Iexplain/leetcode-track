@@ -1,0 +1,46 @@
+{
+  "id": 19,
+  "title": "删除链表的倒数第 N 个结点",
+  "titleEn": "Remove Nth Node From End of List",
+  "difficulty": "中等",
+  "tags": [
+    "链表",
+    "双指针"
+  ],
+  "description": "给你一个链表的头节点 head 和一个整数 n，请删除链表的倒数第 n 个节点，并返回头节点。保证 n 有效。",
+  "examples": [
+    {
+      "input": "5\n1 2 3 4 5\n2",
+      "output": "1 2 3 5",
+      "explanation": "删除倒数第 2（值为 4）。"
+    },
+    {
+      "input": "2\n1 2\n1",
+      "output": "1",
+      "explanation": "删除倒数第 1（值为 2），剩 [1]。"
+    }
+  ],
+  "constraints": [
+    "链表节点数 >= 1",
+    "1 <= n <= 链表长度",
+    "0 <= 节点值 <= 100"
+  ],
+  "ioFormat": "第一行 n（数组长度），第二行链表值，第三行整数 n。输出删除后链表（空格分隔），若空则输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "两遍扫描：第一遍算出链表总长度 L；第二遍遍历到 L-n 位置，把它的 next 指向 next.next。O(L) 时间、O(1) 空间，是最直白写法。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef remove_brute(values, k):\n    if not values: return None\n    head = N(values[0])\n    cur = head\n    for v in values[1:]:\n        cur.nxt = N(v); cur = cur.nxt\n    L = 0\n    cur = head\n    while cur:\n        L += 1; cur = cur.nxt\n    target = L - k\n    if target == 0:\n        return head.nxt\n    cur = head\n    for _ in range(target - 1):\n        cur = cur.nxt\n    cur.nxt = cur.nxt.nxt\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, to_list(remove_brute(vals, k)))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "快慢指针一趟扫描：fast 先走 k 步，然后 fast、slow 同步前进直到 fast 为 None；此时 slow 正好是目标节点的前一个。删除 slow.next。一趟完成，是 LeetCode 官方解。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef remove_opt(values, k):\n    if not values: return None\n    head = N(values[0])\n    cur = head\n    for v in values[1:]:\n        cur.nxt = N(v); cur = cur.nxt\n    fast = head\n    for _ in range(k):\n        fast = fast.nxt\n    if not fast:\n        return head.nxt\n    slow = head\n    while fast.nxt:\n        slow = slow.nxt\n        fast = fast.nxt\n    slow.nxt = slow.nxt.nxt\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, to_list(remove_opt(vals, k)))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上加 dummy 哨兵：dummy.next=head，使 slow 初始指向 dummy。这样当要删除头节点时也无需特殊判断，slow.nxt = slow.nxt.nxt 通用。一行解决边界问题，是工程实践最稳健的写法。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef remove_best(values, k):\n    if not values: return None\n    head = N(values[0])\n    cur = head\n    for v in values[1:]:\n        cur.nxt = N(v); cur = cur.nxt\n    dummy = N(0, head)\n    fast = slow = dummy\n    for _ in range(k):\n        fast = fast.nxt\n    while fast.nxt:\n        slow = slow.nxt\n        fast = fast.nxt\n    slow.nxt = slow.nxt.nxt\n    return dummy.nxt\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v); cur = cur.nxt\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, to_list(remove_best(vals, k)))))\n"
+    }
+  ]
+}

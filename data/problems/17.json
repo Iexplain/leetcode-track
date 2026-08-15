@@ -1,0 +1,47 @@
+{
+  "id": 17,
+  "title": "电话号码的字母组合",
+  "titleEn": "Letter Combinations of a Phone Number",
+  "difficulty": "中等",
+  "tags": ["哈希表", "字符串", "回溯"],
+  "description": "给定一个仅包含数字 2-9 的字符串 digits，返回所有它能表示的字母组合（按电话按键的映射）。答案可以按任意顺序返回。",
+  "examples": [
+    {
+      "input": "23",
+      "output": "ad\nae\naf\nbd\nbe\nbf\ncd\nce\ncf",
+      "explanation": "2=abc, 3=def 的笛卡尔积。"
+    },
+    {
+      "input": "",
+      "output": "",
+      "explanation": "空字符串没有组合。"
+    },
+    {
+      "input": "2",
+      "output": "a\nb\nc",
+      "explanation": "单数字直接返回字母列表。"
+    }
+  ],
+  "constraints": [
+    "0 <= digits.length <= 4",
+    "digits[i] 在 ['2', '9'] 范围内"
+  ],
+  "ioFormat": "输入一行数字字符串 digits（不含 0 和 1），输出每一行一个字母组合（共 4^n 行，按字典序升序）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "嵌套 for 循环：对每位数字用一个 for 循环组合出所有结果。当 digits 长度固定为 4 时这种写法可以展开；但当长度动态时就要写多套循环或硬编码。代码不通用，仅对 n=2/3 简洁可读。",
+      "code": "import sys\n\ndef comb_brute(d):\n    if not d: return []\n    M = {'2':'abc','3':'def','4':'ghi','5':'jkl','6':'mno','7':'pqrs','8':'tuv','9':'wxyz'}\n    res = ['']\n    for ch in d:\n        new = []\n        for s in res:\n            for c in M[ch]:\n                new.append(s + c)\n        res = new\n    return res\n\nif __name__ == '__main__':\n    d = sys.stdin.readline().strip()\n    for s in comb_brute(d):\n        print(s)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "递归回溯：对每位数字映射一组字母，DFS 进位扩展，最后收集所有路径。O(4^n) 时间，O(n) 递归栈深度，逻辑与 BFS 等价但代码更清晰，常数上也最低。",
+      "code": "import sys\n\ndef comb_opt(d):\n    if not d: return []\n    M = {'2':'abc','3':'def','4':'ghi','5':'jkl','6':'mno','7':'pqrs','8':'tuv','9':'wxyz'}\n    res = []\n    def dfs(i, cur):\n        if i == len(d):\n            res.append(cur)\n            return\n        for c in M[d[i]]:\n            dfs(i + 1, cur + c)\n    dfs(0, '')\n    return res\n\nif __name__ == '__main__':\n    d = sys.stdin.readline().strip()\n    for s in comb_opt(d):\n        print(s)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在回溯基础上，把当前 path 改为 list 拼接：每次循环先 append 一个新字符，DFS 完后 pop 出来；最后用 ''.join(path) 收集。比纯字符串 += 略快，避免过多字符串对象，是 LeetCode 官方推荐的 DFS 微优化。",
+      "code": "import sys\n\ndef comb_best(d):\n    if not d: return []\n    M = {'2':'abc','3':'def','4':'ghi','5':'jkl','6':'mno','7':'pqrs','8':'tuv','9':'wxyz'}\n    res = []\n    path = []\n    def dfs(i):\n        if i == len(d):\n            res.append(''.join(path))\n            return\n        for c in M[d[i]]:\n            path.append(c)\n            dfs(i + 1)\n            path.pop()\n    dfs(0)\n    return res\n\nif __name__ == '__main__':\n    d = sys.stdin.readline().strip()\n    for s in comb_best(d):\n        print(s)\n"
+    }
+  ]
+}

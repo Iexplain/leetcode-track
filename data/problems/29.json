@@ -1,0 +1,53 @@
+{
+  "id": 29,
+  "title": "两数相除",
+  "titleEn": "Divide Two Integers",
+  "difficulty": "中等",
+  "tags": ["位运算", "数学"],
+  "description": "给你两个整数 dividend 和 divisor，将两数相除，要求不使用乘法、除法和 mod 运算符。返回整数商，结果向零截断。假设环境只处理 32 位有符号整数范围，商也在 32 位内。",
+  "examples": [
+    {
+      "input": "10\n3",
+      "output": "3",
+      "explanation": "10 / 3 = 3.333…→ 3。"
+    },
+    {
+      "input": "7\n-3",
+      "output": "-2",
+      "explanation": "向零截断：-2.333…→ -2。"
+    },
+    {
+      "input": "0\n1",
+      "output": "0",
+      "explanation": "0 除以任何非零数得 0。"
+    },
+    {
+      "input": "-2147483648\n-1",
+      "output": "2147483647",
+      "explanation": "溢出取上界 INT_MAX。"
+    }
+  ],
+  "constraints": [
+    "-2^31 <= dividend, divisor <= 2^31 - 1",
+    "divisor != 0",
+    "若只用 32 位有符号整数，结果也在该范围"
+  ],
+  "ioFormat": "第一行 dividend，第二行 divisor。输出整数商。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "循环累减：把 dividend 不断减去 divisor，计数。但当 dividend 极大、divisor 极小时（比如 2^31-1 / 1）会循环 O(n) 次。TLE。",
+      "code": "import sys\n\ndef div_brute(a, b):\n    if a == -2**31 and b == -1:\n        return 2**31 - 1\n    sign = -1 if (a < 0) ^ (b < 0) else 1\n    a, b = abs(a), abs(b)\n    q = 0\n    while a >= b:\n        a -= b\n        q += 1\n    return sign * q\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    a = int(data[0]); b = int(data[1])\n    print(div_brute(a, b))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "位移倍增：被除数减去除数倍乘 2^k 直到不能再减。整体 O(log n)。注意处理边界 -2^31 / -1 = 2^31-1 的溢出。",
+      "code": "import sys\n\ndef div_opt(a, b):\n    if a == -2**31 and b == -1:\n        return 2**31 - 1\n    sign = -1 if (a < 0) ^ (b < 0) else 1\n    a, b = abs(a), abs(b)\n    q = 0\n    while a >= b:\n        tmp, k = b, 1\n        while a >= (tmp << 1):\n            tmp <<= 1\n            k <<= 1\n        a -= tmp\n        q += k\n    return sign * q\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    a = int(data[0]); b = int(data[1])\n    print(div_opt(a, b))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "位移倍增的另一写法：让 k 从最大位开始尝试（左移 divisor 直到逼近但不超过 dividend），然后用“做大减大”思路把 dividend 直接减去 divisor*k。逻辑更接近 LeetCode 官方版：先 sign 处理，再循环 (while a>=b: k=b, shift, sub)。",
+      "code": "import sys\n\ndef div_best(a, b):\n    if a == -2**31 and b == -1:\n        return 2**31 - 1\n    sign = -1 if (a < 0) ^ (b < 0) else 1\n    A, B = abs(a), abs(b)\n    q = 0\n    while A >= B:\n        tmp, k = B, 1\n        while A >= (tmp << 1):\n            tmp <<= 1\n            k <<= 1\n        A -= tmp\n        q += k\n    return sign * q\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    a = int(data[0]); b = int(data[1])\n    print(div_best(a, b))\n"
+    }
+  ]
+}
