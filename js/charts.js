@@ -27,8 +27,6 @@
   function buildKPI(total, solved, streak, todayCount) {
     var pct = total ? Math.round(solved / total * 100) : 0;
     var cards = [
-      { label: '题库总数', value: total, color: '#3b82f6' },
-      { label: '已做', value: solved, color: '#16a34a' },
       { label: '进度', value: pct + '%', color: '#8b5cf6' },
       { label: '连续打卡', value: streak + ' 天', color: '#f59e0b' },
       { label: '今日已做', value: todayCount, color: '#ec4899' }
