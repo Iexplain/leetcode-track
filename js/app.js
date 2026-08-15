@@ -397,29 +397,26 @@
     }
   }
 
-  // ---------- 安装（顶部下载按钮） ----------
-  var deferredPrompt = null;
-  function setupInstall() {
+  // ---------- 顶部下载按钮：导出备份 ----------
+  function exportBackup() {
+    try {
+      var blob = new Blob([Store.exportData()], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'leetcode-pwa-backup-' + Store.todayStr() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    } catch (err) {
+      alert('导出失败：' + err.message);
+    }
+  }
+  function setupDownload() {
     var btn = $('installBtn');
-    window.addEventListener('beforeinstallprompt', function (e) {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
-    window.addEventListener('appinstalled', function () { deferredPrompt = null; });
     if (!btn) return;
-    btn.addEventListener('click', function () {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
-        return;
-      }
-      // 不支持 beforeinstallprompt（iOS Safari 或已安装）：给引导提示
-      if (isIOS() && !isStandalone()) {
-        alert('在 Safari 中点击底部「分享」按钮 → 选择「添加到主屏幕」，即可安装到桌面。');
-      } else {
-        alert('请通过浏览器的「安装应用 / 添加到主屏幕」菜单将此应用安装到桌面。');
-      }
-    });
+    btn.title = '导出备份';
+    btn.addEventListener('click', exportBackup);
   }
 
   // ---------- 启动 ----------
@@ -427,6 +424,6 @@
   document.addEventListener('DOMContentLoaded', function () {
     fetchIndex().then(function () { router(); }).catch(function () { router(); });
     registerSW();
-    setupInstall();
+    setupDownload();
   });
 })();
