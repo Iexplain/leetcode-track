@@ -1,0 +1,42 @@
+{
+  "id": 234,
+  "title": "回文链表",
+  "titleEn": "Palindrome Linked List",
+  "difficulty": "简单",
+  "tags": ["栈", "递归", "链表"],
+  "description": "给你单链表的头节点 head，判断该链表的值序列是否为回文。O(n) 时间 O(1) 空间（不能复制整个链表到数组）。",
+  "examples": [
+    {
+      "input": "4\n1 2 2 1",
+      "output": "true",
+      "explanation": "1→2→2→1 是回文。"
+    },
+    {
+      "input": "4\n1 2 3 4",
+      "output": "false",
+      "explanation": "1→2→3→4 不是回文。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [1, 10^5] 内",
+    "-10^4 <= 节点值 <= 10^4"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把链表值全部取出到数组中，再双指针头尾比较。写法极简，但 O(n) 时间 O(n) 额外空间，违背“原地”要求。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    if not vals: return None\n    head = N(vals[0])\n    cur = head\n    for v in vals[1:]:\n        cur.nxt = N(v)\n        cur = cur.nxt\n    return head\n\ndef is_pal_brute(head):\n    vals = []\n    cur = head\n    while cur:\n        vals.append(cur.v)\n        cur = cur.nxt\n    i, j = 0, len(vals) - 1\n    while i < j:\n        if vals[i] != vals[j]: return False\n        i += 1; j -= 1\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    head = build(vals)\n    print('true' if is_pal_brute(head) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "把链表前半段压栈，再走后半段逐个弹栈对比。O(n) 时间、O(n/2) 栈空间。思路清晰，但仍未达到 O(1) 空间要求。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    if not vals: return None\n    head = N(vals[0])\n    cur = head\n    for v in vals[1:]:\n        cur.nxt = N(v)\n        cur = cur.nxt\n    return head\n\ndef is_pal_opt(head):\n    stack = []\n    slow = fast = head\n    while fast and fast.nxt:\n        stack.append(slow.v)\n        slow = slow.nxt\n        fast = fast.nxt.nxt\n    if fast:  # 奇数长度，跳过中点\n        slow = slow.nxt\n    while slow:\n        if stack.pop() != slow.v:\n            return False\n        slow = slow.nxt\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    head = build(vals)\n    print('true' if is_pal_opt(head) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "快慢指针找到链表中点，反转后半段就地，原地比较，再恢复（可选）。整个过程只用 O(1) 额外空间，是面试标准最优解。代码分两段：先找中点再反转再比较。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    if not vals: return None\n    head = N(vals[0])\n    cur = head\n    for v in vals[1:]:\n        cur.nxt = N(v)\n        cur = cur.nxt\n    return head\n\ndef reverse(node):\n    prev = None\n    cur = node\n    while cur:\n        nxt = cur.nxt\n        cur.nxt = prev\n        prev = cur\n        cur = nxt\n    return prev\n\ndef is_pal_best(head):\n    slow = fast = head\n    while fast and fast.nxt:\n        slow = slow.nxt\n        fast = fast.nxt.nxt\n    second = reverse(slow)\n    p1, p2 = head, second\n    ok = True\n    while p2:\n        if p1.v != p2.v:\n            ok = False\n            break\n        p1 = p1.nxt\n        p2 = p2.nxt\n    reverse(second)\n    return ok\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    head = build(vals)\n    print('true' if is_pal_best(head) else 'false')\n"
+    }
+  ]
+}

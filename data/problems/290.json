@@ -1,0 +1,49 @@
+{
+  "id": 290,
+  "title": "单词规律",
+  "titleEn": "Word Pattern",
+  "difficulty": "简单",
+  "tags": ["哈希表", "字符串"],
+  "description": "给定一种 pattern（一个字母组成的字符串）和一个字符串 s，判断 s 是否遵循相同的规律。s 中的单词之间用单个空格分隔，并与 pattern 中的字符一一对应成双射。",
+  "examples": [
+    {
+      "input": "abba\ndog cat cat dog",
+      "output": "true",
+      "explanation": "a→dog, b→cat。"
+    },
+    {
+      "input": "abba\ndog cat cat fish",
+      "output": "false",
+      "explanation": "b 不能同时映射到 cat 和 fish。"
+    },
+    {
+      "input": "aaaa\ndog cat cat dog",
+      "output": "false",
+      "explanation": "单词数量与 pattern 长度不等。"
+    }
+  ],
+  "constraints": [
+    "1 <= pattern.length <= 300",
+    "pattern 仅由小写字母组成",
+    "s 由小写字母与空格组成，且不含首尾空格、词间只有单个空格",
+    "1 <= s.length <= 3 * 10^4"
+  ],
+  "ioFormat": "第一行 pattern（可能含有字母），第二行 s（含空格）。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把 s 按空格切分成单词数组，再用 Counter 同时统计字符与单词的频次序列。若两次的“种类序号序列”完全相同则配对成立。写法直白，但要先做一次 split 和 dict 比较，对于面试场景更常用双哈希表写法。",
+      "code": "import sys\n\ndef word_pattern_brute(pattern, s):\n    words = s.split()\n    if len(words) != len(pattern):\n        return False\n    def encode(seq):\n        seen, out = {}, []\n        for i, x in enumerate(seq):\n            if x not in seen:\n                seen[x] = i\n            out.append(seen[x])\n        return out\n    return encode(pattern) == encode(words)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if word_pattern_brute(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "双哈希表同时维护 char→word 和 word→char 两个映射。遍历 pattern[i] 与 words[i] 时，若任一方向已有不等价的映射就返回 false。O(n) 时间即可发现冲突，比 brute 略更工程化。",
+      "code": "import sys\n\ndef word_pattern_opt(pattern, s):\n    words = s.split()\n    if len(words) != len(pattern):\n        return False\n    c2w, w2c = {}, {}\n    for c, w in zip(pattern, words):\n        if c2w.get(c, w) != w:\n            return False\n        if w2c.get(w, c) != c:\n            return False\n        c2w[c] = w\n        w2c[w] = c\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if word_pattern_opt(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 zip 把 pattern 字符和 words 拉链后，逐个元素检查是否所有 (c, w) 对唯一——把元素的“首现下标”分别对 pattern 和 words 构造序列，再判断两组首现下标序列一致。这样规避了双哈希表，逻辑和 is_isomorphic 完全等价，复用最强理解。",
+      "code": "import sys\n\ndef first_index(seq):\n    seen, out = {}, []\n    for x in seq:\n        if x not in seen:\n            seen[x] = len(out)\n        out.append(seen[x])\n    return out\n\ndef word_pattern_best(pattern, s):\n    words = s.split()\n    if len(words) != len(pattern):\n        return False\n    return first_index(pattern) == first_index(words)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if word_pattern_best(data[0], data[1]) else 'false')\n"
+    }
+  ]
+}

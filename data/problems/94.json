@@ -1,0 +1,43 @@
+{
+  "id": 94,
+  "title": "二叉树的中序遍历",
+  "titleEn": "Binary Tree Inorder Traversal",
+  "difficulty": "简单",
+  "tags": ["栈", "树", "深度优先搜索"],
+  "description": "给定一棵二叉树根节点 root，返回它的中序遍历序列（左 → 根 → 右）。",
+  "examples": [
+    {
+      "input": "4\n1 n 2 3",
+      "output": "1 3 2",
+      "explanation": "树 [1,null,2,3]，中序为 [1,3,2]。"
+    },
+    {
+      "input": "6\n1 2 3 4 5 6",
+      "output": "4 2 5 1 6 3",
+      "explanation": "完全二叉树的中序。"
+    }
+  ],
+  "constraints": [
+    "0 <= 节点数 <= 100",
+    "-100 <= 节点值 <= 100",
+    "树以层序数组给出，'n' 代表 None"
+  ],
+  "ioFormat": "第一行数组长度 n，第二行 n 个 token（整数或 n 表示空节点）。输出一行中序遍历结果（空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归定义中序：访问左子树 → 根 → 右子树，最朴素的定义。写法最直观，但当树退化成链表时会撞上 Python 递归深度限制。",
+      "code": "import sys\nfrom collections import deque\n\nclass TreeNode:\n    __slots__ = ('val', 'left', 'right')\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val; self.left = left; self.right = right\n\ndef build_tree(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = TreeNode(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.left = TreeNode(int(arr[i]))\n            q.append(node.left)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.right = TreeNode(int(arr[i]))\n            q.append(node.right)\n        i += 1\n    return root\n\ndef inorder_brute(root):\n    res = []\n    def dfs(node):\n        if not node:\n            return\n        dfs(node.left)\n        res.append(node.val)\n        dfs(node.right)\n    dfs(root)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build_tree(arr)\n    print(' '.join(map(str, inorder_brute(root))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用显式栈模拟递归：cur 沿左孩子一路压栈到底，再弹出访问、切换到右子树。O(n) 时间、O(h) 空间（h 为树高），是非递归 DFS 模板，且能处理链表状深度。",
+      "code": "import sys\nfrom collections import deque\n\nclass TreeNode:\n    __slots__ = ('val', 'left', 'right')\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val; self.left = left; self.right = right\n\ndef build_tree(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = TreeNode(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.left = TreeNode(int(arr[i]))\n            q.append(node.left)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.right = TreeNode(int(arr[i]))\n            q.append(node.right)\n        i += 1\n    return root\n\ndef inorder_opt(root):\n    res, stack, cur = [], [], root\n    while cur or stack:\n        while cur:\n            stack.append(cur)\n            cur = cur.left\n        cur = stack.pop()\n        res.append(cur.val)\n        cur = cur.right\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build_tree(arr)\n    print(' '.join(map(str, inorder_opt(root))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Morris 中序遍历：利用叶子节点的空右指针作为“访问完后回溯”的通道，全程只用 O(1) 额外空间。每个节点最多被访问两次，总时间仍是 O(n)，是面试加分神器。",
+      "code": "import sys\nfrom collections import deque\n\nclass TreeNode:\n    __slots__ = ('val', 'left', 'right')\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val; self.left = left; self.right = right\n\ndef build_tree(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = TreeNode(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.left = TreeNode(int(arr[i]))\n            q.append(node.left)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.right = TreeNode(int(arr[i]))\n            q.append(node.right)\n        i += 1\n    return root\n\ndef inorder_best(root):\n    res = []\n    cur = root\n    while cur:\n        if cur.left is None:\n            res.append(cur.val)\n            cur = cur.right\n        else:\n            pre = cur.left\n            while pre.right and pre.right is not cur:\n                pre = pre.right\n            if pre.right is None:\n                pre.right = cur\n                cur = cur.left\n            else:\n                pre.right = None\n                res.append(cur.val)\n                cur = cur.right\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build_tree(arr)\n    print(' '.join(map(str, inorder_best(root))))\n"
+    }
+  ]
+}

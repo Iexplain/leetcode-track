@@ -1,0 +1,48 @@
+{
+  "id": 219,
+  "title": "存在重复元素 II",
+  "titleEn": "Contains Duplicate II",
+  "difficulty": "简单",
+  "tags": ["数组", "哈希表", "滑动窗口"],
+  "description": "给定一个整数数组 nums 和一个整数 k，判断数组中是否存在两个不同下标 i 和 j 满足 nums[i] == nums[j] 且 |i - j| <= k。",
+  "examples": [
+    {
+      "input": "4\n1 2 3 1\n3",
+      "output": "true",
+      "explanation": "nums[0] == nums[3] == 1，且 |0-3| = 3 <= k。"
+    },
+    {
+      "input": "5\n1 0 1 1 1\n1",
+      "output": "true",
+      "explanation": "nums[2] == nums[3]，距离 1。"
+    },
+    {
+      "input": "6\n1 2 3 4 5 6\n2",
+      "output": "false",
+      "explanation": "没有重复元素，自然不满足。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^5",
+    "-10^9 <= nums[i] <= 10^9",
+    "0 <= k <= 10^5"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数，第三行 k。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个下标 i，向前看最多 k 个下标，检查是否出现相同值。最坏 O(n*k)，n 和 k 都到 10^5 时严重超时。",
+      "code": "import sys\n\ndef contains_nearby_duplicate_brute(nums, k):\n    n = len(nums)\n    for i in range(n):\n        for j in range(max(0, i - k), i):\n            if nums[j] == nums[i]:\n                return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print('true' if contains_nearby_duplicate_brute(nums, k) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "维护一个哈希表，键是元素值，值是最近一次出现的下标。遍历时若发现 nums[i] 已在表中且 i - last <= k，即满足。否则把下标更新为 i。O(n) 时间 O(min(n, σ)) 空间，单次哈希即可。",
+      "code": "import sys\n\ndef contains_nearby_duplicate_opt(nums, k):\n    last = {}\n    for i, x in enumerate(nums):\n        if x in last and i - last[x] <= k:\n            return True\n        last[x] = i\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print('true' if contains_nearby_duplicate_opt(nums, k) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "滑动窗口 + 集合：用 set 维护最近的 k+1 个元素。每次访问 num，若 num 已在窗口中说明在 k 距离内重复；否则加入集合，并当窗口长度超过 k+1 时移除最早元素。O(n) 时间，空间严格 ≤ k+1，是面试推荐写法。",
+      "code": "import sys\nfrom collections import OrderedDict\n\ndef contains_nearby_duplicate_best(nums, k):\n    window = OrderedDict()\n    for i, x in enumerate(nums):\n        if x in window:\n            return True\n        window[x] = i\n        if len(window) > k:\n            window.popitem(last=False)\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print('true' if contains_nearby_duplicate_best(nums, k) else 'false')\n"
+    }
+  ]
+}

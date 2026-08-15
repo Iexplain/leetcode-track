@@ -1,0 +1,47 @@
+{
+  "id": 125,
+  "title": "验证回文串",
+  "titleEn": "Valid Palindrome",
+  "difficulty": "简单",
+  "tags": ["双指针", "字符串"],
+  "description": "给定一个字符串 s，验证它是否是回文串，只考虑字母和数字字符，并忽略大小写。空串视为有效回文。",
+  "examples": [
+    {
+      "input": "A man, a plan, a canal: Panama",
+      "output": "true",
+      "explanation": "去除非字母数字后为 \"amanaplanacanalpanama\"，是回文。"
+    },
+    {
+      "input": "race a car",
+      "output": "false",
+      "explanation": "去除后为 \"raceacar\"，不是回文。"
+    },
+    {
+      "input": " ",
+      "output": "true",
+      "explanation": "空串视为回文。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 2 * 10^5",
+    "s 仅由可打印 ASCII 字符组成"
+  ],
+  "ioFormat": "输入一行字符串 s（可含空格与标点）。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用正则过滤出字母数字，统一转小写后与反转串比较。代码极短，但要先复制串并反转，O(n) 时间和 O(n) 空间。",
+      "code": "import sys\nimport re\n\ndef is_palindrome_brute(s: str) -> bool:\n    t = ''.join(ch.lower() for ch in s if ch.isalnum())\n    return t == t[::-1]\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print('true' if is_palindrome_brute(s) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "左右双指针，相向而行：跳过非字母数字字符后比较小写形式，一旦不等立即返回 false。O(n) 时间 O(1) 额外空间，避免构造新串。",
+      "code": "import sys\n\ndef is_palindrome_opt(s: str) -> bool:\n    l, r = 0, len(s) - 1\n    while l < r:\n        while l < r and not s[l].isalnum():\n            l += 1\n        while l < r and not s[r].isalnum():\n            r -= 1\n        if l < r and s[l].lower() != s[r].lower():\n            return False\n        l += 1\n        r -= 1\n    return True\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print('true' if is_palindrome_opt(s) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在优化版基础上把 isalnum 换成等价的手写判断（数字 0-9、大小写字母），避免方法调用开销；同时把 s[l].lower() 换成统一的小写 ascii 表换算。在 2*10^5 长串且 GCC 优化下常见数倍提速，但代码语义不变。",
+      "code": "import sys\n\ndef _alnum_lower(ch: str) -> bool:\n    o = ord(ch)\n    if (ord('0') <= o <= ord('9') or\n        ord('a') <= o <= ord('z') or\n        ord('A') <= o <= ord('Z')):\n        return ch.lower() if ord('A') <= o <= ord('Z') else ch\n    return ''\n\ndef is_palindrome_best(s: str) -> bool:\n    l, r = 0, len(s) - 1\n    while l < r:\n        cl = _alnum_lower(s[l])\n        cr = _alnum_lower(s[r])\n        if cl and cr:\n            if cl != cr:\n                return False\n            l += 1\n            r -= 1\n        else:\n            if not cl:\n                l += 1\n            if not cr:\n                r -= 1\n    return True\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print('true' if is_palindrome_best(s) else 'false')\n"
+    }
+  ]
+}

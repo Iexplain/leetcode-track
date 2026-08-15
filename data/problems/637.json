@@ -1,0 +1,38 @@
+{
+  "id": 637,
+  "title": "二叉树的层平均值",
+  "titleEn": "Average of Levels in Binary Tree",
+  "difficulty": "简单",
+  "tags": ["树", "深度优先搜索", "广度优先搜索", "二叉树"],
+  "description": "给定一棵非空二叉树，按层返回每层节点值的平均值。",
+  "examples": [
+    {
+      "input": "7\n3 9 20 n n 15 7",
+      "output": "3.0 14.5 11.0",
+      "explanation": "层 1 平均 3.0；层 2 平均 (9+20)/2 = 14.5；层 3 平均 (15+7)/2 = 11.0。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [1, 10^4] 内",
+    "-100 <= 节点值 <= 100",
+    "树以层序数组给出，'n' 代表 None"
+  ],
+  "ioFormat": "第一行数组长度 n，第二行 n 个 token。输出一行各层平均（浮点数，逗号隔开保留 1 位小数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "先 BFS 算出每层节点值总和，再除以每层节点数。可以用两个队列或者一遍遍历里记录每层开始位置。最直白但需要保存每层总和与计数。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef average_brute(root):\n    res = []\n    q = deque([root])\n    while q:\n        s, cnt = 0, 0\n        for _ in range(len(q)):\n            n = q.popleft()\n            s += n.v\n            cnt += 1\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n        res.append(s / cnt)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(' '.join(f'{x:.1f}' for x in average_brute(root)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "在暴力版基础上边遍历边累加：直接在 BFS 内维护每层的 total 与 count，写法与暴力版几乎一致。这里函数名命名做了精简，结果再统一格式。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef average_opt(root):\n    res = []\n    q = deque([(root, 0)])\n    sums = []\n    cnts = []\n    while q:\n        n, d = q.popleft()\n        if d == len(sums):\n            sums.append(n.v); cnts.append(1)\n        else:\n            sums[d] += n.v; cnts[d] += 1\n        if n.l: q.append((n.l, d + 1))\n        if n.r: q.append((n.r, d + 1))\n    res = [s / c for s, c in zip(sums, cnts)]\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(' '.join(f'{x:.1f}' for x in average_opt(root)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "DFS 一遍写出层信息：用 dict 累加每层总和与计数。代码最紧凑，每个节点只访问一次，且不需要分层队列。当树的形状极度不平衡时也只递归一次，无 BFS 队列开销。",
+      "code": "import sys\nfrom collections import deque, defaultdict\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef average_best(root):\n    sums, cnts = defaultdict(int), defaultdict(int)\n    def dfs(node, d):\n        if node is None: return\n        sums[d] += node.v\n        cnts[d] += 1\n        dfs(node.l, d + 1)\n        dfs(node.r, d + 1)\n    dfs(root, 0)\n    depth = max(sums.keys()) + 1 if sums else 0\n    return [sums[d] / cnts[d] for d in range(depth)]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(' '.join(f'{x:.1f}' for x in average_best(root)))\n"
+    }
+  ]
+}

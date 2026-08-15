@@ -1,0 +1,43 @@
+{
+  "id": 104,
+  "title": "二叉树的最大深度",
+  "titleEn": "Maximum Depth of Binary Tree",
+  "difficulty": "简单",
+  "tags": ["树", "深度优先搜索", "广度优先搜索"],
+  "description": "给定一棵二叉树根节点 root，返回它的最大深度（根到最深叶子的最长路径上的节点数）。",
+  "examples": [
+    {
+      "input": "7\n3 9 20 n n 15 7",
+      "output": "3",
+      "explanation": "深度为 3（3 -> 20 -> 15 或 7）。"
+    },
+    {
+      "input": "1\nn",
+      "output": "0",
+      "explanation": "空树深度为 0。"
+    }
+  ],
+  "constraints": [
+    "0 <= 节点数 <= 10^4",
+    "-100 <= 节点值 <= 100",
+    "树以层序数组给出，'n' 代表 None"
+  ],
+  "ioFormat": "第一行数组长度 n，第二行 n 个 token。输出一个整数表示最大深度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个节点都把左右子树深度都算一遍再取大。递归版最直白，O(n) 时间和 O(h) 空间；最坏情况（链状树）h = n。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef depth_brute(node):\n    if node is None: return 0\n    return max(depth_brute(node.l), depth_brute(node.r)) + 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(depth_brute(root))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "广度优先（BFS）按层遍历：用队列记录当前层节点数，遍历一层计数器 +1。当队列清空时层数即为最大深度。O(n) 时间、O(w) 空间（w 为最大层宽），对极端不平衡树空间优于递归。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef depth_opt(root):\n    if root is None: return 0\n    q = deque([root])\n    depth = 0\n    while q:\n        for _ in range(len(q)):\n            n = q.popleft()\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n        depth += 1\n    return depth\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(depth_opt(root))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用栈做“显式 DFS”模拟递归：栈中每个元素是 (node, depth)，按到达的层数更新最大深度。规避 Python 递归深度限制，逻辑等价递归版但工程更稳。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef depth_best(root):\n    if root is None: return 0\n    stack = [(root, 1)]\n    best = 0\n    while stack:\n        n, d = stack.pop()\n        if d > best: best = d\n        if n.l: stack.append((n.l, d + 1))\n        if n.r: stack.append((n.r, d + 1))\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(depth_best(root))\n"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": 169,
+  "title": "多数元素",
+  "titleEn": "Majority Element",
+  "difficulty": "简单",
+  "tags": ["数组", "分治", "哈希表", "排序", "计数"],
+  "description": "给定一个大小为 n 的数组 nums，返回其中出现次数大于 ⌊n/2⌋ 的元素。可以保证一定存在这样的元素。",
+  "examples": [
+    {
+      "input": "7\n3 2 3",
+      "output": "3",
+      "explanation": "3 出现 2 次，超过 ⌊3/2⌋。"
+    },
+    {
+      "input": "11\n2 2 1 1 1 2 2",
+      "output": "2",
+      "explanation": "2 出现 4 次，超过 ⌊7/2⌋。"
+    }
+  ],
+  "constraints": [
+    "n == nums.length",
+    "1 <= n <= 5 * 10^4",
+    "-10^9 <= nums[i] <= 10^9",
+    "一定存在多数元素"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出多数元素。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 Counter 统计每个元素出现次数，再挑出计数最大的。写法最直观，但 O(n) 额外空间，无法体现“空间 O(1)”的面试期望。",
+      "code": "import sys\nfrom collections import Counter\n\ndef majority_brute(nums):\n    cnt = Counter(nums)\n    return max(cnt.items(), key=lambda kv: kv[1])[0]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(majority_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "排序后，任意连续超过 ⌊n/2⌋ 长度的子序列一定能跨越中点，所以排序数组后位于 ⌊n/2⌋ 位置的元素必然是众数。O(n log n) 时间、O(1) 额外（若允许原地排序）。",
+      "code": "import sys\n\ndef majority_opt(nums):\n    nums = sorted(nums)\n    return nums[len(nums) // 2]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(majority_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Boyer-Moore 投票法：维护候选 cand 与计数器 cnt；遇到 cand 加一，否则减一；cnt=0 时换成当前元素继续。由于多数元素出现次数 > n/2，遍历结束后 cand 必为多数元素。O(n) 时间 O(1) 空间，是面试标准最优解。",
+      "code": "import sys\n\ndef majority_best(nums):\n    cand, cnt = None, 0\n    for x in nums:\n        if cnt == 0:\n            cand = x\n            cnt = 1\n        elif x == cand:\n            cnt += 1\n        else:\n            cnt -= 1\n    return cand\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(majority_best(nums))\n"
+    }
+  ]
+}

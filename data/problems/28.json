@@ -1,0 +1,47 @@
+{
+  "id": 28,
+  "title": "找出字符串中第一个匹配项的下标",
+  "titleEn": "Find the Index of the First Occurrence in a String",
+  "difficulty": "简单",
+  "tags": ["双指针", "字符串", "String Matching"],
+  "description": "给你两个字符串 haystack 和 needle，请你在 haystack 字符串中找出 needle 字符串出现的第一个位置（下标从 0 开始）。如果不存在则返回 -1。needle 长度可能为 0，但题目约定此时返回 0。",
+  "examples": [
+    {
+      "input": "sadbutsad\nsad",
+      "output": "0",
+      "explanation": "\"sad\" 在下标 0 处出现。"
+    },
+    {
+      "input": "leetcode\nleeto",
+      "output": "-1",
+      "explanation": "needle \"leeto\" 不在 haystack 中。"
+    },
+    {
+      "input": "a\na",
+      "output": "0",
+      "explanation": "单字符 needle 一定在 0 位。"
+    }
+  ],
+  "constraints": [
+    "1 <= haystack.length, needle.length <= 10^4",
+    "haystack 与 needle 只含小写英文字母"
+  ],
+  "ioFormat": "第一行为 haystack，第二行为 needle。输出 needle 在 haystack 中首次出现的下标；不存在则输出 -1。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "外层 i 从 0 到 n-m 遍历候选起点，内层 j 从 0 到 m 逐字符比较，一旦不等就 break。最坏情况下每轮都要走完全对比，时间 O(n*m)，m 较大时很慢。",
+      "code": "import sys\n\ndef str_str_brute(haystack, needle):\n    n, m = len(haystack), len(needle)\n    for i in range(n - m + 1):\n        for j in range(m):\n            if haystack[i + j] != needle[j]:\n                break\n        else:\n            return i\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print(str_str_brute(data[0].strip(), data[1].strip()))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "直接用 Python 内置 str.find()。底层 C 实现虽不是 KMP，但用 Boyer-Moore 系列优化，平均 O(n)。代码极短，业务里通常就用它。当语言不允许内置时再退到手动实现。",
+      "code": "import sys\n\ndef str_str_opt(haystack, needle):\n    return haystack.find(needle)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print(str_str_opt(data[0].strip(), data[1].strip()))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "KMP 算法：先计算 needle 的 next 数组（每个前缀的最长相等前后缀长度），匹配时失配不回退主串指针，而是借助 next 把 needle “滑动”到合适位置继续比较。总时间 O(n+m)，额外空间 O(m)。是允许手写字符串匹配时面试的标准答案。",
+      "code": "import sys\n\ndef build_next(p):\n    n = len(p)\n    nxt = [0] * n\n    j = 0\n    for i in range(1, n):\n        while j > 0 and p[i] != p[j]:\n            j = nxt[j - 1]\n        if p[i] == p[j]:\n            j += 1\n        nxt[i] = j\n    return nxt\n\ndef str_str_best(s, p):\n    if not p:\n        return 0\n    n, m = len(s), len(p)\n    nxt = build_next(p)\n    j = 0\n    for i in range(n):\n        while j > 0 and s[i] != p[j]:\n            j = nxt[j - 1]\n        if s[i] == p[j]:\n            j += 1\n        if j == m:\n            return i - m + 1\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print(str_str_best(data[0].strip(), data[1].strip()))\n"
+    }
+  ]
+}

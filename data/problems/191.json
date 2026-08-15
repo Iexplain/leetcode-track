@@ -1,0 +1,46 @@
+{
+  "id": 191,
+  "title": "位 1 的个数",
+  "titleEn": "Number of 1 Bits",
+  "difficulty": "简单",
+  "tags": ["分治", "位运算"],
+  "description": "给定一个无符号整数 n，求其二进制表示中 1 的个数（又称 Hamming 重量）。",
+  "examples": [
+    {
+      "input": "11",
+      "output": "3",
+      "explanation": "11 = 0b1011，有三个 1。"
+    },
+    {
+      "input": "128",
+      "output": "1",
+      "explanation": "128 = 0b10000000，只有一个 1。"
+    },
+    {
+      "input": "4294967293",
+      "output": "31",
+      "explanation": "32 位全 1 除最低位为 0，共 31 个 1。"
+    }
+  ],
+  "constraints": [
+    "输入保证是非负整数，在 32 位无符号整数范围内"
+  ],
+  "ioFormat": "输入一个非负整数 n。输出其二进制表示中 1 的个数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "转成二进制字符串后数 '1' 的个数。代码极短，但先把整数转字符串会做若干次整数除法，不符合位运算面试导向。",
+      "code": "import sys\n\ndef hamming_weight_brute(n: int) -> int:\n    return bin(n).count('1')\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(hamming_weight_brute(n))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "逐位判断：循环 32 次，每次取 n 的最低位加一，再 n >>= 1。O(32) 时间，逻辑简洁。",
+      "code": "import sys\n\ndef hamming_weight_opt(n: int) -> int:\n    cnt = 0\n    while n:\n        cnt += n & 1\n        n >>= 1\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(hamming_weight_opt(n))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Brian Kernighan 算法：n & (n - 1) 会把 n 的最低 1 位清零，循环这个操作直到 n=0，循环次数就是 1 的个数。比逐位判断快很多（当 1 比较稀疏时），仍是位运算 O(1) 空间，是面试加分写法。",
+      "code": "import sys\n\ndef hamming_weight_best(n: int) -> int:\n    cnt = 0\n    while n:\n        n &= n - 1\n        cnt += 1\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(hamming_weight_best(n))\n"
+    }
+  ]
+}

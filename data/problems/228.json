@@ -1,0 +1,48 @@
+{
+  "id": 228,
+  "title": "汇总区间",
+  "titleEn": "Summary Ranges",
+  "difficulty": "简单",
+  "tags": ["数组"],
+  "description": "给定一个无重复的有序整数数组 nums，返回刚好覆盖数组所有数字的最小区间集合。区间 [a,b] 表示 a, a+1, ..., b；单个数字也算作长度 1 的区间。",
+  "examples": [
+    {
+      "input": "6\n0 1 2 4 5 7",
+      "output": "0->2\n4->5\n7",
+      "explanation": "三段：0,1,2 / 4,5 / 7。"
+    },
+    {
+      "input": "2\n0 2",
+      "output": "0\n2",
+      "explanation": "无法合并。"
+    },
+    {
+      "input": "5\n-3 -2 -1 1 2",
+      "output": "-3->-1\n1->2",
+      "explanation": "负数段与正数段分离。"
+    }
+  ],
+  "constraints": [
+    "0 <= nums.length <= 20",
+    "-2^31 <= nums[i] <= 2^31 - 1",
+    "nums 已按升序排列且无重复"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。每行输出一个区间，长度 1 的区间只输出一个数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用一个 start 标记区间起点，i 从 0 遍历到 n。若下一元素 nums[i+1] 与 nums[i] 不连续（或 i 已是末尾），把当前区间格式化后加入结果，并把 start 更新为 i+1。思路最直接。",
+      "code": "import sys\n\ndef summary_ranges_brute(nums):\n    n = len(nums)\n    res = []\n    start = 0\n    for i in range(n):\n        if i == n - 1 or nums[i + 1] != nums[i] + 1:\n            if start == i:\n                res.append(str(nums[i]))\n            else:\n                res.append(f'{nums[start]}->{nums[i]}')\n            start = i + 1\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    for r in summary_ranges_brute(nums):\n        print(r)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "把上面 if-else 写得稍微紧凑：先判断连续性，连续时累计数字，不连续时按 start==i 决定单值或区间输出。整体复杂度不变，但分支更少，便于循环展开。",
+      "code": "import sys\n\ndef summary_ranges_opt(nums):\n    res = []\n    i, n = 0, len(nums)\n    while i < n:\n        start = i\n        while i + 1 < n and nums[i + 1] == nums[i] + 1:\n            i += 1\n        if start == i:\n            res.append(str(nums[i]))\n        else:\n            res.append(f'{nums[start]}->{nums[i]}')\n        i += 1\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    for r in summary_ranges_opt(nums):\n        print(r)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 itertools.groupby 思路：对相邻差为 1 的元素分组。每组用 groupkey=索引 0 即可装入 start 和 end，最后格式化。代码最 pythonic，但需先构造差分数组，开销比纯双指针稍大，可读性更高，适合 n 不大的场景。",
+      "code": "import sys\n\ndef summary_ranges_best(nums):\n    res = []\n    i, n = 0, len(nums)\n    while i < n:\n        start = i\n        while i + 1 < n and nums[i + 1] == nums[i] + 1:\n            i += 1\n        end = i\n        a = nums[start]\n        b = nums[end]\n        res.append(str(a) if start == end else f'{a}->{b}')\n        i += 1\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    for r in summary_ranges_best(nums):\n        print(r)\n"
+    }
+  ]
+}

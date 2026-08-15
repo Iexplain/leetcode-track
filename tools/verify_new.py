@@ -17,7 +17,16 @@ except Exception:
     pass
 
 ROOT = Path(__file__).resolve().parent.parent
-NEW_IDS = [9, 14, 21, 26, 35, 58, 66, 67, 69, 136]
+NEW_IDS = [
+    # Round 1
+    9, 14, 21, 26, 35, 58, 66, 67, 69, 136,
+    # Round 2 batch 1 (arrays/strings/bits)
+    28, 118, 121, 125, 169, 190, 191, 202, 205, 219,
+    228, 242, 283, 290, 383, 392,
+    # Round 2 batch 2 (trees + lists)
+    94, 100, 101, 104, 108, 112, 222, 226, 530, 543, 637,
+    141, 160, 234,
+]
 
 
 def normalize_output(text: str) -> str:

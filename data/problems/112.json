@@ -1,0 +1,44 @@
+{
+  "id": 112,
+  "title": "路径总和",
+  "titleEn": "Path Sum",
+  "difficulty": "简单",
+  "tags": ["树", "深度优先搜索", "广度优先搜索", "二叉树"],
+  "description": "给你二叉树的根节点 root 和一个目标值 targetSum，判断树中是否存在从根到叶的路径，使其上所有节点值之和等于 targetSum。",
+  "examples": [
+    {
+      "input": "12\n5 4 8 11 n 13 4 2 n n n 1\n22",
+      "output": "true",
+      "explanation": "路径 5→4→11→2，总和 22。"
+    },
+    {
+      "input": "3\n1 2 3\n5",
+      "output": "false",
+      "explanation": "没有根到叶路径的和等于 5。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [0, 5000] 内",
+    "-1000 <= 节点值 <= 1000",
+    "-1000 <= targetSum <= 1000",
+    "树以层序数组给出，'n' 代表 None"
+  ],
+  "ioFormat": "第一行为层序数组长度 n，第二行为数组，第三行整数 targetSum。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "DFS 遍历所有从根到叶的路径，把每条路径的和算一遍比较。也可以是“逐节点算出到达该点的累计和”，叶子节点一旦等于目标就立即返回。代码稍长但最直观。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef has_brute(root, target):\n    def dfs(node, path_sum):\n        if node is None: return False\n        s = path_sum + node.v\n        if node.l is None and node.r is None:\n            return s == target\n        return dfs(node.l, s) or dfs(node.r, s)\n    return dfs(root, 0)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    target = int(data[1+n])\n    print('true' if has_brute(root, target) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "BFS 层序：把 (node, cur_sum) 一同入队，遍历到叶子时若 cur_sum == target 即返回。比递归更工程友好，且能在找到答案后立即终止。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef has_opt(root, target):\n    if root is None: return False\n    q = deque([(root, root.v)])\n    while q:\n        n, s = q.popleft()\n        if n.l is None and n.r is None:\n            if s == target: return True\n            continue\n        if n.l: q.append((n.l, s + n.l.v))\n        if n.r: q.append((n.r, s + n.r.v))\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    target = int(data[1+n])\n    print('true' if has_opt(root, target) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归“剩余值”：每层把 target 减去 node.v 再下传，叶子剩余恰好为 0 即命中。比“累加版本”少一次运算、也避免 target 过大造成数值膨胀，逻辑更清晰。是面试标准写法。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef has_best(node, target):\n    if node is None: return False\n    if node.l is None and node.r is None:\n        return node.v == target\n    return has_best(node.l, target - node.v) or has_best(node.r, target - node.v)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    target = int(data[1+n])\n    print('true' if has_best(root, target) else 'false')\n"
+    }
+  ]
+}

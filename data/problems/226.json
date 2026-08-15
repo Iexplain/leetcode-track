@@ -1,0 +1,43 @@
+{
+  "id": 226,
+  "title": "翻转二叉树",
+  "titleEn": "Invert Binary Tree",
+  "difficulty": "简单",
+  "tags": ["树", "深度优先搜索", "广度优先搜索"],
+  "description": "给你一棵二叉树的根节点 root，翻转这棵树：把每个节点的左右子树互换。",
+  "examples": [
+    {
+      "input": "7\n4 2 7 1 3 6 9",
+      "output": "4 7 9 6 2 3 1",
+      "explanation": "翻转后前序遍历。"
+    },
+    {
+      "input": "1\n1",
+      "output": "1",
+      "explanation": "单节点不变。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [0, 100] 内",
+    "-100 <= 节点值 <= 100",
+    "树以层序数组给出，'n' 代表 None"
+  ],
+  "ioFormat": "第一行数组长度 n，第二行 n 个 token。输出翻转后的前序遍历。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归：先翻转左右子树，再交换两个指针。逻辑对称但有一个常被人忽视的坑：必须先把“翻转后的左右子树”先保存到局部变量，再赋值交换，否则赋值覆盖后会丢失子节点。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef invert_brute(node):\n    if node is None: return None\n    node.l, node.r = invert_brute(node.r), invert_brute(node.l)\n    return node\n\ndef preorder(node):\n    if node is None: return []\n    return [node.v] + preorder(node.l) + preorder(node.r)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    invert_brute(root)\n    print(' '.join(map(str, preorder(root))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "层序遍历：出队时交换左右子树，并把左右孩子按原顺序入队。迭代版不依赖递归栈，但空间上每个节点都至少入队一次。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef invert_opt(root):\n    if root is None: return None\n    q = deque([root])\n    while q:\n        n = q.popleft()\n        n.l, n.r = n.r, n.l\n        if n.l: q.append(n.l)\n        if n.r: q.append(n.r)\n    return root\n\ndef preorder(node):\n    if node is None: return []\n    return [node.v] + preorder(node.l) + preorder(node.r)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    invert_opt(root)\n    print(' '.join(map(str, preorder(root))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归版加上一个经典工程化技巧：直接在解构赋值中交换：`left, right = invert(node.r), invert(node.l)`。这种写法在 Ruby's MaxHowell 经典“翻转二叉树”难题里也是关键。写法最紧凑且不需要中间变量保存。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef invert_best(node):\n    if node is None: return None\n    node.l, node.r = invert_best(node.r), invert_best(node.l)\n    return node\n\ndef preorder(node):\n    if node is None: return []\n    return [node.v] + preorder(node.l) + preorder(node.r)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    invert_best(root)\n    print(' '.join(map(str, preorder(root))))\n"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": 202,
+  "title": "快乐数",
+  "titleEn": "Happy Number",
+  "difficulty": "简单",
+  "tags": ["哈希表", "数学", "双指针"],
+  "description": "对于一个正整数 n，定义“下一数”为其各位数字的平方和。重复这一过程，如果最终能到达 1，则称 n 为快乐数；否则会陷入不含 1 的循环，例如 2→4→16→37→58→89→145→42→20→4。判断 n 是否为快乐数。",
+  "examples": [
+    {
+      "input": "19",
+      "output": "true",
+      "explanation": "19 → 82 → 68 → 100 → 1。"
+    },
+    {
+      "input": "2",
+      "output": "false",
+      "explanation": "2 进入不含 1 的循环。"
+    },
+    {
+      "input": "1",
+      "output": "true",
+      "explanation": "1 已经是快乐数。"
+    }
+  ],
+  "constraints": [
+    "1 <= n <= 2^31 - 1"
+  ],
+  "ioFormat": "输入正整数 n。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "维护一个集合，每次计算“各位平方和”并存入集合；如果出现 1 返回 true；如果出现重复返回 false。直观但需要 O(?) 空间记录历史值。",
+      "code": "import sys\n\ndef next_n(x):\n    s = 0\n    while x:\n        d = x % 10\n        s += d * d\n        x //= 10\n    return s\n\ndef is_happy_brute(n):\n    seen = set()\n    while n != 1 and n not in seen:\n        seen.add(n)\n        n = next_n(n)\n    return n == 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print('true' if is_happy_brute(n) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用“快慢指针”模拟链表判环：slow 每次算一次，fast 每次算两次。如果 fast 走到 1 则快乐；如果 slow == fast 则进入环，结构等比 暴力版本的 O(?) 空间，本质一致但代码更短；空间真正变 O(1) 的做法见最优版。",
+      "code": "import sys\n\ndef next_n(x):\n    s = 0\n    while x:\n        d = x % 10\n        s += d * d\n        x //= 10\n    return s\n\ndef is_happy_opt(n):\n    slow = n\n    fast = next_n(n)\n    while fast != 1 and slow != fast:\n        slow = next_n(slow)\n        fast = next_n(next_n(fast))\n    return fast == 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print('true' if is_happy_opt(n) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "数学洞察：所有非快乐数最终都会进入同一个环 {4,16,37,58,89,145,42,20}。所以只要 next_n(x) 不是 1 且不等于 4，就继续迭代。一旦等于 4 即可判定不是快乐数。完全不需要哈希集合，快慢指针或额外记录，O(?) 时间和 O(1) 空间，是面试官会点赞的关键观察。",
+      "code": "import sys\n\ndef next_n(x):\n    s = 0\n    while x:\n        d = x % 10\n        s += d * d\n        x //= 10\n    return s\n\ndef is_happy_best(n):\n    while n != 1 and n != 4:\n        n = next_n(n)\n    return n == 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print('true' if is_happy_best(n) else 'false')\n"
+    }
+  ]
+}

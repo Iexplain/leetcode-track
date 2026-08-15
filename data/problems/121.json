@@ -1,0 +1,42 @@
+{
+  "id": 121,
+  "title": "买卖股票的最佳时机",
+  "titleEn": "Best Time to Buy and Sell Stock",
+  "difficulty": "简单",
+  "tags": ["数组", "动态规划"],
+  "description": "给定一支股票第 i 天的价格 prices，你只能选择某一天买入，并在之后的某一天卖出（必须先买后卖一次）。请你计算能获得的最大利润。如果整个过程无收益，返回 0。",
+  "examples": [
+    {
+      "input": "6\n7 1 5 3 6 4",
+      "output": "5",
+      "explanation": "第 2 天买入价格 1，第 5 天卖出价格 6，收益 5。"
+    },
+    {
+      "input": "5\n7 6 4 3 1",
+      "output": "0",
+      "explanation": "价格单调递减，没有正利润交易。"
+    }
+  ],
+  "constraints": [
+    "1 <= prices.length <= 10^5",
+    "0 <= prices[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个价格。输出最大利润（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举所有买入天 i 与卖出天 j（j>i），取差最大者。O(n^2) 时间，n 较大时会超时，但思路最直白。",
+      "code": "import sys\n\ndef max_profit_brute(prices):\n    n = len(prices)\n    best = 0\n    for i in range(n):\n        for j in range(i + 1, n):\n            if prices[j] - prices[i] > best:\n                best = prices[j] - prices[i]\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    prices = list(map(int, data[1:1 + n]))\n    print(max_profit_brute(prices))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "动态规划：维护到当前为止的最低买入价 min_buy，遍历每一天，更新 max(price - min_buy, prev_max)。一次扫描完成，O(n) 时间 O(1) 空间。",
+      "code": "import sys\n\ndef max_profit_opt(prices):\n    if not prices:\n        return 0\n    min_buy = prices[0]\n    best = 0\n    for p in prices[1:]:\n        best = max(best, p - min_buy)\n        min_buy = min(min_buy, p)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    prices = list(map(int, data[1:1 + n]))\n    print(max_profit_opt(prices))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Kadane 视角：把每天相对前一天的价格差 diff[i] 看成序列，求最大连续子数组和即对应最大差价（且首项必须为非负买入）。本质和单变量 DP 等价，但提供了“在差分序列上工作”的统一视角，方便推广到多次交易等变种。",
+      "code": "import sys\n\ndef max_profit_best(prices):\n    if not prices:\n        return 0\n    cur, best = 0, 0\n    for i in range(1, len(prices)):\n        diff = prices[i] - prices[i - 1]\n        cur = max(0, cur + diff)\n        best = max(best, cur)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    prices = list(map(int, data[1:1 + n]))\n    print(max_profit_best(prices))\n"
+    }
+  ]
+}

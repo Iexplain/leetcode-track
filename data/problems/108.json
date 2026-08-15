@@ -1,0 +1,48 @@
+{
+  "id": 108,
+  "title": "将有序数组转换为二叉搜索树",
+  "titleEn": "Convert Sorted Array to Binary Search Tree",
+  "difficulty": "简单",
+  "tags": ["树", "二叉搜索树", "分治", "数组", "二叉树"],
+  "description": "给你一个按升序排列的整数数组 nums，把它转换成一棵高度平衡的二叉搜索树（BST）。所谓平衡指每个节点的左右子树高度差不超过 1。",
+  "examples": [
+    {
+      "input": "5\n-10 -3 0 5 9",
+      "output": "0 -10 -3 5 9",
+      "explanation": "根取中点 0，左 [-10,-3]、右 [5,9]，输出的前序遍历。"
+    },
+    {
+      "input": "0\n",
+      "output": "",
+      "explanation": "空数组对应空树。"
+    },
+    {
+      "input": "1\n0",
+      "output": "0",
+      "explanation": "单节点。"
+    }
+  ],
+  "constraints": [
+    "0 <= nums.length <= 10^4",
+    "-10^4 <= nums[i] <= 10^4",
+    "nums 严格升序排列"
+  ],
+  "ioFormat": "第一行数组长度 n，第二行 n 个整数。输出 BST 的前序遍历（一行，空树输出空行）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用递归的分治方法：取中点为根，左右各自递归。但每次递归都先把子数组用 list slice 切出来再传给下一层，构造了不少临时数组，时间与空间常数偏大，且 mid 取 len(nums)//2 在偶数长度时偏向右侧。",
+      "code": "import sys\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build_bst_brute(nums):\n    if not nums: return None\n    def helper(lo, hi):\n        if lo > hi: return None\n        mid = (lo + hi) // 2\n        node = T(nums[mid])\n        node.l = helper(lo, mid - 1)\n        node.r = helper(mid + 1, hi)\n        return node\n    return helper(0, len(nums) - 1)\n\ndef preorder(node):\n    if node is None: return []\n    return [node.v] + preorder(node.l) + preorder(node.r)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1+n]))\n    root = build_bst_brute(nums)\n    print(' '.join(map(str, preorder(root))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "分治 + 中点为根：递归将 nums[mid] 设为根，分别对左右两半递归建树。空间仍为 O(h)，但每个数字只访问一次，O(n) 时间。mid 取中间偏左或偏右决定整棵树的具体形态。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build_bst_opt(nums):\n    def helper(lo, hi):\n        if lo > hi: return None\n        mid = (lo + hi) // 2\n        node = T(nums[mid])\n        node.l = helper(lo, mid - 1)\n        node.r = helper(mid + 1, hi)\n        return node\n    return helper(0, len(nums) - 1)\n\ndef preorder(node):\n    if node is None: return []\n    return [node.v] + preorder(node.l) + preorder(node.r)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1+n]))\n    root = build_bst_opt(nums)\n    print(' '.join(map(str, preorder(root))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "迭代版分治：用显式栈模拟递归，把每次的 (lo, hi) 入栈，避免深递归栈溢出。常数与递归版相当，但能稳定处理最大 n=10^4 的情况。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build_bst_best(nums):\n    if not nums: return None\n    root = T(nums[0])\n    stack = [(root, 0, len(nums) - 1)]\n    while stack:\n        node, lo, hi = stack.pop()\n        mid = (lo + hi) // 2\n        node.v = nums[mid]\n        if lo <= mid - 1:\n            node.l = T(0)\n            stack.append((node.l, lo, mid - 1))\n        if mid + 1 <= hi:\n            node.r = T(0)\n            stack.append((node.r, mid + 1, hi))\n    return root\n\ndef preorder(node):\n    if node is None: return []\n    return [node.v] + preorder(node.l) + preorder(node.r)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1+n]))\n    root = build_bst_best(nums)\n    print(' '.join(map(str, preorder(root))))\n"
+    }
+  ]
+}

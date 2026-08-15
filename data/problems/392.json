@@ -1,0 +1,43 @@
+{
+  "id": 392,
+  "title": "判断子序列",
+  "titleEn": "Is Subsequence",
+  "difficulty": "简单",
+  "tags": ["双指针", "字符串", "动态规划"],
+  "description": "给定字符串 s 和 t，判断 s 是否为 t 的子序列。子序列指删除 t 中若干（也可以不删）字符后，剩余字符按原顺序拼接得到 s。",
+  "examples": [
+    {
+      "input": "abc\nahbgdc",
+      "output": "true",
+      "explanation": "\"abc\" 可在 \"ahbgdc\" 中按顺序找到。"
+    },
+    {
+      "input": "axc\nahbgdc",
+      "output": "false",
+      "explanation": "a 与 c 都在，但中间缺 x。"
+    }
+  ],
+  "constraints": [
+    "0 <= s.length <= 100",
+    "0 < t.length <= 10^4",
+    "s 与 t 仅由小写英文字母组成"
+  ],
+  "ioFormat": "第一行字符串 s（可能为空），第二行字符串 t。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对 s 中每个字符，从 t 的当前游标向后线性查找第一个匹配位置；如果到 t 末尾仍未匹配，返回 false。最坏 O(|s|*|t|)，适合 s、t 都很短。",
+      "code": "import sys\n\ndef is_subsequence_brute(s, t):\n    i = 0\n    for ch in s:\n        j = t.find(ch, i)\n        if j == -1:\n            return False\n        i = j + 1\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_subsequence_brute(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "双指针 i、j 分别指向 s 与 t：j 前移找 s[i]，找到 i+=1。如果最终走完 s 所有字符就是子序列。代码最直观，时间 O(|t|)。",
+      "code": "import sys\n\ndef is_subsequence_opt(s, t):\n    i, n = 0, len(t)\n    for ch in t:\n        if i < len(s) and s[i] == ch:\n            i += 1\n    return i == len(s)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_subsequence_opt(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "若 t 固定、s 有大量查询，预处理 t 的“每字符第一次出现位置”表（26 字符 × |t| 位），用二分查找把每次 s[i] 的查询从 O(|t|) 降到 O(log |t|)。本题单次查询简化为双指针已足够，但写法同时给出“批量查询最优”思路，面试展示扩展能力更佳。",
+      "code": "import sys\nfrom bisect import bisect_left\n\ndef is_subsequence_best(s, t):\n    # 预处理 t：每个字符的位置列表\n    pos = {ch: [] for ch in 'abcdefghijklmnopqrstuvwxyz'}\n    for i, ch in enumerate(t):\n        pos[ch].append(i)\n    cur = -1\n    for ch in s:\n        if not pos[ch]:\n            return False\n        idx = bisect_left(pos[ch], cur + 1)\n        if idx == len(pos[ch]):\n            return False\n        cur = pos[ch][idx]\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_subsequence_best(data[0], data[1]) else 'false')\n"
+    }
+  ]
+}

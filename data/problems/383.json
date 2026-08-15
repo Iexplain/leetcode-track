@@ -1,0 +1,42 @@
+{
+  "id": 383,
+  "title": "赎金信",
+  "titleEn": "Ransom Note",
+  "difficulty": "简单",
+  "tags": ["哈希表", "字符串", "计数"],
+  "description": "给定两个字符串 ransomNote 和 magazine，判断 ransomNote 能否由 magazine 中的字符构成。每个 magazine 字符只能用一次。",
+  "examples": [
+    {
+      "input": "aa\naab",
+      "output": "true",
+      "explanation": "magazine 有两个 a，刚好够赎金信。"
+    },
+    {
+      "input": "aa\nab",
+      "output": "false",
+      "explanation": "只有一个 a，缺第二个。"
+    }
+  ],
+  "constraints": [
+    "1 <= ransomNote.length, magazine.length <= 10^5",
+    "均由小写英文字母组成"
+  ],
+  "ioFormat": "第一行 ransomNote，第二行 magazine。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对 ransomNote 中每个字符，去 magazine 中找第一个匹配并删掉。一旦找不到就返回 false。直观但 O(n*m) 时间，长串会超时。",
+      "code": "import sys\n\ndef can_construct_brute(ransom, magazine):\n    pool = list(magazine)\n    for ch in ransom:\n        if ch in pool:\n            pool.remove(ch)\n        else:\n            return False\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if can_construct_brute(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用 26 长度的计数表统计 magazine 中字母频次，再遍历 ransomNote 逐字符递减；任何字符计数 < 0 就 false。O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef can_construct_opt(ransom, magazine):\n    cnt = [0] * 26\n    for ch in magazine:\n        cnt[ord(ch) - ord('a')] += 1\n    for ch in ransom:\n        idx = ord(ch) - ord('a')\n        cnt[idx] -= 1\n        if cnt[idx] < 0:\n            return False\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if can_construct_opt(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 Counter 做差：cnt = Counter(magazine)；对 ransomNote 中每个字符 cnt[c] -= 1，若结果为负就返回 false。比手写 26 表更通用（ASCII/Unicode 自动适用），同时对长度差异做提前剪枝。",
+      "code": "import sys\nfrom collections import Counter\n\ndef can_construct_best(ransom, magazine):\n    if len(ransom) > len(magazine):\n        return False\n    cnt = Counter(magazine)\n    for ch in ransom:\n        cnt[ch] -= 1\n        if cnt[ch] < 0:\n            return False\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if can_construct_best(data[0], data[1]) else 'false')\n"
+    }
+  ]
+}

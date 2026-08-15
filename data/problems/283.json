@@ -1,0 +1,42 @@
+{
+  "id": 283,
+  "title": "移动零",
+  "titleEn": "Move Zeroes",
+  "difficulty": "简单",
+  "tags": ["数组", "双指针"],
+  "description": "给定一个数组 nums，将所有 0 移动到数组末尾，同时保持非零元素的相对顺序。要求原地操作，不使用额外数组。",
+  "examples": [
+    {
+      "input": "5\n0 1 0 3 12",
+      "output": "1 3 12 0 0",
+      "explanation": "非零元素顺序不变，零全部移到末尾。"
+    },
+    {
+      "input": "4\n0 0 1",
+      "output": "1 0 0",
+      "explanation": "已经全部非零在前。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^4",
+    "-2^31 <= nums[i] <= 2^31 - 1"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出移动后的数组（一行，空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用一个临时数组。把非零元素依次压入 temp，全填完后把剩余位置补 0，最后复制回原数组。简单但违背“原地”约束，且 O(n) 额外空间。",
+      "code": "import sys\n\ndef move_zeroes_brute(nums):\n    temp = [x for x in nums if x != 0]\n    temp += [0] * (len(nums) - len(temp))\n    for i in range(len(nums)):\n        nums[i] = temp[i]\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, move_zeroes_brute(nums))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "快慢双指针：slow 指向已被填好的非零段末尾，fast 扫原数组，遇到非零就交换到 slow 位置并 slow+=1。一遍扫描就地完成，O(n) 时间 O(1) 空间。注意交换会在 slow/fast 同位时退化为自换，等价 no-op。",
+      "code": "import sys\n\ndef move_zeroes_opt(nums):\n    slow = 0\n    for fast in range(len(nums)):\n        if nums[fast] != 0:\n            nums[slow], nums[fast] = nums[fast], nums[slow]\n            slow += 1\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, move_zeroes_opt(nums))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "两次循环两次“写”：第一次遍历把所有非零元素依次写到前部；第二次从 slow 位置开始补零到末尾。避免了交换带来的两次写入，看似微优化，但写法更贴题意“零元素最后填充”，可读性高且常数略小。",
+      "code": "import sys\n\ndef move_zeroes_best(nums):\n    slow = 0\n    for fast in range(len(nums)):\n        if nums[fast] != 0:\n            nums[slow] = nums[fast]\n            slow += 1\n    for i in range(slow, len(nums)):\n        nums[i] = 0\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, move_zeroes_best(nums))))\n"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": 242,
+  "title": "有效的字母异位词",
+  "titleEn": "Valid Anagram",
+  "difficulty": "简单",
+  "tags": ["哈希表", "字符串", "排序"],
+  "description": "给定两个字符串 s 和 t，判断 t 是否是 s 的字母异位词（anagram）：即两者字符种类与频次完全一致，只是顺序不同。",
+  "examples": [
+    {
+      "input": "anagram\nnagaram",
+      "output": "true",
+      "explanation": "字符频次完全相同。"
+    },
+    {
+      "input": "rat\ncar",
+      "output": "false",
+      "explanation": "a, r, t 与 a, c, r 不同。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length, t.length <= 5 * 10^4",
+    "s 与 t 仅含小写英文字母"
+  ],
+  "ioFormat": "第一行字符串 s，第二行字符串 t。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把两个字符串都转成 sorted 后比较。代码极短、思路清晰。O(n log n) 时间来自排序，对于仅小写字母这种常字符集其实还有更优解。",
+      "code": "import sys\n\ndef is_anagram_brute(s, t):\n    return sorted(s) == sorted(t)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_anagram_brute(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用长度为 26 的整数数组作为字符计数表。先统计 s 中每个字符出现次数，再遍历 t 把对应计数减一；任何时刻计数小于 0 直接返回 false。O(n) 时间 O(1) 额外空间（表格固定大小）。",
+      "code": "import sys\n\ndef is_anagram_opt(s, t):\n    if len(s) != len(t):\n        return False\n    cnt = [0] * 26\n    for ch in s:\n        cnt[ord(ch) - ord('a')] += 1\n    for ch in t:\n        idx = ord(ch) - ord('a')\n        cnt[idx] -= 1\n        if cnt[idx] < 0:\n            return False\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_anagram_opt(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 Counter 在一次循环里同时加减两串对应频次，循环结束后检查结果是否全为 0。本质同样 O(n)，但少了两次 for 循环控制、且更 pythonic；只在 s、t 长度不等时提前拒绝。当字符集大（中文/Emoji）时 Counter 会自动扩展，适合通用场景。",
+      "code": "import sys\nfrom collections import Counter\n\ndef is_anagram_best(s, t):\n    if len(s) != len(t):\n        return False\n    diff = Counter()\n    for a, b in zip(s, t):\n        diff[a] += 1\n        diff[b] -= 1\n    return all(v == 0 for v in diff.values())\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_anagram_best(data[0], data[1]) else 'false')\n"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": 190,
+  "title": "颠倒二进制位",
+  "titleEn": "Reverse Bits",
+  "difficulty": "简单",
+  "tags": ["分治", "位运算"],
+  "description": "给定一个 32 位无符号整数 n，请将其二进制位翻转后返回，翻转后的结果也视作 32 位无符号整数。",
+  "examples": [
+    {
+      "input": "43261596",
+      "output": "964176192",
+      "explanation": "43261596 二进制为 00000010100101000001111010011100，翻转后 00111001011110000010100101000000 对应 964176192。"
+    },
+    {
+      "input": "4294967293",
+      "output": "3221225471",
+      "explanation": "32 位全 1 反转仍是全 1 再回到原值附近。"
+    }
+  ],
+  "constraints": [
+    "n 为 32 位无符号整数",
+    "输入保证在合法范围 [0, 2^32 - 1]"
+  ],
+  "ioFormat": "输入一个非负整数 n。输出二进制位翻转后的整数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把整数转成 32 位二进制字符串，反转后转回整数。代码短，但本质仍是 32 次位操作，可读性 > 效率。",
+      "code": "import sys\n\ndef reverse_bits_brute(n: int) -> int:\n    s = format(n, '032b')\n    return int(s[::-1], 2)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(reverse_bits_brute(n))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "逐位反转：用 ans 从 0 开始，左移后取 n 的最低位加入，n 右移。循环 32 次。O(32) 时间，是最常见的面试最优写法。",
+      "code": "import sys\n\ndef reverse_bits_opt(n: int) -> int:\n    ans = 0\n    for i in range(32):\n        ans = (ans << 1) | (n & 1)\n        n >>= 1\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(reverse_bits_opt(n))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "分治 + 缓存：先把 32 位切成两段 16 位交换，再各段内切两段 8 位交换……直到段长为 1。每次用掩码分别提取奇/偶块交换。整体仍是 O(32)，但用位运算求解指数为 2^k 的对称变换时写法更通用，避免逐位条件分支。",
+      "code": "import sys\n\ndef reverse_bits_best(n: int) -> int:\n    n &= 0xFFFFFFFF\n    n = (n >> 16) | ((n & 0xFFFF) << 16)\n    n = ((n & 0xFF00FF00) >> 8) | ((n & 0x00FF00FF) << 8)\n    n = ((n & 0xF0F0F0F0) >> 4) | ((n & 0x0F0F0F0F) << 4)\n    n = ((n & 0xCCCCCCCC) >> 2) | ((n & 0x33333333) << 2)\n    n = ((n & 0xAAAAAAAA) >> 1) | ((n & 0x55555555) << 1)\n    return n & 0xFFFFFFFF\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(reverse_bits_best(n))\n"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": 543,
+  "title": "二叉树的直径",
+  "titleEn": "Diameter of Binary Tree",
+  "difficulty": "简单",
+  "tags": ["树", "深度优先搜索", "二叉树"],
+  "description": "给你一棵二叉树的根节点 root，返回它的直径长度。直径指任意两个节点之间最长路径的边数（或路径上的节点数 - 1，取决于实现选择）。本题以“边数”为单位。",
+  "examples": [
+    {
+      "input": "5\n1 2 3 4 5",
+      "output": "3",
+      "explanation": "最长路径 4-2-1-3 或 5-2-1-3，长度为 3（边数）。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [1, 10^4] 内",
+    "-100 <= 节点值 <= 100",
+    "树以层序数组给出，'n' 代表 None"
+  ],
+  "ioFormat": "第一行数组长度 n，第二行 n 个 token。输出直径边数（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个节点都算它经过自己向下到最深的两侧深度和，取所有节点中的最大值。两次 DFS：第一次计算所有节点高度，第二次从根出发更新答案。当树很大时要写两个递归，常数较大。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\n_ans = 0\ndef height(node):\n    if node is None: return -1\n    return max(height(node.l), height(node.r)) + 1\n\ndef diameter_brute(root):\n    if root is None: return 0\n    best = 0\n    def visit(node):\n        nonlocal best\n        if node is None: return\n        d = height(node.l) + height(node.r) + 2\n        if d > best: best = d\n        visit(node.l)\n        visit(node.r)\n    visit(root)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(diameter_brute(root))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "把 height 换成“递归返回值”，并在计算过程中更新全局答案 ans：在递归返回时同时把 ans = max(ans, 左深+右深)。一次 DFS 即完成。O(n) 时间 O(h) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef diameter_opt(root):\n    ans = 0\n    def dfs(node):\n        nonlocal ans\n        if node is None: return -1\n        L = dfs(node.l)\n        R = dfs(node.r)\n        ans = max(ans, L + R + 2)\n        return max(L, R) + 1\n    dfs(root)\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(diameter_opt(root))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在优化版基础上用列表/对象绕过 nonlocal 或全局变量，让 dfs 成为一个纯返回 (height, diameter) 的函数。在叶子上返回 (-1, 0)，内部节点返回新 height=max(L,R)+1 与新 diameter=max(L+R+2, max(Ld,Rd))。完全自包含、不依赖外部状态，是函数式思路更纯的版本。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0]=='n':\n        return None\n    r = T(int(arr[0]))\n    q = deque([r]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return r\n\ndef diameter_best(root):\n    def dfs(node):\n        if node is None: return (-1, 0)\n        lh, ld = dfs(node.l)\n        rh, rd = dfs(node.r)\n        return (max(lh, rh) + 1, max(ld, rd, lh + rh + 2))\n    return dfs(root)[1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1+n])\n    print(diameter_best(root))\n"
+    }
+  ]
+}

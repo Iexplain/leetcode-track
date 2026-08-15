@@ -1,0 +1,47 @@
+{
+  "id": 205,
+  "title": "同构字符串",
+  "titleEn": "Isomorphic Strings",
+  "difficulty": "简单",
+  "tags": ["哈希表", "字符串"],
+  "description": "给定两个字符串 s 和 t，判断它们是否同构。若存在字符的双射 f，把 s 中每个字符替换为 f(c) 后恰好得到 t，则称 s 与 t 同构。",
+  "examples": [
+    {
+      "input": "egg\nadd",
+      "output": "true",
+      "explanation": "把 e→a, g→d 后 s 变成 t。"
+    },
+    {
+      "input": "foo\nbar",
+      "output": "false",
+      "explanation": "o 不能同时映射到 a 和 r。"
+    },
+    {
+      "input": "paper\ntitle",
+      "output": "true",
+      "explanation": "p→t, a→i, e→l, r→e。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length == t.length <= 5 * 10^4",
+    "s 与 t 仅含 ASCII 可打印字符"
+  ],
+  "ioFormat": "第一行字符串 s，第二行字符串 t。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把 s 和 t 中字符的首次出现位置分别记录为两组序列，比较这两组位置序列是否完全一致。思路直白，但每次“首次出现”都要 O(n) 找位置，总 O(n^2)。",
+      "code": "import sys\n\ndef first_index(s):\n    res = []\n    for ch in s:\n        if ch not in res:\n            res.append(ch)\n    return [s.find(ch) for ch in res]\n\ndef is_isomorphic_brute(s, t):\n    return first_index(s) == first_index(t)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_isomorphic_brute(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用两个哈希表记录 s→t 与 t→s 的映射，遍历时双向都查：若 s[i] 已映射到别的 t 字符，或 t[i] 已映射到别的 s 字符，立即返回 false。双射比单向更稳妥，能排除像 aab/sso 之类的伪同构（单向映射过但反向冲突）。O(n) 时间 O(σ) 空间。",
+      "code": "import sys\n\ndef is_isomorphic_opt(s, t):\n    if len(s) != len(t):\n        return False\n    s2t, t2s = {}, {}\n    for a, b in zip(s, t):\n        if a in s2t and s2t[a] != b:\n            return False\n        if b in t2s and t2s[b] != a:\n            return False\n        s2t[a] = b\n        t2s[b] = a\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_isomorphic_opt(data[0], data[1]) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "把字符映射成“首次出现序号”序列再做比对：扫描 s、t 各自记录每个字符首次出现的下标，两个字符串对应的数字串完全相等即同构。写法更 pythonic，单次扫描即可构造完成，常数比双哈希表版本小；本质与“位置序列”方法等价。",
+      "code": "import sys\n\ndef encode(s):\n    seen, out = {}, []\n    for i, ch in enumerate(s):\n        if ch not in seen:\n            seen[ch] = i\n        out.append(seen[ch])\n    return out\n\ndef is_isomorphic_best(s, t):\n    return encode(s) == encode(t)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if len(data) < 2:\n        sys.exit(0)\n    print('true' if is_isomorphic_best(data[0], data[1]) else 'false')\n"
+    }
+  ]
+}

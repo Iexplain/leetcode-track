@@ -1,0 +1,41 @@
+{
+  "id": 118,
+  "title": "杨辉三角",
+  "titleEn": "Pascal's Triangle",
+  "difficulty": "简单",
+  "tags": ["数组", "动态规划"],
+  "description": "给定一个非负整数 numRows，生成杨辉三角的前 numRows 行。杨辉三角每个数等于它左上和右上两个数之和，首尾均为 1。",
+  "examples": [
+    {
+      "input": "5",
+      "output": "1\n1 1\n1 2 1\n1 3 3 1\n1 4 6 4 1",
+      "explanation": "前 5 行的杨辉三角。"
+    },
+    {
+      "input": "1",
+      "output": "1",
+      "explanation": "只有一行 1。"
+    }
+  ],
+  "constraints": [
+    "1 <= numRows <= 30"
+  ],
+  "ioFormat": "输入 numRows。逐行输出，每行的数字以单个空格分隔，末尾允许一个空格。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用递归按定义生成元素 C(row, col)。思路最贴公式，但每次求组合都要计算乘积和阶乘，重复计算量大；且递归调用次数最多 O(n^2)。",
+      "code": "import sys\nfrom math import comb\n\ndef generate_brute(num_rows):\n    rows = []\n    for r in range(num_rows):\n        rows.append([comb(r, c) for c in range(r + 1)])\n    return rows\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    rows = generate_brute(n)\n    for row in rows:\n        print(' '.join(map(str, row)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "动态规划自底向上：每一行先在两端写 1，中间的第 c 个数等于上一行同一列与前一列之和 row[r-1][c-1]+row[r-1][c]。每行只扫描一次，总时间 O(n^2)，是面试最常写的标准解。",
+      "code": "import sys\n\ndef generate_opt(num_rows):\n    rows = []\n    for r in range(num_rows):\n        if r == 0:\n            rows.append([1])\n        else:\n            prev = rows[-1]\n            row = [1] + [prev[c - 1] + prev[c] for c in range(1, r)] + [1]\n            rows.append(row)\n    return rows\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    rows = generate_opt(n)\n    for row in rows:\n        print(' '.join(map(str, row)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在 DP 基础上用 list comprehension 直接生成下一行，并去掉了冗余的 if 判断：每行长度等于行号+1，最内层用 zip 配对相邻元素相加（含首尾 1 由 [1]+...+[1] 包夹）。写起来最紧凑，时间 O(n^2) 不变，但避免了越界检查与分支。",
+      "code": "import sys\n\ndef generate_best(num_rows):\n    rows = []\n    for r in range(num_rows):\n        new_row = [1]\n        if rows:\n            prev = rows[-1]\n            new_row += [a + b for a, b in zip(prev, prev[1:])]\n        new_row += [1] if r > 0 else []\n        rows.append(new_row)\n    return rows\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    rows = generate_best(n)\n    for row in rows:\n        print(' '.join(map(str, row)))\n"
+    }
+  ]
+}

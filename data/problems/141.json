@@ -1,0 +1,43 @@
+{
+  "id": 141,
+  "title": "环形链表",
+  "titleEn": "Linked List Cycle",
+  "difficulty": "简单",
+  "tags": ["哈希表", "链表", "双指针"],
+  "description": "给你一个链表的头节点 head，判断链表中是否存在环。可以认为 pos=-1 表示链表无环；否则尾节点的 next 指向下标为 pos 的节点（0-indexed）。",
+  "examples": [
+    {
+      "input": "4\n3 2 0 -4\n1",
+      "output": "true",
+      "explanation": "[3,2,0,-4]，尾节点接到下标 1（值 2），形成环。"
+    },
+    {
+      "input": "3\n1 2 1\n-1",
+      "output": "false",
+      "explanation": "尾节点指向空，无环。"
+    }
+  ],
+  "constraints": [
+    "0 <= 节点数 <= 10^4",
+    "-10^5 <= 节点值 <= 10^5",
+    "pos 为 -1 或链表下标"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个值（若无节点则该行为空），第三行 pos。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "遍历链表，把每个节点指针（用 id() 或显式序号）加入哈希集合。每次访问 next 节点前先查集合：若命中说明回到起点有环；若遇到 None 则无环。O(n) 时间、O(n) 空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build_cycle(vals, pos):\n    if not vals: return None\n    head = N(vals[0])\n    nodes = [head]\n    for v in vals[1:]:\n        nodes[-1].nxt = N(v)\n        nodes.append(nodes[-1].nxt)\n    if pos >= 0:\n        nodes[-1].nxt = nodes[pos]\n    return head\n\ndef has_cycle_brute(head):\n    seen = set()\n    cur = head\n    while cur is not None:\n        if id(cur) in seen: return True\n        seen.add(id(cur))\n        cur = cur.nxt\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    if n == 0:\n        vals = []\n        pos = int(data[1])\n    else:\n        vals = list(map(int, data[1:1 + n]))\n        pos = int(data[1 + n])\n    head = build_cycle(vals, pos)\n    print('true' if has_cycle_brute(head) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用哈希表 + 节点 ID 写入：遍历时把 id(cur) 记入集合，下次出现即有环。比对象 hash 调用更稳定，且 id 在 CPython 解释器中唯一。是工程上最稳的写法。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build_cycle(vals, pos):\n    if not vals: return None\n    head = N(vals[0])\n    nodes = [head]\n    for v in vals[1:]:\n        nodes[-1].nxt = N(v)\n        nodes.append(nodes[-1].nxt)\n    if pos >= 0:\n        nodes[-1].nxt = nodes[pos]\n    return head\n\ndef has_cycle_opt(head):\n    seen = set()\n    cur = head\n    while cur is not None:\n        if id(cur) in seen:\n            return True\n        seen.add(id(cur))\n        cur = cur.nxt\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    if n == 0:\n        vals = []\n        pos = int(data[1])\n    else:\n        vals = list(map(int, data[1:1 + n]))\n        pos = int(data[1 + n])\n    head = build_cycle(vals, pos)\n    print('true' if has_cycle_opt(head) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Floyd 快慢指针：slow 每次走一步、fast 每次走两步。若有环，二者必在环内某点相遇；若无环，fast 必先撞到 None。无需额外空间，是面试标准最优解，常量空间 O(1)。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build_cycle(vals, pos):\n    if not vals: return None\n    head = N(vals[0])\n    nodes = [head]\n    for v in vals[1:]:\n        nodes[-1].nxt = N(v)\n        nodes.append(nodes[-1].nxt)\n    if pos >= 0:\n        nodes[-1].nxt = nodes[pos]\n    return head\n\ndef has_cycle_best(head):\n    slow = fast = head\n    while fast and fast.nxt:\n        slow = slow.nxt\n        fast = fast.nxt.nxt\n        if slow is fast:\n            return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    if n == 0:\n        vals = []\n        pos = int(data[1])\n    else:\n        vals = list(map(int, data[1:1 + n]))\n        pos = int(data[1 + n])\n    head = build_cycle(vals, pos)\n    print('true' if has_cycle_best(head) else 'false')\n"
+    }
+  ]
+}
