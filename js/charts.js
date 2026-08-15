@@ -127,11 +127,11 @@
         var d = new Date(startSunday); d.setDate(d.getDate() + col * 7 + row);
         var key = fmt(d);
         var inYear = d >= jan1 && d <= dec31;       // 是否在本自然年内
-        var future = d > today;                      // 是否晚于今天
-        if (!inYear || future) {
-          // 年初前的补白 / 年末后的补白 / 未来的天数：空占位
+        if (!inYear) {
+          // 仅年初前的补白 / 年末后的补白：透明空占位
           cells += '<div class="gh-cell out"></div>';
         } else {
+          // 本年内：无论过去还是未来，都按打卡数据取 level（未来 = level 0 空格）
           var cnt = (checkins[key] || []).length;
           var lvl = levelOf(cnt);
           cells += '<div class="gh-cell" style="background:' + GH_GREEN[lvl] + '" title="' + key + '：' + cnt + ' 题"></div>';
