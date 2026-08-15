@@ -1,0 +1,52 @@
+{
+  "id": 2,
+  "title": "两数相加",
+  "titleEn": "Add Two Numbers",
+  "difficulty": "中等",
+  "tags": [
+    "递归",
+    "链表",
+    "数学"
+  ],
+  "description": "给你两个非空的链表 l1 与 l2，表示两个非负整数。每位数字按逆序存储（个位在链表头），把两个数相加，并返回同样形式的链表。可以假定除数字 0 外，链表不以 0 开头。",
+  "examples": [
+    {
+      "input": "3\n2 4 3\n3\n5 6 4",
+      "output": "7 0 8",
+      "explanation": "342 + 465 = 807。"
+    },
+    {
+      "input": "1\n0\n1\n0",
+      "output": "0",
+      "explanation": "0 + 0 = 0。"
+    },
+    {
+      "input": "1\n9\n3\n9 9 9",
+      "output": "8 0 0 1",
+      "explanation": "9 + 999 = 1008，逆序是 [8,0,0,1]。"
+    }
+  ],
+  "constraints": [
+    "链表节点数在 [1, 100] 内",
+    "0 <= 节点值 <= 9",
+    "数字不含前导零（除 '0' 本身外）"
+  ],
+  "ioFormat": "输入四个部分依次为：nA、valsA（逐位逆序）、nB、valsB。输出结果链表值序列（逆序），空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "先把两链表还原为完整整数相加，再把和转回逆序链表。代码简单但有位数限制：Python 大整数不受限，但 C++/Java 在极长链表下会溢出，需要 BigInteger 或链表逐位加。",
+      "code": "import sys\n\ndef add_brute(a, b):\n    na = sum(d * 10 ** i for i, d in enumerate(a))\n    nb = sum(d * 10 ** i for i, d in enumerate(b))\n    s = na + nb\n    if s == 0: return [0]\n    res = []\n    while s:\n        res.append(s % 10)\n        s //= 10\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    nA = int(data[0])\n    a = list(map(int, data[1:1 + nA]))\n    idx = 1 + nA\n    nB = int(data[idx]); idx += 1\n    b = list(map(int, data[idx:idx + nB]))\n    print(' '.join(map(str, add_brute(a, b))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "直接在链表形式（数组）上按位加：用 carry 累加每一位，结果 append。O(n) 时间 O(1) 额外空间（除结果数组），且不需要数字范围转换，是链表加法最直白正确的方法。",
+      "code": "import sys\n\ndef add_opt(a, b):\n    res, carry = [], 0\n    i = j = 0\n    while i < len(a) or j < len(b) or carry:\n        x = a[i] if i < len(a) else 0\n        y = b[j] if j < len(b) else 0\n        s = x + y + carry\n        carry, d = divmod(s, 10)\n        res.append(d)\n        i += 1\n        j += 1\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    nA = int(data[0])\n    a = list(map(int, data[1:1 + nA]))\n    idx = 1 + nA\n    nB = int(data[idx]); idx += 1\n    b = list(map(int, data[idx:idx + nB]))\n    print(' '.join(map(str, add_opt(a, b))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归实现按位加：helper(i, j, carry) 返回从当前位置起的链表节点，基线是 i、j 都越界且 carry=0 时返回 None。O(n) 时间、O(n) 递归栈空间，是链表构造的优雅写法；不依赖外部状态。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef add_best(a, b):\n    def helper(i, j, carry):\n        x = a[i] if i < len(a) else 0\n        y = b[j] if j < len(b) else 0\n        if i >= len(a) and j >= len(b) and not carry:\n            return None\n        s = x + y + carry\n        carry, d = divmod(s, 10)\n        return N(d, helper(i + 1, j + 1, carry))\n    return to_list(helper(0, 0, 0))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    nA = int(data[0])\n    a = list(map(int, data[1:1 + nA]))\n    idx = 1 + nA\n    nB = int(data[idx]); idx += 1\n    b = list(map(int, data[idx:idx + nB]))\n    print(' '.join(map(str, add_best(a, b))))\n"
+    }
+  ]
+}

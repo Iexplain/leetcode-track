@@ -1,0 +1,46 @@
+{
+  "id": 128,
+  "title": "最长连续序列",
+  "titleEn": "Longest Consecutive Sequence",
+  "difficulty": "中等",
+  "tags": [
+    "并查集",
+    "数组",
+    "哈希表"
+  ],
+  "description": "给定一个未排序的整数数组 nums，找出数字连续的最长序列（元素顺序在原数组中不必相邻）的长度。要求 O(n) 时间。",
+  "examples": [
+    {
+      "input": "6\n100 4 200 1 3 2",
+      "output": "4",
+      "explanation": "最长连续序列 1→2→3→4 长度为 4。"
+    },
+    {
+      "input": "8\n0 1 2 3 4 5 6 7",
+      "output": "8",
+      "explanation": "数组已包含 0..7 的所有整数，最长连续序列长度 8。"
+    }
+  ],
+  "constraints": [
+    "0 <= nums.length <= 10^5",
+    "-10^9 <= nums[i] <= 10^9"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出最长连续序列长度（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "排序后扫描一次：用 diff==1 判定连续；若 diff>1 则重新计数。O(n log n) 时间，未达到 O(n) 期望，且会因为同值 duplicate 影响计数，需小心处理。",
+      "code": "import sys\n\ndef longest_brute(nums):\n    if not nums: return 0\n    a = sorted(set(nums))\n    best = cur = 1\n    for i in range(1, len(a)):\n        if a[i] == a[i - 1] + 1:\n            cur += 1\n        else:\n            best = max(best, cur)\n            cur = 1\n    return max(best, cur)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(longest_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "把所有元素放进 set；外层只从“没有左邻”的元素开始（即 x-1 不在 set 中），再向 x+1、x+2...顺序扩展并计数，这样每个元素最多入栈/计数一次，O(n) 时间。符合题目 O(n) 时间要求。",
+      "code": "import sys\n\ndef longest_opt(nums):\n    s = set(nums)\n    best = 0\n    for x in s:\n        if x - 1 not in s:\n            y = x\n            while y + 1 in s:\n                y += 1\n            best = max(best, y - x + 1)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(longest_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上直接 in-place 从 set 中 pop：每扩展一步把已访问元素移除，避免后续再次以同一段扫描。O(n) 时间、O(n) 空间；写法与上面风格一致但常数更小（少一次 set 查询）。",
+      "code": "import sys\n\ndef longest_best(nums):\n    s = set(nums)\n    best = 0\n    for x in list(s):\n        if x - 1 in s: continue\n        length = 1\n        y = x\n        while y + 1 in s:\n            s.discard(y + 1)\n            y += 1\n            length += 1\n        best = max(best, length)\n        s.discard(x)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(longest_best(nums))\n"
+    }
+  ]
+}

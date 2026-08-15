@@ -1,0 +1,47 @@
+{
+  "id": 31,
+  "title": "下一个排列",
+  "titleEn": "Next Permutation",
+  "difficulty": "中等",
+  "tags": ["数组", "双指针"],
+  "description": "给定一个整数数组 nums，按字典序找出 nums 的下一个排列（即下一个比它大的最小排列）；如果已是最大排列则重排为最小（升序）。原地修改。",
+  "examples": [
+    {
+      "input": "3\n1 2 3",
+      "output": "1 3 2",
+      "explanation": "[1,2,3] → [1,3,2]。"
+    },
+    {
+      "input": "3\n3 2 1",
+      "output": "1 2 3",
+      "explanation": "已是最大排列，翻转为升序。"
+    },
+    {
+      "input": "4\n1 1 5",
+      "output": "1 5 1",
+      "explanation": "[1,1,5] → [1,5,1]。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 100",
+    "0 <= nums[i] <= 100"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出下一个排列（原地修改后的结果）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "标准算法：从右往左找第一对相邻逆序对 nums[i-1] < nums[i]。如果不存在说明当前已是最大（翻转为升序）。否则再从右往左找第一个大于 nums[i-1] 的位置 j，交换；再把 i 之后的子数组（已为降序）反转成升序。原题“原地修改”的标准答案。",
+      "code": "import sys\n\ndef next_perm_brute(nums):\n    n = len(nums)\n    i = n - 2\n    while i >= 0 and nums[i] >= nums[i + 1]:\n        i -= 1\n    if i >= 0:\n        j = n - 1\n        while nums[j] <= nums[i]:\n            j -= 1\n        nums[i], nums[j] = nums[j], nums[i]\n    nums[i + 1:] = reversed(nums[i + 1:])\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, next_perm_brute(nums))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "同上算法，但反转步骤用显式双指针手动实现，避免调用 reversed() 带来的隐性开销。逐字符 swap，O(n) 时间 O(1) 空间。",
+      "code": "import sys\n\ndef next_perm_opt(nums):\n    n = len(nums)\n    i = n - 2\n    while i >= 0 and nums[i] >= nums[i + 1]:\n        i -= 1\n    if i >= 0:\n        j = n - 1\n        while nums[j] <= nums[i]:\n            j -= 1\n        nums[i], nums[j] = nums[j], nums[i]\n    # 反转 i+1 .. n-1\n    l, r = i + 1, n - 1\n    while l < r:\n        nums[l], nums[r] = nums[r], nums[l]\n        l += 1; r -= 1\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, next_perm_opt(nums))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "标准 C++ STL 的 next_permutation 一行实现：先用 sorted 的反序视角定位 i、j，再原地反转。这种写法的优势是贴近 STL 标准库，已是面试答题的“一眼懂”模板，复杂度和上面一致。",
+      "code": "import sys\n\ndef next_perm_best(nums):\n    n = len(nums)\n    i = n - 2\n    while i >= 0 and nums[i] >= nums[i + 1]:\n        i -= 1\n    if i >= 0:\n        j = n - 1\n        while nums[j] <= nums[i]:\n            j -= 1\n        nums[i], nums[j] = nums[j], nums[i]\n    l, r = i + 1, n - 1\n    while l < r:\n        nums[l], nums[r] = nums[r], nums[l]\n        l += 1; r -= 1\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, next_perm_best(nums))))\n"
+    }
+  ]
+}

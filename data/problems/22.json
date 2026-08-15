@@ -1,0 +1,45 @@
+{
+  "id": 22,
+  "title": "括号生成",
+  "titleEn": "Generate Parentheses",
+  "difficulty": "中等",
+  "tags": [
+    "字符串",
+    "动态规划",
+    "回溯"
+  ],
+  "description": "给定一个非负整数 n，生成所有由 n 对括号组成、且格式正确的字符串组合。",
+  "examples": [
+    {
+      "input": "3",
+      "output": "((()))\n(()())\n(())()\n()(())\n()()()",
+      "explanation": "5 种格式正确的组合。"
+    },
+    {
+      "input": "1",
+      "output": "()",
+      "explanation": "单对括号只有 1 种组合。"
+    }
+  ],
+  "constraints": [
+    "1 <= n <= 8"
+  ],
+  "ioFormat": "输入一个整数 n。输出每一行一个合法括号组合（共卡特兰数 C_n 个，按字典序升序）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "先生成长度 2n 的所有 0/1 序列（共 4^n 种），过滤出合法组合并去重。简单但不优，时间花在了过滤阶段。",
+      "code": "import sys\n\ndef gen_brute(n):\n    from itertools import product\n    res = []\n    for bits in product('()', repeat=2 * n):\n        s = ''.join(bits)\n        bal = 0\n        ok = True\n        for ch in s:\n            bal += 1 if ch == '(' else -1\n            if bal < 0:\n                ok = False\n                break\n        if ok and bal == 0:\n            res.append(s)\n    return sorted(set(res))\n\nif __name__ == '__main__':\n    n = int(sys.stdin.read().strip())\n    for s in gen_brute(n):\n        print(s)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "回溯：维护已放左括号数 left、剩余可放右括号数 right（始终 left ≤ n、right ≥ 0）。只要 left < n 就可加 \"(\"；只要 right > left 就可加 \")\"。天然剪枝掉非法前缀，时间复杂度就是合法组合数。",
+      "code": "import sys\n\ndef gen_opt(n):\n    res = []\n    def dfs(cur, left, right):\n        if len(cur) == 2 * n:\n            res.append(cur)\n            return\n        if left < n:\n            dfs(cur + '(', left + 1, right)\n        if right < left:\n            dfs(cur + ')', left, right + 1)\n    dfs('', 0, 0)\n    return res\n\nif __name__ == '__main__':\n    n = int(sys.stdin.read().strip())\n    for s in gen_opt(n):\n        print(s)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在回溯基础上加一个等价表达：每次 push 一个左括号进栈，pop 一个就生成右括号。但其实回溯版已经是 O(2^n) 量级，无需再优化。等价的另一种写法是 BFS：维护当前路径串，在每步根据左右可用度生成后续串，最终一次性收集所有合法串。逻辑大同小异。",
+      "code": "import sys\n\ndef gen_best(n):\n    if n == 0:\n        return []\n    res = []\n    def dfs(cur, left, right):\n        if len(cur) == 2 * n:\n            res.append(cur)\n            return\n        if left < n:\n            dfs(cur + '(', left + 1, right)\n        if right < left:\n            dfs(cur + ')', left, right + 1)\n    dfs('', 0, 0)\n    return res\n\nif __name__ == '__main__':\n    n = int(sys.stdin.read().strip())\n    for s in gen_best(n):\n        print(s)\n"
+    }
+  ]
+}

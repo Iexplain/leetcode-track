@@ -1,0 +1,47 @@
+{
+  "id": 72,
+  "title": "编辑距离",
+  "titleEn": "Edit Distance",
+  "difficulty": "困难",
+  "tags": ["字符串", "动态规划"],
+  "description": "给你两个单词 word1 和 word2，请返回将 word1 转换成 word2 所使用的最少操作数。三种操作：插入、删除、替换一个字符。",
+  "examples": [
+    {
+      "input": "horse\nros",
+      "output": "3",
+      "explanation": "horse → rorse (替换 h→r) → rose (删除 r) → ros (删除 e)。"
+    },
+    {
+      "input": "intention\nexecution",
+      "output": "5",
+      "explanation": "intention → inention (删除 t) → exention (替换) → exenution (替换) → execution (替换)。"
+    },
+    {
+      "input": "abc\nabc",
+      "output": "0",
+      "explanation": "两字符串已相同。"
+    }
+  ],
+  "constraints": [
+    "0 <= word1.length, word2.length <= 500",
+    "word1 与 word2 仅含小写英文字母"
+  ],
+  "ioFormat": "第一行字符串 word1，第二行字符串 word2。输出最少操作数（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归 + memo：定义 f(i, j) 为 word1[0..i] → word1[0..j] 的最小编辑距离；若字符相同则 f(i,j)=f(i-1,j-1)，否则 1 + min(三种子问题之一)。带 memo 后时间 O(m·n)，空间 O(m·n)。",
+      "code": "import sys\n\ndef dist_brute(a, b):\n    m, n = len(a), len(b)\n    memo = {}\n    def f(i, j):\n        if i == 0: return j\n        if j == 0: return i\n        if (i, j) in memo: return memo[(i, j)]\n        if a[i - 1] == b[j - 1]:\n            memo[(i, j)] = f(i - 1, j - 1)\n        else:\n            memo[(i, j)] = 1 + min(f(i - 1, j), f(i, j - 1), f(i - 1, j - 1))\n        return memo[(i, j)]\n    return f(m, n)\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if not lines:\n        sys.exit(0)\n    a = lines[0].rstrip()\n    b = lines[1].rstrip() if len(lines) > 1 else ''\n    print(dist_brute(a, b))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "标准二维 DP：dp[i][j] 表示空串或前缀变换的最少操作数。第一行/列初始化为 i、j，转移同 memo 版本。O(m·n) 时间、O(m·n) 空间，是面试最常写的写法。",
+      "code": "import sys\n\ndef dist_opt(a, b):\n    m, n = len(a), len(b)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(m + 1):\n        dp[i][0] = i\n    for j in range(n + 1):\n        dp[0][j] = j\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if a[i - 1] == b[j - 1]:\n                dp[i][j] = dp[i - 1][j - 1]\n            else:\n                dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])\n    return dp[m][n]\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if not lines:\n        sys.exit(0)\n    a = lines[0].rstrip()\n    b = lines[1].rstrip() if len(lines) > 1 else ''\n    print(dist_opt(a, b))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "滚动一维 DP：只保留上一行的 dp，j 从大到小更新可避免临时行被覆盖；始终记得当前 dp[j] 表示 dp[i][j]，左上角 dp[j-1] 是 dp[i-1][j-1]。O(m·n) 时间、O(n) 空间，是面向大规模输入的标准解。",
+      "code": "import sys\n\ndef dist_best(a, b):\n    m, n = len(a), len(b)\n    if m < n:\n        a, b, m, n = b, a, n, m\n    dp = list(range(n + 1))\n    for i in range(1, m + 1):\n        cur = dp[:]\n        cur[0] = i\n        for j in range(1, n + 1):\n            if a[i - 1] == b[j - 1]:\n                cur[j] = dp[j - 1]\n            else:\n                cur[j] = 1 + min(dp[j], cur[j - 1], dp[j - 1])\n        dp = cur\n    return dp[n]\n\nif __name__ == '__main__':\n    lines = sys.stdin.read().splitlines()\n    if not lines:\n        sys.exit(0)\n    a = lines[0].rstrip()\n    b = lines[1].rstrip() if len(lines) > 1 else ''\n    print(dist_best(a, b))\n"
+    }
+  ]
+}

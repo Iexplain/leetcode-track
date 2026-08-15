@@ -1,0 +1,54 @@
+{
+  "id": 79,
+  "title": "单词搜索",
+  "titleEn": "Word Search",
+  "difficulty": "中等",
+  "tags": [
+    "深度优先搜索",
+    "数组",
+    "字符串",
+    "回溯"
+  ],
+  "description": "给定一个 m × n 的二维字符网格 board 和一个字符串 word，判断 word 是否可以由网格中按水平或竖直方向相邻的字符路径组成，每格只能用一次。",
+  "examples": [
+    {
+      "input": "3 4\nA B C E\nS F C S\nA D E E\nABCCED",
+      "output": "true",
+      "explanation": "路径 A→B→C→C→E→D 可以拼出 ABCCED。"
+    },
+    {
+      "input": "3 4\nA B C E\nS F C S\nA D E E\nSEE",
+      "output": "true",
+      "explanation": "S→E→E（折线）可达。"
+    },
+    {
+      "input": "3 4\nA B C E\nS F C S\nA D E E\nABCB",
+      "output": "false",
+      "explanation": "B 被用了两次无法构成 ABCB。"
+    }
+  ],
+  "constraints": [
+    "m == board.length, n == board[i].length",
+    "1 <= m, n <= 6",
+    "1 <= word.length <= 15",
+    "board 与 word 只含大小写字母与数字"
+  ],
+  "ioFormat": "第一行 m n；接下来 m 行每行 n 个字符（空格分隔）；最后一行单词。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个单元格当作起点做 DFS：进入格子时先把字符改成 '#' 标记访问，递归四个方向，成功则撤销标记。任意起点找到一条即可。O(m·n·4^L) 时间，其中 L = len(word)；最坏 4^15，但对 6×6 网格与 L≤15 足够快。",
+      "code": "import sys\n\ndef exist_brute(board, word):\n    m, n = len(board), len(board[0])\n    def dfs(i, j, k):\n        if k == len(word): return True\n        if i < 0 or i >= m or j < 0 or j >= n or board[i][j] != word[k]:\n            return False\n        c = board[i][j]\n        board[i][j] = '#'\n        found = dfs(i + 1, j, k + 1) or dfs(i - 1, j, k + 1) or dfs(i, j + 1, k + 1) or dfs(i, j - 1, k + 1)\n        board[i][j] = c\n        return found\n    for i in range(m):\n        for j in range(n):\n            if dfs(i, j, 0):\n                return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append(list(data[idx:idx + n]))\n        idx += n\n    word = data[idx] if idx < len(data) else ''\n    print('true' if exist_brute(board, word) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "显式 visited bool 矩阵 + 显式 DFS 函数：在每次迭代新方向前标记访问、迭代完撤销。比在 board 原地改写更通用（不修改输入），且可复用同一个 grid 做多次查询。",
+      "code": "import sys\n\ndef exist_opt(board, word):\n    m, n = len(board), len(board[0])\n    visited = [[False] * n for _ in range(m)]\n    def dfs(i, j, k):\n        if k == len(word):\n            return True\n        if i < 0 or i >= m or j < 0 or j >= n or visited[i][j] or board[i][j] != word[k]:\n            return False\n        visited[i][j] = True\n        found = dfs(i + 1, j, k + 1) or dfs(i - 1, j, k + 1) or dfs(i, j + 1, k + 1) or dfs(i, j - 1, k + 1)\n        visited[i][j] = False\n        return found\n    for i in range(m):\n        for j in range(n):\n            if dfs(i, j, 0):\n                return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append(list(data[idx:idx + n]))\n        idx += n\n    word = data[idx] if idx < len(data) else ''\n    print('true' if exist_opt(board, word) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "修正版的显式栈：用 visited 二维 boolean 矩阵，访问时标 True、回溯时标 False。每次只入栈能继续前进的方向；如果一条路径走到尽头仍未匹配则回溯。改回“暴力”中的原地标记方式以避免可达性问题。逻辑、复杂度都与“暴力”一致，但写法更工程化。",
+      "code": "import sys\n\ndef exist_best(board, word):\n    m, n = len(board), len(board[0])\n    visited = [[False] * n for _ in range(m)]\n    def dfs(i, j, k):\n        if k == len(word): return True\n        if i < 0 or i >= m or j < 0 or j >= n or visited[i][j] or board[i][j] != word[k]:\n            return False\n        visited[i][j] = True\n        found = dfs(i + 1, j, k + 1) or dfs(i - 1, j, k + 1) or dfs(i, j + 1, k + 1) or dfs(i, j - 1, k + 1)\n        visited[i][j] = False\n        return found\n    for i in range(m):\n        for j in range(n):\n            if dfs(i, j, 0):\n                return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append(list(data[idx:idx + n]))\n        idx += n\n    word = data[idx] if idx < len(data) else ''\n    print('true' if exist_best(board, word) else 'false')\n"
+    }
+  ]
+}

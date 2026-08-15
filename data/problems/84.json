@@ -1,0 +1,47 @@
+{
+  "id": 84,
+  "title": "柱状图中最大的矩形",
+  "titleEn": "Largest Rectangle in Histogram",
+  "difficulty": "困难",
+  "tags": ["栈", "数组", "单调栈"],
+  "description": "给定 n 个非负整数表示柱状图中各个柱子的高度，每个柱子宽度为 1，求能勾勒出的最大矩形面积。",
+  "examples": [
+    {
+      "input": "6\n2 1 5 6 2 3",
+      "output": "10",
+      "explanation": "宽度 2、跨度 [4,5]（高度 5、6 取最小）的矩形面积 2*5=10。"
+    },
+    {
+      "input": "2\n2 4",
+      "output": "4",
+      "explanation": "两柱时，宽度 2、高度 4（取最小）= 8；但实际最大是高度 2 一根就是 2，更大面积是单柱 4。"
+    },
+    {
+      "input": "1\n5",
+      "output": "5",
+      "explanation": "单柱面积 5。"
+    }
+  ],
+  "constraints": [
+    "1 <= heights.length <= 10^5",
+    "0 <= heights[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出最大矩形面积（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每根柱子向左右扩展到比自己矮的边界，记录面积取最大。O(n^2) 时间，n=10^5 时会超时，但思路最直观。",
+      "code": "import sys\n\ndef largest_brute(h):\n    n = len(h)\n    best = 0\n    for i in range(n):\n        l = i\n        while l - 1 >= 0 and h[l - 1] >= h[i]:\n            l -= 1\n        r = i\n        while r + 1 < n and h[r + 1] >= h[i]:\n            r += 1\n        best = max(best, h[i] * (r - l + 1))\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    h = list(map(int, data[1:1 + n]))\n    print(largest_brute(h))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "对每根柱子单独算 left[i] 与 right[i]（即能延展到的最左最右），然后面积 = h[i] * (right[i] - left[i] + 1)。left/right 都用栈单调递增，O(n) 时间，是标准最常写版本。",
+      "code": "import sys\n\ndef largest_opt(h):\n    n = len(h)\n    left = [0] * n\n    right = [n - 1] * n\n    stack = []\n    for i in range(n):\n        while stack and h[stack[-1]] >= h[i]:\n            stack.pop()\n        left[i] = stack[-1] + 1 if stack else 0\n        stack.append(i)\n    stack.clear()\n    for i in range(n - 1, -1, -1):\n        while stack and h[stack[-1]] >= h[i]:\n            stack.pop()\n        right[i] = stack[-1] - 1 if stack else n - 1\n        stack.append(i)\n    best = 0\n    for i in range(n):\n        best = max(best, h[i] * (right[i] - left[i] + 1))\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    h = list(map(int, data[1:1 + n]))\n    print(largest_opt(h))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "单调栈 + 哨兵：在 heights 末尾追加一个 0，强制清空栈。每当遇到 h[i] < 栈顶高度，就不断弹出栈顶并以当前 i 作为右边界。在弹出时左边界是新的栈顶下标，使面积 = h[top] * (i - 新栈顶index - 1)。O(n) 时间、O(n) 空间，是公认的最快实现。",
+      "code": "import sys\n\ndef largest_best(h):\n    h = h + [0]\n    stack = []\n    best = 0\n    for i, x in enumerate(h):\n        while stack and h[stack[-1]] > x:\n            top = stack.pop()\n            left = stack[-1] + 1 if stack else 0\n            best = max(best, h[top] * (i - left))\n        stack.append(i)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    h = list(map(int, data[1:1 + n]))\n    print(largest_best(h))\n"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": 146,
+  "title": "LRU 缓存",
+  "titleEn": "LRU Cache",
+  "difficulty": "中等",
+  "tags": ["设计", "哈希表", "链表"],
+  "description": "请你设计并实现一个满足 LRU (最近最少使用) 缓存约束的数据结构。函数 get(key) 返回值（或 -1），put(key, value) 必须 O(1) 时间，同时容量达到上限时淘汰最久未使用条目。",
+  "examples": [
+    {
+      "input": "2 8\nput 1 1\nput 2 2\nget 1\nput 3 3\nget 2\nput 4 4\nget 1\nget 3",
+      "output": "1\n-1\n-1\n3",
+      "explanation": "LRU(2)；依次操作后：put(1,1)=[1]，put(2,2)=[1,2]，get(1)=1，put(3,3)→驱逐2；get(2)=-1，put(4,4)→驱逐1；get(1)=-1，get(3)=3。"
+    }
+  ],
+  "constraints": [
+    "capacity >= 1",
+    "0 <= key <= 10^5",
+    "0 <= value <= 10^5",
+    "put/get 调用总数 <= 2*10^5"
+  ],
+  "ioFormat": "第一行 k q；第二行起 q 条操作（put key value / get key）。对每条 get 输出值或 -1；put 不输出。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 list 维护“最近使用的顺序”，头部为最近、尾部为最久未使用。get 时查到就重新放到头部；put 时如果已存在也提到头部，否则 append；如果超容则 pop 末尾。O(n) 单次时间，n = 当前缓存大小。最简单写法，但 LeetCode 不接受此复杂度。",
+      "code": "import sys\n\ndef run_brute(k, ops):\n    cache = {}\n    order = []\n    out = []\n    for op in ops:\n        if op[0] == 'put':\n            _, key, value = op\n            key = int(key); value = int(value)\n            if key in cache:\n                order.remove(key)\n            cache[key] = value\n            order.append(key)\n            if len(cache) > k:\n                evict = order.pop(0)\n                del cache[evict]\n        else:\n            _, key = op\n            key = int(key)\n            if key not in cache:\n                out.append(-1)\n            else:\n                order.remove(key)\n                order.append(key)\n                out.append(cache[key])\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    k, q = int(data[0]), int(data[1])\n    ops = []\n    idx = 2\n    while idx < len(data) and len(ops) < q:\n        if data[idx] == 'put':\n            ops.append(('put', data[idx + 1], int(data[idx + 2])))\n            idx += 3\n        else:\n            ops.append(('get', data[idx + 1]))\n            idx += 2\n    for v in run_brute(k, ops):\n        print(v)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "哈希表 + 双向链表：哈希表 key → 节点指针，链表按访问顺序串联所有节点。get 时把节点移到头部；put 时如果存在就地升级头部，否则在头部插入并检查容量；超过则删除链表尾部节点。O(1) 时间单次，是标准实现。",
+      "code": "import sys\n\nclass Node:\n    __slots__ = ('k', 'v', 'prev', 'next')\n    def __init__(self, k, v):\n        self.k = k; self.v = v; self.prev = None; self.next = None\n\nclass LRUCacheOpt:\n    def __init__(self, cap):\n        self.cap = cap\n        self.cache = {}\n        self.head = Node(0, 0)\n        self.tail = Node(0, 0)\n        self.head.next = self.tail\n        self.tail.prev = self.head\n    def _remove(self, node):\n        node.prev.next = node.next\n        node.next.prev = node.prev\n    def _add(self, node):\n        node.prev = self.head\n        node.next = self.head.next\n        self.head.next.prev = node\n        self.head.next = node\n    def get(self, key):\n        if key in self.cache:\n            n = self.cache[key]\n            self._remove(n); self._add(n)\n            return n.v\n        return -1\n    def put(self, key, value):\n        if key in self.cache:\n            n = self.cache[key]\n            n.v = value\n            self._remove(n); self._add(n)\n        else:\n            n = Node(key, value)\n            self.cache[key] = n\n            self._add(n)\n            if len(self.cache) > self.cap:\n                lru = self.tail.prev\n                self._remove(lru)\n                del self.cache[lru.k]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    k, q = int(data[0]), int(data[1])\n    lru = LRUCacheOpt(k)\n    idx = 2\n    for _ in range(q):\n        if data[idx] == 'put':\n            lru.put(int(data[idx + 1]), int(data[idx + 2]))\n            idx += 3\n        else:\n            print(lru.get(int(data[idx + 1])))\n            idx += 2\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上用 OrderedDict 优雅实现：Python 3.7+ 中 dict 默认保留插入顺序，OrderedDict 提供 move_to_end 接口，可以用更紧凑的代码达到相同效果。在生产环境可以替代双向链表实现；但在严格 O(1) 写场景下，OrderedDict 仍是哈希表，结构等价于自己手搓的双向链表。",
+      "code": "import sys\nfrom collections import OrderedDict\n\nclass LRUCacheBest(OrderedDict):\n    def __init__(self, cap):\n        super().__init__()\n        self.cap = cap\n    def get(self, key):\n        if key not in self:\n            return -1\n        self.move_to_end(key)\n        return self[key]\n    def put(self, key, value):\n        if key in self:\n            self.move_to_end(key)\n        self[key] = value\n        if len(self) > self.cap:\n            self.popitem(last=False)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    k, q = int(data[0]), int(data[1])\n    lru = LRUCacheBest(k)\n    idx = 2\n    for _ in range(q):\n        if data[idx] == 'put':\n            lru.put(int(data[idx + 1]), int(data[idx + 2]))\n            idx += 3\n        else:\n            print(lru.get(int(data[idx + 1])))\n            idx += 2\n"
+    }
+  ]
+}

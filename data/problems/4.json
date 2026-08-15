@@ -1,0 +1,43 @@
+{
+  "id": 4,
+  "title": "寻找两个正序数组的中位数",
+  "titleEn": "Median of Two Sorted Arrays",
+  "difficulty": "困难",
+  "tags": ["数组", "二分查找", "分治"],
+  "description": "给定两个大小分别为 m 和 n 的正序（从小到大）数组 nums1 和 nums2。请你找出并返回这两个正序数组的中位数。要求算法时间复杂度为 O(log (m+n))。",
+  "examples": [
+    {
+      "input": "2\n1 3\n1\n2",
+      "output": "2.0",
+      "explanation": "合并数组 [1,2,3]，中位数 2。"
+    },
+    {
+      "input": "2\n1 2\n2\n3 4",
+      "output": "2.5",
+      "explanation": "合并数组 [1,2,3,4]，中位数是 (2+3)/2 = 2.5。"
+    }
+  ],
+  "constraints": [
+    "0 <= m, n <= 1000",
+    "1 <= m + n <= 2000",
+    "-10^6 <= nums1[i], nums2[i] <= 10^6"
+  ],
+  "ioFormat": "第一行 m，第二行 nums1（升序），第三行 n，第四行 nums2（升序）。输出一个保留 1 位小数的浮点数表示中位数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "两个指针同时遍历找中位数：归并时不一定要构造完整数组，只需计数到 mid 位置取中点。O((m+n)/2) 时间、O(1) 额外空间，无对数复杂度，但写法清晰，是题意的最直接解。",
+      "code": "import sys\n\ndef median_brute(a, b):\n    m, n = len(a), len(b)\n    total = m + n\n    target = total // 2\n    i = j = 0\n    prev = cur = 0\n    cnt = 0\n    while cnt <= target:\n        prev = cur\n        if i < m and (j >= n or a[i] <= b[j]):\n            cur = a[i]; i += 1\n        else:\n            cur = b[j]; j += 1\n        cnt += 1\n    return (prev + cur) / 2 if total % 2 == 0 else float(cur)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    a = list(map(int, data[1:1 + m]))\n    idx = 1 + m\n    n = int(data[idx]); idx += 1\n    b = list(map(int, data[idx:idx + n]))\n    print(f'{median_brute(a, b):.1f}')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二分查找短数组的切分点：把 i 划分在 A 上，对应地 j = (m+n+1)/2 - i 必须划分在 B 上；调整 i 让 A[i-1] <= B[j] 且 B[j-1] <= A[i]。O(log min(m,n)) 时间，O(1) 空间，是标准最优解。",
+      "code": "import sys\n\ndef median_opt(a, b):\n    if len(a) > len(b):\n        a, b = b, a\n    m, n = len(a), len(b)\n    half = (m + n + 1) // 2\n    lo, hi = 0, m\n    while lo <= hi:\n        i = (lo + hi) // 2\n        j = half - i\n        A_left = a[i - 1] if i > 0 else float('-inf')\n        A_right = a[i] if i < m else float('inf')\n        B_left = b[j - 1] if j > 0 else float('-inf')\n        B_right = b[j] if j < n else float('inf')\n        if A_left <= B_right and B_left <= A_right:\n            if (m + n) % 2 == 0:\n                return (max(A_left, B_left) + min(A_right, B_right)) / 2\n            else:\n                return float(max(A_left, B_left))\n        elif A_left > B_right:\n            hi = i - 1\n        else:\n            lo = i + 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    a = list(map(int, data[1:1 + m]))\n    idx = 1 + m\n    n = int(data[idx]); idx += 1\n    b = list(map(int, data[idx:idx + n]))\n    print(f'{median_opt(a, b):.1f}')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”版基础上加小心：为了防止 i=0 或 i=m 的边界，同时让 hi-1 正确处理。常见易错点：当一半下标偏向左时，A_left=A[0] 需直接用而不要 -∞；否则中位数比较会出现 (max 元素) 偏小的失真。逻辑与“优化”完全等价，只是把变体写成统一变量名，是 LeetCode 高赞解读版本。",
+      "code": "import sys\n\ndef median_best(a, b):\n    if len(a) > len(b):\n        a, b = b, a\n    m, n = len(a), len(b)\n    half = (m + n + 1) // 2\n    lo, hi = 0, m\n    while lo <= hi:\n        i = (lo + hi) // 2\n        j = half - i\n        A_left = a[i - 1] if i > 0 else float('-inf')\n        A_right = a[i] if i < m else float('inf')\n        B_left = b[j - 1] if j > 0 else float('-inf')\n        B_right = b[j] if j < n else float('inf')\n        if A_left <= B_right and B_left <= A_right:\n            if (m + n) % 2 == 0:\n                return (max(A_left, B_left) + min(A_right, B_right)) / 2\n            else:\n                return float(max(A_left, B_left))\n        elif A_left > B_right:\n            hi = i - 1\n        else:\n            lo = i + 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    a = list(map(int, data[1:1 + m]))\n    idx = 1 + m\n    n = int(data[idx]); idx += 1\n    b = list(map(int, data[idx:idx + n]))\n    print(f'{median_best(a, b):.1f}')\n"
+    }
+  ]
+}
