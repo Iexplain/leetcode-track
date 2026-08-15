@@ -216,7 +216,6 @@
 
   function renderProblemDetail(p) {
     var solved = Store.isSolved(p.id);
-    var sInfo = Store.getSolved(p.id) || {};
     var needReview = Store.isReviewScheduled(p.id);
 
     var examples = (p.examples || []).map(function (ex, i) {
@@ -275,9 +274,9 @@
       '</div>' +
       '<div class="action">' +
       (solved
-        ? '<button id="checkinBtn" class="btn btn-done">✓ 已打卡（' + esc(sInfo.level || '完成') + ' · ' + esc(sInfo.date || '') + '）</button>' +
+        ? '<button id="checkinBtn" class="btn btn-done">✓ 已打卡</button>' +
           '<button id="reviewToggle" class="btn ' + (needReview ? 'btn-done' : 'btn-warn') + '">' + (needReview ? '✓ 已设复习计划' : '看题解才懂') + '</button>'
-        : '<button id="checkinBtn" class="btn">打卡（我做出来的）</button>' +
+        : '<button id="checkinBtn" class="btn">打卡</button>' +
           '<button id="reviewMark" class="btn btn-warn">看题解才懂</button>') +
       '<a class="btn btn-ghost" href="#/stats">查看统计</a>' +
       '</div>' +
@@ -334,7 +333,7 @@
       });
     });
 
-    // 打卡（我做出来的）：仅标记已做，不触发复习
+    // 打卡：仅标记已做，不触发复习
     var btn = $('checkinBtn');
     btn.addEventListener('click', function () {
       var level = '';
