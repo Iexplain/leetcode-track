@@ -34,6 +34,20 @@
   }
   function $(id) { return document.getElementById(id); }
 
+  // ---------- 解法解锁状态（持久化到 localStorage） ----------
+  var UNLOCK_KEY = 'lc_unlocked_v1';
+  function getUnlocked(pid) {
+    try { return new Set((JSON.parse(localStorage.getItem(UNLOCK_KEY) || '{}')[pid]) || []); }
+    catch (e) { return new Set(); }
+  }
+  function setUnlocked(pid, idx) {
+    var all = {};
+    try { all = JSON.parse(localStorage.getItem(UNLOCK_KEY) || '{}'); } catch (e) {}
+    if (!all[pid]) all[pid] = [];
+    if (all[pid].indexOf(idx) < 0) all[pid].push(idx);
+    localStorage.setItem(UNLOCK_KEY, JSON.stringify(all));
+  }
+
   function isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -212,15 +226,21 @@
     }).join('');
 
     var sols = p.solutions || [];
-    var tabs = sols.map(function (s, i) {
-      return '<button class="tab ' + diffClass(s.level) + (i === 0 ? ' on' : '') + '" data-tab="' + i + '">' + esc(s.level) + '</button>';
-    }).join('');
-    var panes = sols.map(function (s, i) {
-      return '<div class="pane" data-pane="' + i + '" style="' + (i === 0 ? '' : 'display:none') + '">' +
-        '<div class="idea">' + esc(s.idea) + '</div>' +
-        '<div class="code-wrap">' +
-        '<button class="copy" data-code="' + i + '">复制</button>' +
-        '<pre class="code"><code>' + esc(s.code) + '</code></pre>' +
+    var unlockedSet = getUnlocked(p.id);
+    var solCards = sols.map(function (s, i) {
+      var locked = unlockedSet.has(i) ? '' : ' locked';
+      return '<div class="sol-card' + locked + '" data-sol="' + i + '">' +
+        '<div class="sol-card-head">' +
+          '<span class="sol-lvl ' + diffClass(s.level) + '">' + esc(s.level) + '</span>' +
+          '<span class="sol-idx">第 ' + (i + 1) + ' 层 / 共 ' + sols.length + ' 层</span>' +
+        '</div>' +
+        '<div class="sol-body">' +
+          '<div class="idea"><b>核心思想 · </b>' + esc(s.idea) + '</div>' +
+          '<div class="code-wrap">' +
+            '<button class="copy" data-code="' + i + '">复制</button>' +
+            '<pre class="code"><code>' + esc(s.code) + '</code></pre>' +
+          '</div>' +
+          '<div class="lock-veil"><button class="unlock-btn" data-sol="' + i + '">查看解答</button></div>' +
         '</div>' +
         '</div>';
     }).join('');
@@ -237,9 +257,8 @@
       (examples ? '<div class="ex-list">' + examples + '</div>' : '') +
       (constraints ? '<div class="cons"><b>约束：</b><ul>' + constraints + '</ul></div>' : '') +
       '<div class="sol">' +
-      '<div class="sol-title">三种解法</div>' +
-      '<div class="tabs">' + tabs + '</div>' +
-      '<div class="panes">' + panes + '</div>' +
+      '<div class="sol-title">三种解法 <span class="sol-hint">逐层解锁 · 先暴力，后最优</span></div>' +
+      solCards +
       '</div>' +
       '<div class="action">' +
       (solved
@@ -251,16 +270,17 @@
       '</div>' +
       '</div>';
 
-    // 解法切换
+    // 解法解锁（毛玻璃遮罩平滑消散）
     var pBody = $('pBody');
-    pBody.querySelectorAll('.tab').forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        var idx = tab.getAttribute('data-tab');
-        pBody.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('on'); });
-        tab.classList.add('on');
-        pBody.querySelectorAll('.pane').forEach(function (pane) {
-          pane.style.display = pane.getAttribute('data-pane') === idx ? '' : 'none';
-        });
+    pBody.querySelectorAll('.unlock-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = +btn.getAttribute('data-sol');
+        var card = pBody.querySelector('.sol-card[data-sol="' + idx + '"]');
+        if (!card) return;
+        card.classList.remove('locked');
+        card.classList.add('unlocked');
+        unlockedSet.add(idx);
+        setUnlocked(p.id, idx);
       });
     });
 
@@ -279,8 +299,8 @@
     // 打卡（我做出来的）：仅标记已做，不触发复习
     var btn = $('checkinBtn');
     btn.addEventListener('click', function () {
-      var onTab = pBody.querySelector('.tab.on');
-      var level = onTab ? onTab.textContent : '';
+      var level = '';
+      for (var li = sols.length - 1; li >= 0; li--) { if (unlockedSet.has(li)) { level = sols[li].level; break; } }
       var wasSolved = Store.isSolved(p.id);
       Store.toggleSolved(p.id, level);
       // 取消已做时，连带移除其复习计划
@@ -293,8 +313,8 @@
     // 看题解才懂：标记已做 + 启动艾宾浩斯复习计划（+1/+3/+7 天）
     var rm = $('reviewMark');
     if (rm) rm.addEventListener('click', function () {
-      var onTab = pBody.querySelector('.tab.on');
-      var level = onTab ? onTab.textContent : '';
+      var level = '';
+      for (var li = sols.length - 1; li >= 0; li--) { if (unlockedSet.has(li)) { level = sols[li].level; break; } }
       Store.toggleSolved(p.id, level);
       Store.markNeedsReview(p.id, { title: p.title, difficulty: p.difficulty });
       renderProblemDetail(p);
