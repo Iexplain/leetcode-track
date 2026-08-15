@@ -236,11 +236,13 @@
         '</div>' +
         '<div class="sol-body">' +
           '<div class="idea"><b>核心思想 · </b>' + esc(s.idea) + '</div>' +
-          '<div class="code-wrap">' +
-            '<button class="copy" data-code="' + i + '">复制</button>' +
-            '<pre class="code"><code>' + esc(s.code) + '</code></pre>' +
+          '<div class="code-block">' +
+            '<div class="code-wrap">' +
+              '<button class="copy" data-code="' + i + '">复制</button>' +
+              '<pre class="code"><code>' + esc(s.code) + '</code></pre>' +
+            '</div>' +
+            '<div class="lock-veil"><button class="unlock-btn" data-sol="' + i + '">查看解答</button></div>' +
           '</div>' +
-          '<div class="lock-veil"><button class="unlock-btn" data-sol="' + i + '">查看解答</button></div>' +
         '</div>' +
         '</div>';
     }).join('');

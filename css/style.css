@@ -270,13 +270,12 @@ main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
 .sol-lvl.hard { background: rgba(248, 113, 113, 0.16); color: #fca5a5; border-color: rgba(248, 113, 113, 0.4); }
 .sol-idx { font-size: 11px; color: var(--muted); letter-spacing: 0.3px; }
 .sol-body { position: relative; padding: 14px; }
-.sol-card.locked .idea,
+.code-block { position: relative; }
 .sol-card.locked .code-wrap {
   filter: blur(7px); -webkit-filter: blur(7px);
   user-select: none; -webkit-user-select: none; pointer-events: none;
   transition: filter 0.45s ease;
 }
-.sol-card.unlocked .idea,
 .sol-card.unlocked .code-wrap { filter: none; -webkit-filter: none; transition: filter 0.45s ease; }
 .lock-veil {
   position: absolute; inset: 0; z-index: 3;
