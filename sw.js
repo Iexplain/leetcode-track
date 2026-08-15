@@ -1,5 +1,5 @@
 // sw.js — Service Worker：应用外壳预缓存 + 运行时 stale-while-revalidate
-var VERSION = 'lc-pwa-v19';
+var VERSION = 'lc-pwa-v20';
 var SHELL = [
   './',
   './index.html',

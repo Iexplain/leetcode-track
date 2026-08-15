@@ -258,8 +258,10 @@
     $('pBody').innerHTML =
       '<div class="prob">' +
       '<div class="prob-head">' +
-      '<div class="prob-title">' + esc(p.title) + '</div>' +
-      '<button id="checkinBtn" class="btn prob-checkin ' + (solved ? 'btn-done' : '') + '">' + (solved ? '✓ 已打卡' : '打卡') + '</button>' +
+      '<div class="prob-titleline">' +
+        '<h1 class="prob-title">' + esc(p.title) + '</h1>' +
+        '<button id="checkinBtn" class="btn prob-checkin ' + (solved ? 'btn-done' : '') + '">' + (solved ? '✓ 已打卡' : '打卡') + '</button>' +
+      '</div>' +
       '<div class="prob-sub"><span class="num">#' + p.id + '</span> · <span class="diff ' + diffClass(p.difficulty) + '">' + esc(p.difficulty) + '</span> · ' + esc(p.titleEn || '') + '</div>' +
       '<div class="prob-tags">' + (p.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' +
       '</div>' +
