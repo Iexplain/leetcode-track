@@ -226,10 +226,16 @@
     }).join('');
 
     var sols = p.solutions || [];
+    var TIERS = ['暴力', '优化', '最优'];
+    var tierName = function (i) { return TIERS[i] || ('解法' + (i + 1)); };
     var unlockedSet = getUnlocked(p.id);
+    var solTabs = sols.map(function (s, i) {
+      return '<button class="sol-tab ' + diffClass(s.level) + (i === 0 ? ' on' : '') + '" data-sol="' + i + '">' + tierName(i) + '</button>';
+    }).join('');
     var solCards = sols.map(function (s, i) {
       var locked = unlockedSet.has(i) ? '' : ' locked';
-      return '<div class="sol-card' + locked + '" data-sol="' + i + '">' +
+      var active = i === 0 ? ' active' : '';
+      return '<div class="sol-card' + locked + active + '" data-sol="' + i + '">' +
         '<div class="sol-card-head">' +
           '<span class="sol-lvl ' + diffClass(s.level) + '">' + esc(s.level) + '</span>' +
           '<span class="sol-idx">第 ' + (i + 1) + ' 层 / 共 ' + sols.length + ' 层</span>' +
@@ -260,7 +266,8 @@
       (constraints ? '<div class="cons"><b>约束：</b><ul>' + constraints + '</ul></div>' : '') +
       '<div class="sol">' +
       '<div class="sol-title">三种解法 <span class="sol-hint">逐层解锁 · 先暴力，后最优</span></div>' +
-      solCards +
+      '<div class="sol-tabs">' + solTabs + '</div>' +
+      '<div class="sol-stage">' + solCards + '</div>' +
       '</div>' +
       '<div class="action">' +
       (solved
@@ -283,6 +290,18 @@
         card.classList.add('unlocked');
         unlockedSet.add(idx);
         setUnlocked(p.id, idx);
+      });
+    });
+
+    // 解法分段切换：一次只显示当前解法卡片
+    pBody.querySelectorAll('.sol-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var idx = tab.getAttribute('data-sol');
+        pBody.querySelectorAll('.sol-tab').forEach(function (t) { t.classList.remove('on'); });
+        tab.classList.add('on');
+        pBody.querySelectorAll('.sol-card').forEach(function (c) { c.classList.remove('active'); });
+        var ac = pBody.querySelector('.sol-card[data-sol="' + idx + '"]');
+        if (ac) ac.classList.add('active');
       });
     });
 
