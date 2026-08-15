@@ -47,6 +47,14 @@
     if (all[pid].indexOf(idx) < 0) all[pid].push(idx);
     localStorage.setItem(UNLOCK_KEY, JSON.stringify(all));
   }
+  function removeUnlocked(pid, idx) {
+    var all = {};
+    try { all = JSON.parse(localStorage.getItem(UNLOCK_KEY) || '{}'); } catch (e) {}
+    if (all[pid]) {
+      all[pid] = all[pid].filter(function (x) { return x !== idx; });
+      localStorage.setItem(UNLOCK_KEY, JSON.stringify(all));
+    }
+  }
 
   function isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -249,6 +257,7 @@
             '</div>' +
             '<div class="lock-veil"><button class="unlock-btn" data-sol="' + i + '">查看解答</button></div>' +
           '</div>' +
+          '<div class="relock-wrap"><button class="relock-btn" data-sol="' + i + '">重新隐藏</button></div>' +
         '</div>' +
         '</div>';
     }).join('');
@@ -290,6 +299,19 @@
         card.classList.add('unlocked');
         unlockedSet.add(idx);
         setUnlocked(p.id, idx);
+      });
+    });
+
+    // 重新隐藏：恢复毛玻璃遮罩，并从已解锁集合移除（持久化）
+    pBody.querySelectorAll('.relock-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = +btn.getAttribute('data-sol');
+        var card = pBody.querySelector('.sol-card[data-sol="' + idx + '"]');
+        if (!card) return;
+        card.classList.remove('unlocked');
+        card.classList.add('locked');
+        unlockedSet.delete(idx);
+        removeUnlocked(p.id, idx);
       });
     });
 

@@ -317,6 +317,15 @@ main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
   transform: scale(0.96);
   box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.4), 0 0 30px rgba(139, 92, 246, 0.7);
 }
+.relock-wrap { text-align: right; margin-top: 10px; }
+.relock-btn {
+  display: none; border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.04); color: var(--muted);
+  font-size: 12.5px; padding: 6px 14px; border-radius: 8px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: all 0.15s ease;
+}
+.relock-btn:active { background: rgba(255, 255, 255, 0.09); color: #e5e7eb; }
+.sol-card.unlocked .relock-btn { display: inline-block; }
 .idea {
   background: rgba(139, 92, 246, 0.10); border-left: 3px solid var(--accent);
   padding: 10px 12px; border-radius: 8px; font-size: 14px; margin-bottom: 10px; color: #dad5f5;
