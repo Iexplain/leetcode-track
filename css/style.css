@@ -292,11 +292,10 @@ main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
   transform: scale(0.96);
   box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.4), 0 0 30px rgba(139, 92, 246, 0.7);
 }
-.relock-wrap { text-align: right; margin-top: 10px; }
 .relock-btn {
   display: none; border: 1px solid var(--card-border);
   background: rgba(255, 255, 255, 0.04); color: var(--muted);
-  font-size: 12.5px; padding: 6px 14px; border-radius: 8px; cursor: pointer;
+  font-size: 12.5px; padding: 4px 12px; border-radius: 6px; cursor: pointer;
   -webkit-tap-highlight-color: transparent; transition: all 0.15s ease;
 }
 .relock-btn:active { background: rgba(255, 255, 255, 0.09); color: #e5e7eb; }
@@ -306,11 +305,11 @@ main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
   padding: 10px 12px; border-radius: 8px; font-size: 14px; margin-bottom: 10px; color: #dad5f5;
 }
 .code-wrap { position: relative; }
+.code-actions { position: absolute; top: 8px; right: 8px; z-index: 2; display: flex; gap: 6px; align-items: center; }
 .copy {
-  position: absolute; top: 8px; right: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(15, 23, 42, 0.85); color: #cbd5f5;
-  padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; z-index: 2;
+  padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
 .code {
