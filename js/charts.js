@@ -38,52 +38,6 @@
     }).join('');
   }
 
-  function renderDifficulty(solvedMap, idx) {
-    var map = { '简单': 0, '中等': 0, '困难': 0 };
-    Object.keys(solvedMap).forEach(function (id) {
-      var p = idx.problems.find(function (x) { return String(x.id) === String(id); });
-      if (p && map[p.difficulty] != null) map[p.difficulty]++;
-    });
-    var labels = ['简单', '中等', '困难'];
-    var data = labels.map(function (l) { return map[l]; });
-    var ctx = document.getElementById('cDiff');
-    instances.push(new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#34d399', '#fbbf24', '#f87171'], borderWidth: 3, borderColor: '#08080c', hoverOffset: 6 }] },
-      options: {
-        responsive: true, maintainAspectRatio: true, cutout: '62%',
-        plugins: { legend: { position: 'bottom', labels: { color: axisText(), font: { size: 12 }, padding: 14, usePointStyle: true, pointStyle: 'circle' } } }
-      }
-    }));
-  }
-
-  function renderTag(solvedMap, idx) {
-    var map = {};
-    Object.keys(solvedMap).forEach(function (id) {
-      var p = idx.problems.find(function (x) { return String(x.id) === String(id); });
-      if (!p) return;
-      (p.tags || []).forEach(function (t) { map[t] = (map[t] || 0) + 1; });
-    });
-    var entries = Object.keys(map).map(function (k) { return [k, map[k]]; }).sort(function (a, b) { return b[1] - a[1]; });
-    if (entries.length === 0) {
-      document.getElementById('cTag').parentElement.innerHTML += '<div class="empty">暂无数据，去做一题吧</div>';
-      return;
-    }
-    var ctx = document.getElementById('cTag');
-    instances.push(new Chart(ctx, {
-      type: 'bar',
-      data: { labels: entries.map(function (e) { return e[0]; }), datasets: [{ label: '已做题数', data: entries.map(function (e) { return e[1]; }), backgroundColor: '#6366f1', borderRadius: 5, barThickness: 'flex', maxBarThickness: 16 }] },
-      options: {
-        indexAxis: 'y', responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.parsed.x + ' 题'; } } } },
-        scales: {
-          x: { ticks: { precision: 0, color: axisText(), font: { size: 11 } }, grid: { display: gridless() }, border: { display: false } },
-          y: { ticks: { color: axisText(), font: { size: 11 } }, grid: { display: gridless() }, border: { display: false } }
-        }
-      }
-    }));
-  }
-
   // GitHub 暗色 5 级配色（0 = 空，1-4 = 活跃度递增）
   var GH_GREEN = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
   var MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
@@ -171,8 +125,6 @@
       var todayCount = (checkins[Store.todayStr()] || []).length;
 
       buildKPI(total, solved, streak, todayCount);
-      renderDifficulty(solvedMap, idx);
-      renderTag(solvedMap, idx);
       renderHeatmap(checkins);
     }).catch(function (err) {
       document.getElementById('kpiRow').innerHTML = '<div class="err">统计加载失败：' + err.message + '</div>';

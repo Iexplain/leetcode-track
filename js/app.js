@@ -393,10 +393,6 @@
       '<div class="page">' +
       reviewModuleHTML() +
       '<div id="kpiRow" class="kpi-row"></div>' +
-      '<div class="grid2">' +
-      '<div class="chart-card"><div class="chart-title">难度分布（已做）</div><canvas id="cDiff"></canvas></div>' +
-      '<div class="chart-card"><div class="chart-title">标签分布（已做）</div><canvas id="cTag"></canvas></div>' +
-      '</div>' +
       '<div class="chart-card"><div class="chart-title">近一年打卡热力图</div><div id="heat"></div></div>' +
       '</div>';
 
