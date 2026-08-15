@@ -1,0 +1,50 @@
+{
+  "id": 130,
+  "title": "被围绕的区域",
+  "titleEn": "Surrounded Regions",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "深度优先搜索",
+    "广度优先搜索",
+    "并查集",
+    "矩阵"
+  ],
+  "description": "给你一个 m × n 的矩阵 board，由若干字符 'X' 和 'O' 组成。找到所有被 'X' 围绕的区域，并将这些区域里的所有 'O' 用 'X' 填充（被围绕指区域完全被 'X' 包围，即相邻的 'O' 都不能在边界上）。",
+  "examples": [
+    {
+      "input": "4 4\nX X X X\nX O O X\nX X O X\nX O X X",
+      "output": "X X X X\nX X X X\nX X X X\nX O X X",
+      "explanation": "中间的 O 形成一个被围区域,边界的 O 不动。"
+    },
+    {
+      "input": "4 3\nX X X\nX O O\nX O O\nX X X",
+      "output": "X X X\nX X X\nX X X\nX X X",
+      "explanation": "4×3 网格全 O 被 X 围住,全部转 X。"
+    }
+  ],
+  "constraints": [
+    "m == board.length",
+    "n == board[i].length",
+    "1 <= m, n <= 200",
+    "board[i][j] 为 'X' 或 'O'"
+  ],
+  "ioFormat": "第一行 m、n；接着 m 行每行 n 个 'X' 或 'O'（空格分隔）。输出变换后的矩阵（按行输出,X/O 连字符）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个 'O' 检查它是否能通过 'O' 邻居逃到边界:不能的全部置 'X'。O(m·n·(m+n)) 时间,常数大。",
+      "code": "import sys\n\ndef solve_brute(board):\n    m, n = len(board), len(board[0])\n    def can_escape(i, j, visited):\n        if i < 0 or i >= m or j < 0 or j >= n:\n            return True\n        if board[i][j] == 'X' or (i, j) in visited:\n            return False\n        visited.add((i, j))\n        return (can_escape(i + 1, j, visited) or can_escape(i - 1, j, visited) or\n                can_escape(i, j + 1, visited) or can_escape(i, j - 1, visited))\n    for i in range(m):\n        for j in range(n):\n            if board[i][j] == 'O':\n                visited = set()\n                if not can_escape(i, j, visited):\n                    board[i][j] = 'X'\n    return board\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append([data[idx + j] for j in range(n)])\n        idx += n\n    board = solve_brute(board)\n    for row in board:\n        print(' '.join(row))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "DFS 标记边界可达:从所有边界 'O' 出发,把连通的 'O' 临时标记为 'S'(safe)。最后'非 S' 的 O 都被 X,再把 S 还原 O。O(m·n) 时间。",
+      "code": "import sys\n\ndef solve_opt(board):\n    m, n = len(board), len(board[0])\n    def dfs(i, j):\n        if i < 0 or i >= m or j < 0 or j >= n or board[i][j] != 'O':\n            return\n        board[i][j] = 'S'\n        dfs(i + 1, j); dfs(i - 1, j); dfs(i, j + 1); dfs(i, j - 1)\n    for i in range(m):\n        for j in range(n):\n            if (i == 0 or i == m - 1 or j == 0 or j == n - 1) and board[i][j] == 'O':\n                dfs(i, j)\n    for i in range(m):\n        for j in range(n):\n            if board[i][j] == 'O':\n                board[i][j] = 'X'\n            elif board[i][j] == 'S':\n                board[i][j] = 'O'\n    return board\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append([data[idx + j] for j in range(n)])\n        idx += n\n    board = solve_opt(board)\n    for row in board:\n        print(' '.join(row))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "并查集:把所有 'O' 加入并查集;把边界连通的 O 与虚拟点 # 集合;最后非 # 集合的 O 都改 X。同 O(m·n·α),工程上更通用。",
+      "code": "import sys\n\nclass UF:\n    def __init__(self, n):\n        self.p = list(range(n))\n    def find(self, x):\n        while self.p[x] != x:\n            self.p[x] = self.p[self.p[x]]\n            x = self.p[x]\n        return x\n    def union(self, a, b):\n        ra, rb = self.find(a), self.find(b)\n        if ra != rb: self.p[ra] = rb\n\ndef solve_best(board):\n    m, n = len(board), len(board[0])\n    if m == 0 or n == 0: return board\n    dummy = m * n\n    uf = UF(m * n + 1)\n    for i in range(m):\n        for j in range(n):\n            if board[i][j] == 'O':\n                if i == 0 or i == m - 1 or j == 0 or j == n - 1:\n                    uf.union(i * n + j, dummy)\n                for di, dj in ((1,0),(-1,0),(0,1),(0,-1)):\n                    ni, nj = i + di, j + dj\n                    if 0 <= ni < m and 0 <= nj < n and board[ni][nj] == 'O':\n                        uf.union(i * n + j, ni * n + nj)\n    for i in range(m):\n        for j in range(n):\n            if board[i][j] == 'O' and uf.find(i * n + j) != uf.find(dummy):\n                board[i][j] = 'X'\n    return board\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append([data[idx + j] for j in range(n)])\n        idx += n\n    board = solve_best(board)\n    for row in board:\n        print(' '.join(row))\n"
+    }
+  ]
+}

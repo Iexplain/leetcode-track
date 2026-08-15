@@ -1,0 +1,48 @@
+{
+  "id": 152,
+  "title": "乘积最大子数组",
+  "titleEn": "Maximum Product Subarray",
+  "difficulty": "中等",
+  "tags": ["数组", "动态规划"],
+  "description": "给你一个整数数组 nums，找出数组中乘积最大的非空连续子数组（该子数组中至少包含一个数字），并返回该子数组对应的乘积。",
+  "examples": [
+    {
+      "input": "4\n2 3 -2 4",
+      "output": "6",
+      "explanation": "子数组 [2,3] 积 6。"
+    },
+    {
+      "input": "3\n-2 0 -1",
+      "output": "0",
+      "explanation": "最大积 0。"
+    },
+    {
+      "input": "2\n-1 -1",
+      "output": "1",
+      "explanation": "[-1,-1] 积 1。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 2 * 10^4",
+    "-10 <= nums[i] <= 10",
+    "结果保证为 32 位整数"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出最大乘积（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "双重循环枚举所有 (i, j)，维护连乘。O(n²) 时间，n=2·10^4 时超时。",
+      "code": "import sys\n\ndef max_product_brute(nums):\n    n = len(nums)\n    best = nums[0]\n    for i in range(n):\n        p = 1\n        for j in range(i, n):\n            p *= nums[j]\n            if p > best: best = p\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(max_product_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "维护 max_so_far 与 min_so_far（因为负数 × 负数 = 正数）。当前数为负时交换 max/min。O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef max_product_opt(nums):\n    if not nums: return 0\n    best = max_so_far = min_so_far = nums[0]\n    for x in nums[1:]:\n        if x < 0:\n            max_so_far, min_so_far = min_so_far, max_so_far\n        max_so_far = max(x, max_so_far * x)\n        min_so_far = min(x, min_so_far * x)\n        if max_so_far > best: best = max_so_far\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(max_product_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "同“优化”的展开写法：拿到 x 后先算 max_so_far*x 与 min_so_far*x（而非先交换），后比较 x 决定取舍。避免交换带来的临时变量，可读性最佳。",
+      "code": "import sys\n\ndef max_product_best(nums):\n    if not nums: return 0\n    best = max_so_far = min_so_far = nums[0]\n    for x in nums[1:]:\n        cand1 = max_so_far * x\n        cand2 = min_so_far * x\n        max_so_far = max(x, cand1, cand2)\n        min_so_far = min(x, cand1, cand2)\n        if max_so_far > best: best = max_so_far\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(max_product_best(nums))\n"
+    }
+  ]
+}

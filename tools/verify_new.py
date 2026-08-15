@@ -36,6 +36,8 @@ NEW_IDS = [
     33, 34, 39, 40, 47, 48, 49, 50, 54, 75,
     # Round 7 medium batch
     56, 57, 62, 63, 64, 71, 73, 91, 97, 113,
+    # Round 8: minimal reliable
+    122, 152,
 ]
 
 

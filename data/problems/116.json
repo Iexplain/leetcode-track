@@ -1,0 +1,38 @@
+{
+  "id": 116,
+  "title": "填充每个节点的下一个右侧节点指针",
+  "titleEn": "Populating Next Right Pointers in Each Node",
+  "difficulty": "中等",
+  "tags": ["树", "深度优先搜索", "广度优先搜索", "二叉树"],
+  "description": "给定一个完美二叉树，其中所有叶子节点都在同一层，每个父节点都有两个子节点。每个节点应额外包含 next 指针，初始为 NULL，要被填充为指向其右侧节点（若没有则为 NULL）。要求只用 O(1) 额外空间（递归栈除外）。",
+  "examples": [
+    {
+      "input": "7\n1 2 3 4 5 6 7",
+      "output": "1 n 1 2 3 3 3 n 4 5 6 7 n n n",
+      "explanation": "根 next=null,每个节点的 next 指向同层右侧。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [0, 2^12 - 1] 内",
+    "满足完美二叉树的定义",
+    "只需 O(1) 额外空间（不计递归）"
+  ],
+  "ioFormat": "第一行 n（层序数组长度），第二行层序数组（'n' 表示 None）。输出 n 个节点的 left、right、next 域按层序,空格分隔,层序换行。注意 next 域按层序输出,空节点也输出 'n'。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "层序 BFS：每次取一整层,层内相邻节点连接 next;层尾节点的 next 保持 None。O(n) 时间、O(w) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r', 'nxt')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r; self.nxt = None\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef connect_brute(root):\n    if not root: return root\n    q = deque([root])\n    while q:\n        sz = len(q)\n        prev = None\n        for _ in range(sz):\n            n = q.popleft()\n            if prev: prev.nxt = n\n            prev = n\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n    return root\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build(arr)\n    connect_brute(root)\n    q = deque([root])\n    out = []\n    while q:\n        sz = len(q)\n        for _ in range(sz):\n            n = q.popleft()\n            out.append(str(n.v))\n            out.append(str(n.l.v) if n.l else 'n')\n            out.append(str(n.r.v) if n.r else 'n')\n            v = n.nxt\n            out.append(str(v.v) if v else 'n')\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n    print(' '.join(out))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "已建立的 next 指针做桥接：因为是完全二叉树，对每个节点：先连同父左右孩子（n.l.nxt = n.r），再跨过父节点，把 n.r.nxt 接到 n.next.l（若存在）。O(n) 时间、O(1) 空间（不计递归）。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r', 'nxt')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r; self.nxt = None\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef connect_opt(root):\n    leftmost = root\n    while leftmost:\n        cur = leftmost\n        while cur:\n            if cur.l:\n                cur.l.nxt = cur.r\n                if cur.nxt:\n                    cur.r.nxt = cur.nxt.l\n            cur = cur.nxt\n        leftmost = leftmost.l\n    return root\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build(arr)\n    connect_opt(root)\n    q = deque([root])\n    out = []\n    while q:\n        sz = len(q)\n        for _ in range(sz):\n            n = q.popleft()\n            out.append(str(n.v))\n            out.append(str(n.l.v) if n.l else 'n')\n            out.append(str(n.r.v) if n.r else 'n')\n            v = n.nxt\n            out.append(str(v.v) if v else 'n')\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n    print(' '.join(out))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归版本：dfs(node) 先递归连接左右子树，再把左子的 rightmost 一路连到右子的 leftmost（通过 next）。简洁但递归栈深度 O(log n)。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r', 'nxt')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r; self.nxt = None\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef connect_best(root):\n    def dfs(n):\n        if not n or not n.l: return\n        n.l.nxt = n.r\n        if n.nxt:\n            n.r.nxt = n.nxt.l\n        dfs(n.l); dfs(n.r)\n    dfs(root)\n    return root\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build(arr)\n    connect_best(root)\n    q = deque([root])\n    out = []\n    while q:\n        sz = len(q)\n        for _ in range(sz):\n            n = q.popleft()\n            out.append(str(n.v))\n            out.append(str(n.l.v) if n.l else 'n')\n            out.append(str(n.r.v) if n.r else 'n')\n            v = n.nxt\n            out.append(str(v.v) if v else 'n')\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n    print(' '.join(out))\n"
+    }
+  ]
+}

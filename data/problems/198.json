@@ -1,0 +1,45 @@
+{
+  "id": 198,
+  "title": "打家劫舍",
+  "titleEn": "House Robber",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "动态规划"
+  ],
+  "description": "你是一个专业的小偷，计划偷窃沿街的房屋。每间房内都藏有一定的现金，但相邻的两间房在同一晚上被偷会自动报警。给定每个房屋的金额，计算你能偷到的最高金额。",
+  "examples": [
+    {
+      "input": "4\n1 2 3 1",
+      "output": "4",
+      "explanation": "偷 1 号与 3 号，得 1+3=4。"
+    },
+    {
+      "input": "5\n2 7 9 3 1",
+      "output": "12",
+      "explanation": "偷 2,3,5 共 2+9+1=12 但 rooms=4 个; 偷 1,3,4 房 2+9+3=14"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 100",
+    "0 <= nums[i] <= 400"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出一个整数表示最大可偷金额。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举所有可能的偷法子集（不选相邻）：递推 2^n 种组合，挑最大。O(2^n) 时间，仅适小数据。",
+      "code": "import sys\n\ndef rob_brute(nums):\n    n = len(nums)\n    if n == 0: return 0\n    best = 0\n    for mask in range(1 << n):\n        ok = True\n        s = 0\n        for i in range(n):\n            if mask & (1 << i):\n                if i + 1 < n and mask & (1 << (i + 1)):\n                    ok = False; break\n                s += nums[i]\n        if ok and s > best: best = s\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(rob_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "标准 DP：dp[i] = max(dp[i-1], dp[i-2]+nums[i])。O(n) 时间空间。",
+      "code": "import sys\n\ndef rob_opt(nums):\n    n = len(nums)\n    if n == 0: return 0\n    if n == 1: return nums[0]\n    dp = [0] * n\n    dp[0] = nums[0]\n    dp[1] = max(nums[0], nums[1])\n    for i in range(2, n):\n        dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])\n    return dp[n - 1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(rob_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "滚动两个变量 prev / cur：cur = max(prev, prev_prev + nums[i])。O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef rob_best(nums):\n    prev, cur = 0, 0\n    for x in nums:\n        prev, cur = cur, max(cur, prev + x)\n    return cur\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(rob_best(nums))\n"
+    }
+  ]
+}

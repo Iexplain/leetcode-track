@@ -1,0 +1,51 @@
+{
+  "id": 122,
+  "title": "买卖股票的最佳时机 II",
+  "titleEn": "Best Time to Buy and Sell Stock II",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "动态规划",
+    "贪心"
+  ],
+  "description": "给你一个整数数组 prices，prices[i] 表示第 i 天的股价。你可以多次买入卖出，但最多持一股。返回能获得的最大利润。",
+  "examples": [
+    {
+      "input": "6\n7 1 5 3 6 4",
+      "output": "7",
+      "explanation": "第 2 天买 1、第 3 天卖 5;第 4 天买 3、第 5 天卖 6。总 7。"
+    },
+    {
+      "input": "5\n1 2 3 4 5",
+      "output": "4",
+      "explanation": "1 买 5 卖。"
+    },
+    {
+      "input": "5\n7 6 4 3 1",
+      "output": "0",
+      "explanation": "价格持续下跌，不做交易。"
+    }
+  ],
+  "constraints": [
+    "1 <= prices.length <= 10^4",
+    "0 <= prices[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出最大利润（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "所有上涨段累加:相邻 i, i+1 只要上涨就累加差。证明:任何多笔等价于 \\(prices[j]-prices[i])\\) 分段求和。",
+      "code": "import sys\n\ndef max_profit_brute(prices):\n    profit = 0\n    for i in range(1, len(prices)):\n        if prices[i] > prices[i - 1]:\n            profit += prices[i] - prices[i - 1]\n    return profit\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    prices = list(map(int, data[1:1 + n]))\n    print(max_profit_brute(prices))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "DP 等价于 \\(prices[i] - prices[i-1]\\) 累加(只在上涨时),手写版本:O(n) 时间 O(1) 空间。",
+      "code": "import sys\n\ndef max_profit_opt(prices):\n    profit = 0\n    for i in range(1, len(prices)):\n        if prices[i] > prices[i - 1]:\n            profit += prices[i] - prices[i - 1]\n    return profit\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    prices = list(map(int, data[1:1 + n]))\n    print(max_profit_opt(prices))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "贪心：所有上涨段累加。即所有 (i, j) 满足 prices[i+1] > prices[i] 的差加和。证明：总利润 = 所有段和 = ∑max(0, diff)。O(n) 时间。",
+      "code": "import sys\n\ndef max_profit_best(prices):\n    profit = 0\n    for i in range(1, len(prices)):\n        if prices[i] > prices[i - 1]:\n            profit += prices[i] - prices[i - 1]\n    return profit\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    prices = list(map(int, data[1:1 + n]))\n    print(max_profit_best(prices))\n"
+    }
+  ]
+}

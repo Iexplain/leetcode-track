@@ -1,0 +1,41 @@
+{
+  "id": 138,
+  "title": "复制带随机指针的链表",
+  "titleEn": "Copy List with Random Pointer",
+  "difficulty": "中等",
+  "tags": [
+    "哈希表",
+    "链表"
+  ],
+  "description": "给你一个长度为 n 的链表，每个节点包含一个额外随机指针 random 可指向链表中的任意节点或 null。返回这个链表的深拷贝。",
+  "examples": [
+    {
+      "input": "3\n7 -1\n13 0\n11 4",
+      "output": "7 n 13 0 11 4 1 n 1",
+      "explanation": "三节点链表: 7->13->11; 7.random=null, 13.random=head(7), 11.random=索引 2(11自身)。输出深拷贝链表。"
+    }
+  ],
+  "constraints": [
+    "0 <= n <= 1000",
+    "-10^4 <= 节点值 <= 10^4",
+    "Node.random 指向自身、其他节点或 null"
+  ],
+  "ioFormat": "第一行 n（节点数）。接着 n 行，每行两个整数 val random_idx。random_idx=-1 表示 null。输出深拷贝后链表 (val/next/random) 列形式，每行 1/next/random,空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "两次扫描：第一次遍历仅按 next 链建立新节点；用 dict 把 old → new 关联；第二次遍历根据 dict 设置 random。O(n) 时间空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt', 'rnd')\n    def __init__(self, v=0, nxt=None, rnd=None):\n        self.v = v; self.nxt = nxt; self.rnd = rnd\n\ndef solve(values):\n    n = len(values)\n    if n == 0: return []\n    nodes = [N(values[i][0]) for i in range(n)]\n    for i in range(n - 1):\n        nodes[i].nxt = nodes[i + 1]\n    mapping = {old: new for old, new in zip(_build_orig(values), nodes)}\n    for i, (v, r) in enumerate(values):\n        nodes[i].rnd = mapping.get(_orig_from_idx(i, r)) if r >= 0 else None\n    return nodes\n\ndef _build_orig(vs):\n    n = len(vs)\n    if n == 0: return []\n    orig = [N(vs[i][0]) for i in range(n)]\n    for i in range(n - 1):\n        orig[i].nxt = orig[i + 1]\n    for i, (_, r) in enumerate(vs):\n        if r >= 0:\n            orig[i].rnd = orig[r]\n    return orig\n\ndef _orig_from_idx(i, r):\n    return _orig_cache[r]\n\n_orig_cache = []\ndef solve2(values):\n    n = len(values)\n    if n == 0: return []\n    orig = [N(vs[0]) for vs in [v[0] for v in values]]\n    # reset cache\n    cache.clear()\n    for i in range(n):\n        cache.append(orig[i])\n    for i in range(n - 1):\n        orig[i].nxt = orig[i + 1]\n    new_nodes = [N(values[i][0]) for i in range(n)]\n    for i in range(n - 1):\n        new_nodes[i].nxt = new_nodes[i + 1]\n    for i, (_, r) in enumerate(values):\n        new_nodes[i].rnd = new_nodes[r] if r >= 0 else None\n    return new_nodes\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    values = []\n    idx = 1\n    for _ in range(n):\n        v = int(data[idx]); r = int(data[idx + 1])\n        values.append((v, r))\n        idx += 2\n    res = solve2(values)\n    out = []\n    for i, nd in enumerate(res):\n        nxt = res[i + 1] if i + 1 < len(res) else None\n        rnd = nd.rnd\n        out.append(f'{nd.v} {nxt.v if nxt else \"n\"} {rnd.v if rnd else \"n\"}')\n    print('\\n'.join(out))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用 dict 一次同时建立节点和随机指针：在原始链表与新链表之间建映射后，random 可直接用 dict 查表。O(n) 时间、O(n) 空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt', 'rnd')\n    def __init__(self, v=0, nxt=None, rnd=None):\n        self.v = v; self.nxt = nxt; self.rnd = rnd\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    values = []\n    idx = 1\n    for _ in range(n):\n        v = int(data[idx]); r = int(data[idx + 1])\n        values.append((v, r))\n        idx += 2\n    if n == 0:\n        sys.exit(0)\n    orig = [N(vs[0]) for vs in values]\n    mapping = {orig[i]: N(values[i][0]) for i in range(n)}\n    for i in range(n - 1):\n        orig[i].nxt = orig[i + 1]\n        mapping[orig[i]].nxt = mapping[orig[i + 1]]\n    for i, (_, r) in enumerate(values):\n        if r >= 0:\n            orig[i].rnd = orig[r]\n        mapping[orig[i]].rnd = mapping[orig[r]] if r >= 0 else None\n    res = [mapping[orig[i]] for i in range(n)]\n    out = []\n    for i, nd in enumerate(res):\n        nxt = res[i + 1] if i + 1 < len(res) else None\n        rnd = nd.rnd\n        out.append(f'{nd.v} {nxt.v if nxt else \"n\"} {rnd.v if rnd else \"n\"}')\n    print('\\n'.join(out))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "“穿插拷贝再拆开”：先把每个新节点插在原节点后面（A->A'->B->B'），一次 next 就搞定；再走一遍根据旧节点 random 在 A'.random = A.random.next。O(n) 时间、O(1) 额外空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt', 'rnd')\n    def __init__(self, v=0, nxt=None, rnd=None):\n        self.v = v; self.nxt = nxt; self.rnd = rnd\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    values = []\n    idx = 1\n    for _ in range(n):\n        v = int(data[idx]); r = int(data[idx + 1])\n        values.append((v, r))\n        idx += 2\n    if n == 0:\n        sys.exit(0)\n    orig = [N(vs[0]) for vs in values]\n    for i in range(n - 1):\n        orig[i].nxt = orig[i + 1]\n    for i, (_, r) in enumerate(values):\n        if r >= 0:\n            orig[i].rnd = orig[r]\n    # 交错新节点\n    cur = orig[0]\n    new_nodes = []\n    while cur:\n        new_node = N(cur.v)\n        new_nodes.append(new_node)\n        new_node.nxt = cur.nxt\n        cur.nxt = new_node\n        cur = new_node.nxt\n    # 设置 random\n    cur = orig[0]\n    while cur:\n        if cur.rnd:\n            cur.nxt.rnd = cur.rnd.nxt\n        cur = cur.nxt.nxt\n    # 拆开两条链\n    cur = orig[0]\n    res = []\n    while cur:\n        nxt_new = cur.nxt\n        cur.nxt = nxt_new.nxt if nxt_new else None\n        res.append(nxt_new)\n        cur = cur.nxt\n    out = []\n    for i, nd in enumerate(res):\n        nxt = res[i + 1] if i + 1 < len(res) else None\n        rnd = nd.rnd\n        out.append(f'{nd.v} {nxt.v if nxt else \"n\"} {rnd.v if rnd else \"n\"}')\n    print('\\n'.join(out))\n"
+    }
+  ]
+}

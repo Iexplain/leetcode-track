@@ -1,0 +1,48 @@
+{
+  "id": 236,
+  "title": "二叉树的最近公共祖先",
+  "titleEn": "Lowest Common Ancestor of a Binary Tree",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "二叉树"
+  ],
+  "description": "给定一个二叉树,找到该树中两个指定节点 p、q 的最近公共祖先。",
+  "examples": [
+    {
+      "input": "7\n3 5 1 6 2 0 8 n n n n n n n\n5 4",
+      "output": "5",
+      "explanation": "root=3; 5 和 4 都在其下；LCA 是 5（其中 4 是 5 的子孙）。"
+    },
+    {
+      "input": "5\n3 5 n 4 2\n5 4",
+      "output": "5",
+      "explanation": "4 是 5 的子孙,5 即为 LCA。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [2, 10^5] 内",
+    "-10^9 <= 节点值 <= 10^9",
+    "所有节点值互不相同",
+    "p、q 是不同节点且均存在于树中"
+  ],
+  "ioFormat": "第一行 n（层序数组长度），第二行层序数组（'n' 表示 None），第三行两个整数 p、q。输出一个整数表示 LCA 值。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归:dfs(n) 返回 (是否含 p/q, LCA)。若某节点为 p/q 之一,该节点可能为 LCA;否则左右各返回一次查找。O(n) 时间、O(h) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef lca_brute(root, p, q):\n    if not root: return None\n    if root.v == p or root.v == q: return root\n    l = lca_brute(root.l, p, q)\n    r = lca_brute(root.r, p, q)\n    if l and r: return root\n    return l or r\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    p = int(data[1 + n]); q = int(data[2 + n])\n    root = build(arr)\n    r = lca_brute(root, p, q)\n    print(r.v if r else 'n')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "同样递归,但同时返回 (lca_or_none, found_in_subtree)。当某子树均含 p/q 时,当前根就是 LCA。O(n) 时间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef lca_opt(root, p, q):\n    if not root: return None\n    if root.v == p or root.v == q: return root\n    l = lca_opt(root.l, p, q)\n    r = lca_opt(root.r, p, q)\n    if l and r: return root\n    return l or r\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    p = int(data[1 + n]); q = int(data[2 + n])\n    root = build(arr)\n    r = lca_opt(root, p, q)\n    print(r.v if r else 'n')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "父指针 + 哈希集合：将 p 路径上所有祖先加入集合;然后从 q 向上走第一个出现在集合中的节点。O(n) 时间、O(h) 空间。适合没有显式父指针时,可用额外 O(n) 提前存。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r', 'parent')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r; self.parent = None\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l); n.l.parent = n\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r); n.r.parent = n\n        i += 1\n    return root\n\ndef find_node(root, v):\n    if not root: return None\n    q = deque([root])\n    while q:\n        n = q.popleft()\n        if n.v == v: return n\n        if n.l: q.append(n.l)\n        if n.r: q.append(n.r)\n    return None\n\ndef lca_best(root, p, q):\n    pn, qn = find_node(root, p), find_node(root, q)\n    s = set()\n    cur = pn\n    while cur:\n        s.add(cur); cur = cur.parent\n    cur = qn\n    while cur not in s:\n        cur = cur.parent\n    return cur\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    p = int(data[1 + n]); q = int(data[2 + n])\n    root = build(arr)\n    r = lca_best(root, p, q)\n    print(r.v if r else 'n')\n"
+    }
+  ]
+}
