@@ -1,0 +1,47 @@
+{
+  "id": 5,
+  "title": "最长回文子串",
+  "titleEn": "Longest Palindromic Substring",
+  "difficulty": "中等",
+  "tags": ["双指针", "字符串", "动态规划"],
+  "description": "给你一个字符串 s，在 s 中找出最长的回文子串（即正读反读相同的连续子串）。若存在多个解，返回任意一个。",
+  "examples": [
+    {
+      "input": "babad",
+      "output": "bab",
+      "explanation": "\"bab\" 或 \"aba\" 都是最长回文，长度 3。"
+    },
+    {
+      "input": "cbbd",
+      "output": "bb",
+      "explanation": "最长回文是 \"bb\"。"
+    },
+    {
+      "input": "a",
+      "output": "a",
+      "explanation": "单字符本身就是回文。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 1000",
+    "s 仅由数字和英文字母组成"
+  ],
+  "ioFormat": "输入一行字符串 s，输出最长回文子串。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举所有起止对 (i, j)，用 s[i:j+1] == s[i:j+1][::-1] 判断是否回文，同时更新最长结果。O(n^3) 时间，n=1000 时已明显吃力。",
+      "code": "import sys\n\ndef longest_pal_brute(s: str) -> str:\n    n = len(s)\n    best = s[0]\n    for i in range(n):\n        for j in range(i, n):\n            t = s[i:j + 1]\n            if t == t[::-1] and len(t) > len(best):\n                best = t\n    return best\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print(longest_pal_brute(s))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "中心扩展：对每个字符作为中心（奇数长）和字符间隙作为中心（偶数长）都向两边扩展直到越界或不等，记录最大值。O(n^2) 时间 O(1) 空间，是面试最常写的版本。",
+      "code": "import sys\n\ndef expand(s, l, r):\n    n = len(s)\n    while l >= 0 and r < n and s[l] == s[r]:\n        l -= 1\n        r += 1\n    return s[l + 1:r]\n\ndef longest_pal_opt(s: str) -> str:\n    n = len(s)\n    if n < 2: return s\n    best = s[0]\n    for i in range(n):\n        # 以 i 为中心：奇数长度\n        odd = expand(s, i, i)\n        # 以 i 与 i+1 之间为中心：偶数长度\n        even = expand(s, i, i + 1)\n        best = max(best, odd, even, key=len)\n    return best\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print(longest_pal_opt(s))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Manacher 算法：在 s 字符间插入占位符（比如 '#'）消除奇偶讨论；用一个数组 p 记录以每个位置为中心的最长回文半径，已知右端点的回文会被“镜像”复用，避免重复扩展。整体 O(n) 时间 O(n) 空间，是已知最优解。",
+      "code": "import sys\n\ndef longest_pal_best(s: str) -> str:\n    t = '#' + '#'.join(s) + '#'\n    n = len(t)\n    p = [0] * n\n    center = right = 0\n    for i in range(n):\n        radius = 1 if i >= right else min(p[2 * center - i], right - i)\n        # 继续扩展\n        while i - radius >= 0 and i + radius < n and t[i - radius] == t[i + radius]:\n            radius += 1\n        p[i] = radius - 1\n        if i + p[i] > right:\n            center, right = i, i + p[i]\n    # 找最大半径对应的原字符串中心\n    max_i = max(range(n), key=lambda x: p[x])\n    L = (max_i - p[max_i]) // 2\n    R = (max_i + p[max_i]) // 2\n    return s[L:R]\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print(longest_pal_best(s))\n"
+    }
+  ]
+}

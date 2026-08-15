@@ -1,0 +1,52 @@
+{
+  "id": 394,
+  "title": "字符串解码",
+  "titleEn": "Decode String",
+  "difficulty": "中等",
+  "tags": [
+    "栈",
+    "递归",
+    "字符串"
+  ],
+  "description": "给定一个经过编码的字符串 s，要求将其“解码”：格式为 k[encoded] 表示方括号内的编码字符串重复 k 次（k 为正整数）。保证输入是合法的编码串。",
+  "examples": [
+    {
+      "input": "3[a2[c]]",
+      "output": "accaccacc",
+      "explanation": "3 * \"a\" + 2 * \"c\" = 3 * \"acc\"。"
+    },
+    {
+      "input": "2[abc]3[cd]ef",
+      "output": "abcabccdcdcdef",
+      "explanation": "abcabc + cdcdcd + ef。"
+    },
+    {
+      "input": "abc3[cd]xyz",
+      "output": "abccdcdcdxyz",
+      "explanation": "前缀 abc + 3 个 cd + 后缀 xyz。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 30",
+    "s 由小写英文字母、数字、方括号组成",
+    "保证输入合法且结果不会超过 10^5 字符"
+  ],
+  "ioFormat": "输入一行编码字符串 s（不含空格），输出解码结果。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用栈迭代：两个栈分别记录每个 [ 前的重复次数与已建好的字符串。从左到右扫描，字母直接累加、数字累计成整数、'[' 入栈、']' 时弹栈一次把当前串乘以重复次数追到外层。代码比正则展开短小，可读且无递归深度风险。O(n) 时间，与最优法相同（思路就是本题的标准做法）。",
+      "code": "import sys\n\ndef decode_brute(s):\n    count = []\n    res = ['']\n    num = 0\n    for ch in s:\n        if ch.isdigit():\n            num = num * 10 + int(ch)\n        elif ch == '[':\n            count.append(num)\n            res.append('')\n            num = 0\n        elif ch == ']':\n            k = count.pop()\n            cur = res.pop()\n            res[-1] += cur * k\n        else:\n            res[-1] += ch\n    return res[0]\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(decode_brute(s))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "递归下降：i 指向当前位置。读到字母就累积；读到数字就读取整个数字 k，然后递归 decode 嵌套段直到 ']'，返回字符串重复 k 次。整体 O(n) 时间，对合法输入不会栈溢出（深度由括号层数决定，最大 n）。",
+      "code": "import sys\n\ndef decode_opt(s):\n    i = 0\n    def parse():\n        nonlocal i\n        res = []\n        num = 0\n        while i < len(s):\n            ch = s[i]\n            if ch.isdigit():\n                num = num * 10 + int(ch)\n                i += 1\n            elif ch == '[':\n                i += 1\n                inner = parse()\n                res.append(inner * num)\n                num = 0\n            elif ch == ']':\n                i += 1\n                return ''.join(res)\n            else:\n                res.append(ch)\n                i += 1\n        return ''.join(res)\n    return parse()\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(decode_opt(s))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "双栈迭代：用 count_stack 记录每个 [ 前的重复次数，res_stack 记录外层已建好的字符串。当遇到 ] 时弹栈一次：把当前串乘以弹出次数，追加到外层串。O(n) 时间、O(n) 额外空间，无递归深度风险，写作主流写法。",
+      "code": "import sys\n\ndef decode_best(s: str) -> str:\n    count_stack = []\n    res_stack = ['']\n    num = 0\n    for ch in s:\n        if ch.isdigit():\n            num = num * 10 + int(ch)\n        elif ch == '[':\n            count_stack.append(num)\n            res_stack.append('')\n            num = 0\n        elif ch == ']':\n            k = count_stack.pop()\n            cur = res_stack.pop()\n            res_stack[-1] += cur * k\n        else:\n            res_stack[-1] += ch\n    return res_stack[0]\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip('\\n')\n    print(decode_best(s))\n"
+    }
+  ]
+}

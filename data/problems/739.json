@@ -1,0 +1,42 @@
+{
+  "id": 739,
+  "title": "每日温度",
+  "titleEn": "Daily Temperatures",
+  "difficulty": "中等",
+  "tags": ["栈", "数组", "单调栈"],
+  "description": "给定一个整数数组 temperatures，表示每天的温度。请返回一个数组 answer，其中 answer[i] 是从第 i 天开始，直到遇到一个比当前温度更高的天数为止，需要等待多少天；若之后没有更高温度则为 0。",
+  "examples": [
+    {
+      "input": "8\n73 74 75 71 69 72 76 73",
+      "output": "1 1 4 2 1 1 0 0",
+      "explanation": "如第 1 天 (74→75) 等 1 天；第 3 天 (75→76) 等 4 天；最后一天没有更高气温则为 0。"
+    },
+    {
+      "input": "1\n30",
+      "output": "0",
+      "explanation": "单天无更高气温。"
+    }
+  ],
+  "constraints": [
+    "1 <= temperatures.length <= 10^5",
+    "30 <= temperatures[i] <= 100"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出一行 n 个整数（空格分隔），即各天到下次更高气温的距离。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个下标 i 向后线性查找第一个比 temperatures[i] 大的位置。O(n^2) 时间，n=10^5 时会超时，仅适合教学/小数据。",
+      "code": "import sys\n\ndef daily_brute(t):\n    n = len(t)\n    res = [0] * n\n    for i in range(n):\n        for j in range(i + 1, n):\n            if t[j] > t[i]:\n                res[i] = j - i\n                break\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    t = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, daily_brute(t))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "标准单调栈：栈中存下标，温度严格递减。遍历每个下标 i 时，若 t[i] > t[栈顶]，就不断弹栈并记录答案；否则把 i 压栈。遍历结束后栈内剩下的位置答案为 0。O(n) 时间，每个下标最多入栈一次、出栈一次，是面试绝对要掌握的核心模板。",
+      "code": "import sys\n\ndef daily_opt(t):\n    n = len(t)\n    res = [0] * n\n    stack = []  # 存下标\n    for i in range(n):\n        while stack and t[i] > t[stack[-1]]:\n            j = stack.pop()\n            res[j] = i - j\n        stack.append(i)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    t = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, daily_opt(t))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "反向扫：从 n-1 到 0，记录一个“下一个更高温度的下标”next_idx。遍历时如果栈顶不高于当前温度就 pop，直到找到下一个更高的或栈空。最后把 i 入栈。O(n) 时间，避免 pop 多次后又被同一个温度“替代”，语义上等同于正向单调栈，写法只是从右往左推一次，是等价的优雅写法。",
+      "code": "import sys\n\ndef daily_best(t):\n    n = len(t)\n    res = [0] * n\n    stack = []\n    for i in range(n - 1, -1, -1):\n        while stack and t[stack[-1]] <= t[i]:\n            stack.pop()\n        if stack:\n            res[i] = stack[-1] - i\n        stack.append(i)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    t = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, daily_best(t))))\n"
+    }
+  ]
+}

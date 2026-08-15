@@ -1,0 +1,38 @@
+{
+  "id": 208,
+  "title": "实现 Trie（前缀树）",
+  "titleEn": "Implement Trie (Prefix Tree)",
+  "difficulty": "中等",
+  "tags": ["设计", "字典树", "哈希表"],
+  "description": "请你实现一个 Trie 类，包含 insert(word)、search(word)、startsWith(prefix) 三个方法。search 返回 word 是否完整插入过；startsWith 返回是否有以 prefix 开头的已插入单词。",
+  "examples": [
+    {
+      "input": "5\ninsert apple\nsearch apple\nsearch app\nstartsWith app\ninsert app",
+      "output": "true\nfalse\ntrue",
+      "explanation": "\"apple\" 存在；\"app\" 未完整插入，但有 \"apple\"/\"app\" 以其为前缀。"
+    }
+  ],
+  "constraints": [
+    "1 <= word.length, prefix.length <= 2000",
+    "insert、search、startsWith 调用总次数 <= 3*10^4",
+    "字符仅含小写英文字母 a-z"
+  ],
+  "ioFormat": "第一行操作数 q；接下来 q 行每行一条操作（insert/search/startsWith 之一 + 一个空格 + 单词/前缀）。对 search、startsWith 各输出一行 true/false；insert 不输出。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 Python set 实现：insert 把 word 加入集合，search 看 word 是否在集合中，startsWith 扫描集合找一个以 prefix 开头的元素。虽然思路直白、最坏时间也是 O(|Σ|·L) 数量级，但空间只够记单词本身，Trie 的“前缀复用”优势无法体现。",
+      "code": "import sys\n\nclass TrieBrute:\n    def __init__(self):\n        self.words = set()\n    def insert(self, word: str) -> None:\n        self.words.add(word)\n    def search(self, word: str) -> bool:\n        return word in self.words\n    def startsWith(self, prefix: str) -> bool:\n        for w in self.words:\n            if w.startswith(prefix):\n                return True\n        return False\n\ndef run_brute(lines):\n    t = TrieBrute()\n    out = []\n    for op, arg in lines:\n        if op == 'insert':\n            t.insert(arg)\n        elif op == 'search':\n            out.append('true' if t.search(arg) else 'false')\n        elif op == 'startsWith':\n            out.append('true' if t.startsWith(arg) else 'false')\n    return out\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data: sys.exit(0)\n    q = int(data[0].strip())\n    lines = []\n    for i in range(1, q + 1):\n        parts = data[i].split(' ', 1)\n        op = parts[0]\n        arg = parts[1] if len(parts) > 1 else ''\n        lines.append((op, arg))\n    for r in run_brute(lines):\n        print(r)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "Trie 节点结构：每个节点有 children 字典（a→子节点）和 is_end 标记（是否完整单词）。insert 沿字符建节点；search 沿字符走，能走完且 is_end 才算存在；startsWith 沿字符走，能走完就一定有。O(L) 时间（仅与单词长度相关），O(总字符数) 空间，是面试标准写法。",
+      "code": "import sys\n\nclass Node:\n    __slots__ = ('children', 'is_end')\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n\nclass TrieOpt:\n    def __init__(self):\n        self.root = Node()\n    def insert(self, word: str) -> None:\n        cur = self.root\n        for ch in word:\n            if ch not in cur.children:\n                cur.children[ch] = Node()\n            cur = cur.children[ch]\n        cur.is_end = True\n    def search(self, word: str) -> bool:\n        cur = self.root\n        for ch in word:\n            if ch not in cur.children: return False\n            cur = cur.children[ch]\n        return cur.is_end\n    def startsWith(self, prefix: str) -> bool:\n        cur = self.root\n        for ch in prefix:\n            if ch not in cur.children: return False\n            cur = cur.children[ch]\n        return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data: sys.exit(0)\n    q = int(data[0].strip())\n    t = TrieOpt()\n    for i in range(1, q + 1):\n        parts = data[i].split(' ', 1)\n        op, arg = parts[0], (parts[1] if len(parts) > 1 else '')\n        if op == 'insert':\n            t.insert(arg)\n        elif op == 'search':\n            print('true' if t.search(arg) else 'false')\n        elif op == 'startsWith':\n            print('true' if t.startsWith(arg) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "把 children 改成 26 长度的数组（仅当确定只处理 a-z 时），用位运算/数字位移代字典以提速常数。在每个节点保存 26 的布尔存在信息（用一个 26 位整数掩码也可替代），但仍以数组方法代码最直观。在 3*10^4 调用、单词长度可达 2000 的规模下基本等同上一版，但当字符集更大或实现简化时更省内存。",
+      "code": "import sys\n\nclass Node2:\n    __slots__ = ('children', 'is_end')\n    def __init__(self):\n        self.children = [None] * 26\n        self.is_end = False\n\nclass TrieBest:\n    def __init__(self):\n        self.root = Node2()\n    def insert(self, word: str) -> None:\n        cur = self.root\n        for ch in word:\n            idx = ord(ch) - ord('a')\n            if cur.children[idx] is None:\n                cur.children[idx] = Node2()\n            cur = cur.children[idx]\n        cur.is_end = True\n    def search(self, word: str) -> bool:\n        cur = self.root\n        for ch in word:\n            idx = ord(ch) - ord('a')\n            if cur.children[idx] is None: return False\n            cur = cur.children[idx]\n        return cur.is_end\n    def startsWith(self, prefix: str) -> bool:\n        cur = self.root\n        for ch in prefix:\n            idx = ord(ch) - ord('a')\n            if cur.children[idx] is None: return False\n            cur = cur.children[idx]\n        return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data: sys.exit(0)\n    q = int(data[0].strip())\n    t = TrieBest()\n    for i in range(1, q + 1):\n        parts = data[i].split(' ', 1)\n        op, arg = parts[0], (parts[1] if len(parts) > 1 else '')\n        if op == 'insert':\n            t.insert(arg)\n        elif op == 'search':\n            print('true' if t.search(arg) else 'false')\n        elif op == 'startsWith':\n            print('true' if t.startsWith(arg) else 'false')\n"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": 215,
+  "title": "数组中的第 K 个最大元素",
+  "titleEn": "Kth Largest Element in an Array",
+  "difficulty": "中等",
+  "tags": ["数组", "分治", "快速选择", "堆"],
+  "description": "给定整数数组 nums 和整数 k，请返回数组中第 k 大的元素。要求在线性时间复杂度内（O(n)）解决。",
+  "examples": [
+    {
+      "input": "6\n3 2 1 5 6 4\n2",
+      "output": "5",
+      "explanation": "排序后 [1,2,3,4,5,6]，第 2 大是 5。"
+    },
+    {
+      "input": "9\n3 2 3 1 2 4 5 5 6\n4",
+      "output": "4",
+      "explanation": "排序后 [1,2,2,3,3,4,5,5,6]，第 4 大是 4。"
+    }
+  ],
+  "constraints": [
+    "1 <= k <= nums.length <= 10^5",
+    "-10^4 <= nums[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数，第三行 k。输出第 k 大的元素。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "排序后取下标 len - k：sort 后顺序就是第 1 大、第 2 大……最后一位。O(n log n) 时间，思路最直接，但未达 O(n) 期望。",
+      "code": "import sys\n\ndef kth_largest_brute(nums, k):\n    nums = sorted(nums)\n    return nums[len(nums) - k]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(kth_largest_brute(nums, k))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "维护大小为 k 的小顶堆：堆顶是最小的“Top K 候选”。依次把元素与堆顶比较，大于则替换并重堆。遍历结束后堆顶就是第 k 大。O(n log k) 时间。",
+      "code": "import sys\nimport heapq\n\ndef kth_largest_opt(nums, k):\n    heap = nums[:k]\n    heapq.heapify(heap)\n    for x in nums[k:]:\n        if x > heap[0]:\n            heapq.heapreplace(heap, x)\n    return heap[0]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(kth_largest_opt(nums, k))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "快速选择（Quickselect）：把“找第 k 大”转化为“找下标 len-k”的“找下标第几小的问题，做 partition 把元素放对位置，递归到一侧即可。期望 O(n) 时间，空间 O(1)（原地划分）。最坏 O(n^2)（可用中位数三数取中降低概率）。",
+      "code": "import sys\nimport random\n\ndef partition(nums, lo, hi):\n    # 三数取中选取 pivot，提升稳定性\n    mid = (lo + hi) // 2\n    if nums[lo] > nums[mid]: nums[lo], nums[mid] = nums[mid], nums[lo]\n    if nums[lo] > nums[hi]: nums[lo], nums[hi] = nums[hi], nums[lo]\n    if nums[mid] > nums[hi]: nums[mid], nums[hi] = nums[hi], nums[mid]\n    pivot = nums[mid]\n    nums[mid], nums[hi] = nums[hi], nums[mid]\n    i = lo\n    for j in range(lo, hi):\n        if nums[j] < pivot:\n            nums[i], nums[j] = nums[j], nums[i]\n            i += 1\n    nums[i], nums[hi] = nums[hi], nums[i]\n    return i\n\ndef quickselect(nums, lo, hi, idx):\n    while True:\n        if lo == hi: return nums[lo]\n        p = partition(nums, lo, hi)\n        if idx == p: return nums[p]\n        if idx < p: hi = p - 1\n        else: lo = p + 1\n\ndef kth_largest_best(nums, k):\n    # 第 k 大 = 第 (n-k) 小（0-indexed）\n    return quickselect(nums, 0, len(nums) - 1, len(nums) - k)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(kth_largest_best(nums, k))\n"
+    }
+  ]
+}

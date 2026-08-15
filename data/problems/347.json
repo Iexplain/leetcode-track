@@ -1,0 +1,43 @@
+{
+  "id": 347,
+  "title": "前 K 个高频元素",
+  "titleEn": "Top K Frequent Elements",
+  "difficulty": "中等",
+  "tags": ["数组", "哈希表", "分治", "堆"],
+  "description": "给你一个整数数组 nums 和一个整数 k，请你返回其中出现频率前 k 高的元素。可以按任意顺序返回。",
+  "examples": [
+    {
+      "input": "6\n1 1 1 2 2 3\n2",
+      "output": "1 2",
+      "explanation": "1 出现 3 次、2 出现 2 次，是出现频率最高的两个。"
+    },
+    {
+      "input": "1\n1\n1",
+      "output": "1",
+      "explanation": "只有 1 一个元素。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^5",
+    "k 在 [1, 数组中不同元素的数目] 范围内",
+    "题目数据保证答案唯一"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数，第三行 k。输出 k 个元素（按频率从高到低，同频按数值升序），空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 Counter 统计频次，按 (-count, value) 排序后取前 k。O(n log n) 时间（取决于排序），逻辑直白。当 k≈n 时退化为全排序，且与堆方案相比常数更大。",
+      "code": "import sys\nfrom collections import Counter\n\ndef top_k_brute(nums, k):\n    cnt = Counter(nums)\n    items = sorted(cnt.items(), key=lambda x: (-x[1], x[0]))\n    return [v for v, _ in items[:k]]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, top_k_brute(nums, k))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "维护大小为 k 的小顶堆（按频次比较）。遍历频次表，频次比堆顶大就替换并重堆。最后堆中就是 Top k。O(n log k) 时间，k << n 时优于全排序。",
+      "code": "import sys\nimport heapq\nfrom collections import Counter\n\ndef top_k_opt(nums, k):\n    cnt = Counter(nums)\n    heap = []\n    for v, c in cnt.items():\n        if len(heap) < k:\n            heapq.heappush(heap, (c, v))\n        elif c > heap[0][0]:\n            heapq.heapreplace(heap, (c, v))\n    res = [v for _, v in sorted(heap, key=lambda x: (-x[0], x[1]))]\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, top_k_opt(nums, k))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "桶排序（Bucket sort）按频次分桶：建立 freq → [values] 的桶数组，下标就是出现次数；遍历频次表把元素扔进对应桶，从高频桶向低频收集直至拿到 k 个元素。O(n) 时间，仅依赖数组遍历与建桶，是面试官会点赞的最优解。",
+      "code": "import sys\nfrom collections import Counter\n\ndef top_k_best(nums, k):\n    cnt = Counter(nums)\n    bucket = [[] for _ in range(len(nums) + 1)]\n    for v, c in cnt.items():\n        bucket[c].append(v)\n    res = []\n    for c in range(len(nums), 0, -1):\n        for v in sorted(bucket[c]):\n            res.append(v)\n            if len(res) == k:\n                return res\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    k = int(data[1 + n])\n    print(' '.join(map(str, top_k_best(nums, k))))\n"
+    }
+  ]
+}

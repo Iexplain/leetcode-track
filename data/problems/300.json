@@ -1,0 +1,42 @@
+{
+  "id": 300,
+  "title": "最长递增子序列",
+  "titleEn": "Longest Increasing Subsequence",
+  "difficulty": "中等",
+  "tags": ["数组", "二分查找", "动态规划"],
+  "description": "给你一个整数数组 nums，找到其中最长严格递增子序列的长度。子序列是连续或不连续、由原数组按顺序取出若干元素（不必连续），且每个元素严格小于下一个。",
+  "examples": [
+    {
+      "input": "8\n10 9 2 5 3 7 101 18",
+      "output": "4",
+      "explanation": "最长递增子序列之一是 [2,3,7,18] 或 [2,3,7,101]，长度 4。"
+    },
+    {
+      "input": "6\n0 1 0 3 2 3",
+      "output": "4",
+      "explanation": "[0,1,2,3]，长度 4。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 2500",
+    "-10^4 <= nums[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出 LIS 长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "标准 DP：dp[i] = max(dp[j]) + 1 for j<i and nums[j]<nums[i]，再取 dp 的最大。O(n^2) 时间，n=2500 时勉强能过，是面试最常写的版本。",
+      "code": "import sys\n\ndef lis_brute(nums):\n    if not nums: return 0\n    n = len(nums)\n    dp = [1] * n\n    for i in range(n):\n        for j in range(i):\n            if nums[j] < nums[i]:\n                dp[i] = max(dp[i], dp[j] + 1)\n    return max(dp)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(lis_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二分查找 + 贪心：维护 tails 数组，tails[k] = 长度为 k+1 的递增子序列中“最小的可能尾部值”。对每个 nums[i] 用 bisect_left 找到它应该在 tails 中的位置，原地把更小的尾部值覆盖上去，更利于后续延伸。tails 的最终长度即为 LIS 长度。O(n log n) 时间。",
+      "code": "import sys\nfrom bisect import bisect_left\n\ndef lis_opt(nums):\n    tails = []\n    for x in nums:\n        i = bisect_left(tails, x)\n        if i == len(tails):\n            tails.append(x)\n        else:\n            tails[i] = x\n    return len(tails)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(lis_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在二分版基础上加 segment tree 或 Fenwick tree 写法虽然表面上也是 O(n log n)，但本质不变。实际面试中更值得记住的一个细节：处理“严格递增 vs 非递减”只差在 bisect_left 还是 bisect_right——bisect_left 是严格递增（允许相等元素替换），bisect_right 是非严格。下题若改成“非递减”，换成 bisect_right 即正确。",
+      "code": "import sys\nfrom bisect import bisect_left\n\ndef lis_best(nums):\n    tails = []\n    for x in nums:\n        i = bisect_left(tails, x)\n        if i == len(tails):\n            tails.append(x)\n        else:\n            tails[i] = x\n    return len(tails)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(lis_best(nums))\n"
+    }
+  ]
+}
