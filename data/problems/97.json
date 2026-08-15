@@ -1,0 +1,51 @@
+{
+  "id": 97,
+  "title": "交错字符串",
+  "titleEn": "Interleaving String",
+  "difficulty": "中等",
+  "tags": [
+    "字符串",
+    "动态规划"
+  ],
+  "description": "给定三个字符串 s1、s2、s3，请判断 s3 是否可以由 s1 和 s2 交错组成（即 s3 中的字符要么属于 s1 要么属于 s2，且各自内部相对顺序保持）。",
+  "examples": [
+    {
+      "input": "abc\ndef\nadbcef",
+      "output": "true",
+      "explanation": "a-d-b-c-e-f 交叉匹配。"
+    },
+    {
+      "input": "abc\ndef\nfedcba",
+      "output": "false",
+      "explanation": "逆序无法保持。"
+    },
+    {
+      "input": "ab\ncd\nabcd",
+      "output": "true",
+      "explanation": "交替 ab cd。"
+    }
+  ],
+  "constraints": [
+    "0 <= s1.length, s2.length <= 100",
+    "0 <= s3.length <= 200",
+    "s1、s2、s3 由小写英文字母组成"
+  ],
+  "ioFormat": "第一行 s1，第二行 s2，第三行 s3。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归 + memo:dfs(i, j) 表示 s1[:i] 与 s2[:j] 能否交错组成 s3[:i+j]。",
+      "code": "import sys\n\ndef is_brute(s1, s2, s3):\n    m, n = len(s1), len(s2)\n    if m + n != len(s3):\n        return False\n    if m < n:\n        s1, s2 = s2, s1\n        m, n = n, m\n    dp = [False] * (n + 1)\n    for i in range(m + 1):\n        for j in range(n + 1):\n            k = i + j - 1\n            if i == 0 and j == 0:\n                dp[0] = True\n                continue\n            v = False\n            if i > 0 and s1[i - 1] == s3[k] and dp[j]:\n                v = True\n            if j > 0 and s2[j - 1] == s3[k] and dp[j - 1]:\n                v = True\n            dp[j] = v\n    return dp[n]\n\nif __name__ == '__main__':\n    s1 = sys.stdin.readline().rstrip()\n    s2 = sys.stdin.readline().rstrip()\n    s3 = sys.stdin.readline().rstrip()\n    print('true' if is_brute(s1, s2, s3) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二维 DP:dp[i][j] = (s1[i-1]==s3[i+j-1] and dp[i-1][j]) or (s2[j-1]==s3[i+j-1] and dp[i][j-1])。",
+      "code": "import sys\n\ndef is_opt(s1, s2, s3):\n    m, n = len(s1), len(s2)\n    if m + n != len(s3):\n        return False\n    if m < n:\n        s1, s2 = s2, s1\n        m, n = n, m\n    dp = [False] * (n + 1)\n    for i in range(m + 1):\n        for j in range(n + 1):\n            k = i + j - 1\n            if i == 0 and j == 0:\n                dp[0] = True\n                continue\n            v = False\n            if i > 0 and s1[i - 1] == s3[k] and dp[j]:\n                v = True\n            if j > 0 and s2[j - 1] == s3[k] and dp[j - 1]:\n                v = True\n            dp[j] = v\n    return dp[n]\n\nif __name__ == '__main__':\n    s1 = sys.stdin.readline().rstrip()\n    s2 = sys.stdin.readline().rstrip()\n    s3 = sys.stdin.readline().rstrip()\n    print('true' if is_opt(s1, s2, s3) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "一维 DP:dp[j] 表示当前行到 s1[:i] + s2[:j] 的可达状态。",
+      "code": "import sys\n\ndef is_interleave(s1, s2, s3):\n    m, n = len(s1), len(s2)\n    if m + n != len(s3):\n        return False\n    if m < n:\n        s1, s2 = s2, s1\n        m, n = n, m\n    dp = [False] * (n + 1)\n    for i in range(m + 1):\n        for j in range(n + 1):\n            k = i + j - 1\n            if i == 0 and j == 0:\n                dp[0] = True\n                continue\n            v = False\n            if i > 0 and s1[i - 1] == s3[k] and dp[j]:\n                v = True\n            if j > 0 and s2[j - 1] == s3[k] and dp[j - 1]:\n                v = True\n            dp[j] = v\n    return dp[n]\n\nif __name__ == '__main__':\n    s1 = sys.stdin.readline().rstrip()\n    s2 = sys.stdin.readline().rstrip()\n    s3 = sys.stdin.readline().rstrip()\n    print('true' if is_interleave(s1, s2, s3) else 'false')\n"
+    }
+  ]
+}

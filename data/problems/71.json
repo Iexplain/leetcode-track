@@ -1,0 +1,53 @@
+{
+  "id": 71,
+  "title": "简化路径",
+  "titleEn": "Simplify Path",
+  "difficulty": "中等",
+  "tags": ["字符串", "栈"],
+  "description": "给你一个字符串 path，表示一个 Unix 风格的绝对路径（以 '/' 开头），请将其简化为规范路径。'..' 表示返回上一级，'.' 表示当前目录。多个连续斜杠视为一个。",
+  "examples": [
+    {
+      "input": "/home/",
+      "output": "/home",
+      "explanation": "末尾斜杠可忽略。"
+    },
+    {
+      "input": "/../",
+      "output": "/",
+      "explanation": "到根级上一层还是根。"
+    },
+    {
+      "input": "/home//foo/",
+      "output": "/home/foo",
+      "explanation": "多重斜杠视为单。"
+    },
+    {
+      "input": "/a/./b/../../c/",
+      "output": "/c",
+      "explanation": "先到 b，再 ..→a，再 ..→根，再到 c。"
+    }
+  ],
+  "constraints": [
+    "1 <= path.length <= 3000",
+    "path 由英文字母、数字、'.'、'/'、'-'、'_' 组成",
+    "path 是以 '/' 开头的有效 Unix 绝对路径"
+  ],
+  "ioFormat": "输入一行字符串 path，输出规范路径。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "原生 split + 简单循环：按 '/' 分割成段，遍历：'.'/空 跳过、'..' 弹出栈、其它压栈。最后用 '/' join。O(n) 时间，是本题最直白的写法。",
+      "code": "import sys\n\ndef simplify_brute(path):\n    stack = []\n    for p in path.split('/'):\n        if p == '' or p == '.':\n            continue\n        if p == '..':\n            if stack:\n                stack.pop()\n        else:\n            stack.append(p)\n    return '/' + '/'.join(stack)\n\nif __name__ == '__main__':\n    p = sys.stdin.readline().rstrip()\n    print(simplify_brute(p))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "指针手动扫描代替 split：遍历字符、跳过 '/'.，遇到连续字母数字就用 itertools.takewhile 收集成段 push/pop。常数略小于 split。",
+      "code": "import sys\n\ndef simplify_opt(path):\n    stack = []\n    i = 0\n    n = len(path)\n    while i < n:\n        if path[i] == '/':\n            i += 1\n            continue\n        j = i\n        while j < n and path[j] != '/':\n            j += 1\n        seg = path[i:j]\n        i = j + 1\n        if seg == '' or seg == '.':\n            continue\n        if seg == '..':\n            if stack:\n                stack.pop()\n        else:\n            stack.append(seg)\n    return '/' + '/'.join(stack)\n\nif __name__ == '__main__':\n    p = sys.stdin.readline().rstrip()\n    print(simplify_opt(p))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "最简一行：deque 模拟栈 + 列表推导收集段，再前缀 '/'.join。等价于暴力但用 deque 表示显式 pop。代码长度最短。",
+      "code": "import sys\nfrom collections import deque\n\ndef simplify_best(path):\n    stack = deque()\n    for seg in path.split('/'):\n        if seg in ('', '.'):\n            continue\n        if seg == '..':\n            if stack:\n                stack.pop()\n        else:\n            stack.append(seg)\n    return '/' + '/'.join(stack)\n\nif __name__ == '__main__':\n    p = sys.stdin.readline().rstrip()\n    print(simplify_best(p))\n"
+    }
+  ]
+}

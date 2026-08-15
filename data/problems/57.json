@@ -1,0 +1,49 @@
+{
+  "id": 57,
+  "title": "插入区间",
+  "titleEn": "Insert Interval",
+  "difficulty": "中等",
+  "tags": [
+    "数组"
+  ],
+  "description": "给你一个无重叠的、按照区间起始端点排序的区间列表 intervals，和一个新的区间 newInterval。在 intervals 中插入 newInterval，使得 intervals 仍然有序且不重叠（如有必要，可以合并区间）。",
+  "examples": [
+    {
+      "input": "2\n1 3\n6 9\n2 5",
+      "output": "1 5\n6 9",
+      "explanation": "[2,5] 与 [1,3] 重叠 → [1,5]。"
+    },
+    {
+      "input": "1\n1 5\n2 7",
+      "output": "1 7",
+      "explanation": "[2,7] 完全覆盖 [1,5]。"
+    },
+    {
+      "input": "3\n1 2\n3 5\n6 7\n4 8",
+      "output": "1 2\n3 8",
+      "explanation": "[4,8] 把 [3,5] 和 [6,7] 都吸收了。"
+    }
+  ],
+  "constraints": [
+    "0 <= intervals.length <= 10^4",
+    "newInterval.length == 2"
+  ],
+  "ioFormat": "第一行 n（区间数），接着 n 行各两个整数，再下一行两个整数表示 newInterval。输出每一行一个合并后的区间。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把 newInterval 拼到 intervals 末尾、按 start 排序、走通用 merge。简单但 O(n log n)，面试通常期待更直接的 O(n)。",
+      "code": "import sys\n\ndef insert_brute(ints, newi):\n    ints = sorted(ints + [newi])\n    res = []\n    for s, e in ints:\n        if res and s <= res[-1][1]:\n            res[-1][1] = max(res[-1][1], e)\n        else:\n            res.append([s, e])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        ints.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    newi = [int(data[idx]), int(data[idx + 1])]\n    res = insert_brute(ints, newi)\n    for s, e in res:\n        print(s, e)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "线性 O(n)：扫描三段：left（不重叠且在 newInterval 左侧）原样输出；mid（与 newInterval 重叠）逐一合并；right（不重叠且在 newInterval 右侧）原样输出。merge 时持续扩展 newInterval 直到无重叠。",
+      "code": "import sys\n\ndef insert_opt(ints, newi):\n    res = []\n    ns, ne = newi\n    i = 0\n    while i < len(ints) and ints[i][1] < ns:\n        res.append(ints[i])\n        i += 1\n    while i < len(ints) and ints[i][0] <= ne:\n        ns = min(ns, ints[i][0])\n        ne = max(ne, ints[i][1])\n        i += 1\n    res.append([ns, ne])\n    while i < len(ints):\n        res.append(ints[i])\n        i += 1\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        ints.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    newi = [int(data[idx]), int(data[idx + 1])]\n    res = insert_opt(ints, newi)\n    for s, e in res:\n        print(s, e)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 bisect_left/bisect_right 找左右分界。bisect_right 找第一个 起点 ≥ ns 的位置（即左侧起点都 ≤ ns），但实际新间隔与左侧合并要看左侧终点是否 ≥ ns，因此左侧分界应通过二分 'end' 字段找第一个 end ≥ ns。",
+      "code": "import sys\nfrom bisect import bisect_left, bisect_right\n\ndef insert_best(ints, newi):\n    ns, ne = newi\n    if not ints:\n        return [[ns, ne]]\n    # 找到第一个与 newInterval 重叠或在其右侧的区间\n    n = len(ints)\n    l = 0\n    while l < n and ints[l][1] < ns:\n        l += 1\n    r = l\n    while r < n and ints[r][0] <= ne:\n        r += 1\n    # 合并 [l, r) 与 newInterval\n    if l < r:\n        ns = min(ns, ints[l][0])\n        ne = max(ne, ints[r - 1][1])\n    return ints[:l] + [[ns, ne]] + ints[r:]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        ints.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    newi = [int(data[idx]), int(data[idx + 1])]\n    res = insert_best(ints, newi)\n    for s, e in res:\n        print(s, e)\n"
+    }
+  ]
+}

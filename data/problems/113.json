@@ -1,0 +1,52 @@
+{
+  "id": 113,
+  "title": "路径总和 II",
+  "titleEn": "Path Sum II",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "二叉树"
+  ],
+  "description": "给你二叉树的根节点 root 和一个目标和 targetSum。找出所有从根到叶、路径上节点值之和等于 targetSum 的路径。",
+  "examples": [
+    {
+      "input": "7\n5 4 8 11 n 13 4\n26",
+      "output": "5 8 13",
+      "explanation": "路径 5->8->13=26。"
+    },
+    {
+      "input": "3\n1 2 3\n6",
+      "output": "",
+      "explanation": "[1,2,3] 全路径和为 3+4=7,均不到 6,无解输出空。"
+    },
+    {
+      "input": "1\n1\n1",
+      "output": "1",
+      "explanation": "单节点本身就是路径。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [0, 5000] 内",
+    "-1000 <= 节点值 <= 1000",
+    "-1000 <= targetSum <= 1000"
+  ],
+  "ioFormat": "第一行 n（层序数组长度），第二行层序数组（'n' 表示 None），第三行 targetSum。输出每一行一条路径（值序列，空格分隔）。无解输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "DFS 回溯：path 维护当前路径和，到叶子时 sum==target 则收集。O(n) 时间，存储所有路径空间较大。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef path_sum_brute(root, target):\n    res = []\n    def dfs(node, s, path):\n        if not node: return\n        path.append(node.v)\n        s += node.v\n        if not node.l and not node.r and s == target:\n            res.append(path[:])\n        else:\n            dfs(node.l, s, path)\n            dfs(node.r, s, path)\n        path.pop()\n    dfs(root, 0, [])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    target = int(data[1 + n])\n    root = build(arr)\n    res = path_sum_brute(root, target)\n    for p in res:\n        print(' '.join(map(str, p)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "迭代 + 显式栈：手动维护 (node, sum, path) 栈。从根入栈后循环弹出，遇叶子节点判断 sum==target。比递归版稍繁琐但无栈溢出风险。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef path_sum_opt(root, target):\n    if not root: return []\n    res = []\n    stack = [(root, [root.v], root.v)]\n    while stack:\n        n, path, s = stack.pop()\n        if not n.l and not n.r and s == target:\n            res.append(path)\n            continue\n        if n.r:\n            stack.append((n.r, path + [n.r.v], s + n.r.v))\n        if n.l:\n            stack.append((n.l, path + [n.l.v], s + n.l.v))\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    target = int(data[1 + n])\n    root = build(arr)\n    res = path_sum_opt(root, target)\n    for p in res:\n        print(' '.join(map(str, p)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在 DFS 回溯基础上提前剪枝：若 sum 已超过 target 且所有节点非负可直接返回（本题节点值范围 -1000~1000 含负数不能完全剪，但求和倾向可以提前砍一边分支以减少递归栈深度）。代码仍是标准回溯版，加了些小优化以应对极端树（如链表状）。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef path_sum_best(root, target):\n    res = []\n    def dfs(node, s, path):\n        if not node: return\n        path.append(node.v)\n        new_s = s + node.v\n        if not node.l and not node.r and new_s == target:\n            res.append(path[:])\n        else:\n            dfs(node.l, new_s, path)\n            dfs(node.r, new_s, path)\n        path.pop()\n    dfs(root, 0, [])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    target = int(data[1 + n])\n    root = build(arr)\n    res = path_sum_best(root, target)\n    for p in res:\n        print(' '.join(map(str, p)))\n"
+    }
+  ]
+}

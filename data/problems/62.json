@@ -1,0 +1,46 @@
+{
+  "id": 62,
+  "title": "不同路径",
+  "titleEn": "Unique Paths",
+  "difficulty": "中等",
+  "tags": ["数学", "动态规划", "组合数学"],
+  "description": "机器人位于 m×n 网格的左上角，每次只能向下或向右移动一步，试图到达右下角。有多少条不同路径？",
+  "examples": [
+    {
+      "input": "3 7",
+      "output": "28",
+      "explanation": "C(8,2) = 28。"
+    },
+    {
+      "input": "3 2",
+      "output": "3",
+      "explanation": "路径：右→下→下，下→右→下，下→下→右。"
+    },
+    {
+      "input": "1 1",
+      "output": "1",
+      "explanation": "1×1 唯一路径。"
+    }
+  ],
+  "constraints": [
+    "1 <= m, n <= 100"
+  ],
+  "ioFormat": "第一行 m、n。输出一个整数表示路径数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归枚举：从 (0,0) 出发，可走右或下；到 (m-1,n-1) 计数。O(2^(m+n)) 指数级，n 较大直接超时，仅用于小测试。",
+      "code": "import sys\n\ndef unique_brute(m, n):\n    def dfs(i, j):\n        if i == m - 1 and j == n - 1:\n            return 1\n        if i >= m or j >= n:\n            return 0\n        return dfs(i + 1, j) + dfs(i, j + 1)\n    return dfs(0, 0)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    print(unique_brute(m, n))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二维 DP：dp[i][j] = dp[i-1][j] + dp[i][j-1]，边界初始化为 1。O(m·n) 时间。",
+      "code": "import sys\n\ndef unique_opt(m, n):\n    dp = [[1] * n for _ in range(m)]\n    for i in range(1, m):\n        for j in range(1, n):\n            dp[i][j] = dp[i - 1][j] + dp[i][j - 1]\n    return dp[m - 1][n - 1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    print(unique_opt(m, n))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "组合数学：路径数 = C(m+n-2, m-1)。直接计算组合减少常数。O(m) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef unique_best(m, n):\n    a = m + n - 2\n    b = min(m - 1, n - 1)\n    num = 1\n    for i in range(1, b + 1):\n        num = num * (a - b + i) // i\n    return num\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    print(unique_best(m, n))\n"
+    }
+  ]
+}

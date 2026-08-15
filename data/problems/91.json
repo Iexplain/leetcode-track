@@ -1,0 +1,52 @@
+{
+  "id": 91,
+  "title": "解码方法",
+  "titleEn": "Decode Ways",
+  "difficulty": "中等",
+  "tags": ["字符串", "动态规划"],
+  "description": "一条仅含数字的编码字符串 s，按 A=1, B=2, ..., Z=26 映射，问解码方案总数。'0' 不能作为单字符。",
+  "examples": [
+    {
+      "input": "12",
+      "output": "2",
+      "explanation": "'1 2' = AB 或 '12' = L。"
+    },
+    {
+      "input": "226",
+      "output": "3",
+      "explanation": "BBF / BZ / VF。"
+    },
+    {
+      "input": "0",
+      "output": "0",
+      "explanation": "无合法解码。"
+    },
+    {
+      "input": "100",
+      "output": "0",
+      "explanation": "0 单独或接 0 都非法。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 100",
+    "s 仅含数字，且可能含前导 0"
+  ],
+  "ioFormat": "输入一行字符串 s（仅数字），输出一个整数表示解码方法数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归：dfs(i) = dfs(i+1) + (if s[i:i+2] ∈ [10,26] then dfs(i+2))。遇到 '0' 则该分支为 0。O(2^n) 时间，未做 memo 会超时；此处加 memo 化简。",
+      "code": "import sys\n\ndef decode_brute(s):\n    if not s: return 0\n    n = len(s)\n    from functools import lru_cache\n    @lru_cache(None)\n    def dfs(i):\n        if i == n: return 1\n        if s[i] == '0': return 0\n        res = dfs(i + 1)\n        if i + 1 < n and 10 <= int(s[i:i+2]) <= 26:\n            res += dfs(i + 2)\n        return res\n    return dfs(0)\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(decode_brute(s))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "一维 DP：dp[i] 表示 s[:i] 的解码数。dp[0]=1, dp[i] = (if s[i-1] != '0' then dp[i-1]) + (if s[i-2:i] in [10,26] then dp[i-2])。O(n) 时间空间。",
+      "code": "import sys\n\ndef decode_opt(s):\n    n = len(s)\n    if not n or s[0] == '0': return 0\n    dp = [0] * (n + 1)\n    dp[0] = 1\n    dp[1] = 1\n    for i in range(2, n + 1):\n        if s[i - 1] != '0':\n            dp[i] += dp[i - 1]\n        two = int(s[i - 2:i])\n        if 10 <= two <= 26:\n            dp[i] += dp[i - 2]\n    return dp[n]\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(decode_opt(s))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "滚动两个变量：prev 与 curr，分别表示 dp[i-2] 与 dp[i-1] 角色。代码空间 O(1) 且与 DP 等价。",
+      "code": "import sys\n\ndef decode_best(s):\n    n = len(s)\n    if not n or s[0] == '0': return 0\n    if n == 1: return 1\n    prev, curr = 1, 1\n    for i in range(2, n + 1):\n        new = 0\n        if s[i - 1] != '0':\n            new += curr\n        two = int(s[i - 2:i])\n        if 10 <= two <= 26:\n            new += prev\n        prev, curr = curr, new\n    return curr\n\nif __name__ == '__main__':\n    s = sys.stdin.readline().rstrip()\n    print(decode_best(s))\n"
+    }
+  ]
+}

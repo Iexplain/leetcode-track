@@ -1,0 +1,48 @@
+{
+  "id": 56,
+  "title": "合并区间",
+  "titleEn": "Merge Intervals",
+  "difficulty": "中等",
+  "tags": ["数组", "排序"],
+  "description": "以数组 intervals 表示若干区间的集合，其中单个区间为 intervals[i] = [starti, endi]。请你合并所有重叠的区间，并返回一个不重叠的区间数组。",
+  "examples": [
+    {
+      "input": "4\n1 3\n2 6\n8 10\n15 18",
+      "output": "1 6\n8 10\n15 18",
+      "explanation": "[1,3] 与 [2,6] 重叠，合并为 [1,6]。"
+    },
+    {
+      "input": "2\n1 4\n4 5",
+      "output": "1 5",
+      "explanation": "端点相接也要合并。"
+    },
+    {
+      "input": "0",
+      "output": "",
+      "explanation": "空区间集合。"
+    }
+  ],
+  "constraints": [
+    "1 <= intervals.length <= 10^4",
+    "intervals[i].length == 2",
+    "0 <= starti <= endi <= 10^4"
+  ],
+  "ioFormat": "第一行 n（区间数），然后 n 行每行两个整数 (start end)。输出每一行一个合并后的区间。无区间则输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "排序后线性扫描：维护当前合并区间 cur，每遇到一个区间如果与 cur 重叠（其 start ≤ cur.end）则扩展 cur；否则把 cur 加入结果并以新区间作为新 cur。O(n log n) 时间。",
+      "code": "import sys\n\ndef merge_brute(ints):\n    ints = sorted(ints)\n    res = []\n    cur = None\n    for s, e in ints:\n        if cur is None or s > cur[1]:\n            if cur:\n                res.append(cur)\n            cur = [s, e]\n        else:\n            cur[1] = max(cur[1], e)\n    if cur:\n        res.append(cur)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        s, e = int(data[idx]), int(data[idx + 1])\n        idx += 2\n        ints.append([s, e])\n    res = merge_brute(ints)\n    for s, e in res:\n        print(s, e)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "同样排序，但是把'压平到不重叠'：把 ints 排序后，把第一个区间作为当前 cur；后续区间与 cur 重叠则 cur[1]=max(cur[1], e)；否则把 cur 加入 res 并替换。逻辑与暴力完全等价但代码上更显式。",
+      "code": "import sys\n\ndef merge_opt(ints):\n    ints = sorted(ints)\n    res = []\n    cur = ints[0][:] if ints else None\n    for s, e in ints[1:]:\n        if s <= cur[1]:\n            cur[1] = max(cur[1], e)\n        else:\n            res.append(cur)\n            cur = [s, e]\n    if cur is not None:\n        res.append(cur)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        s, e = int(data[idx]), int(data[idx + 1])\n        idx += 2\n        ints.append([s, e])\n    res = merge_opt(ints)\n    for s, e in res:\n        print(s, e)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "“按 start 排序、维护 cur” 的另一种紧凑写法：用 for 循环直接 append，因为循环结束时剩下未追加的 cur 需手动补上。同样 O(n log n) 时间，但去除了多余分支，可读性最佳。",
+      "code": "import sys\n\ndef merge_best(ints):\n    ints = sorted(ints)\n    res = []\n    for s, e in ints:\n        if res and s <= res[-1][1]:\n            res[-1][1] = max(res[-1][1], e)\n        else:\n            res.append([s, e])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        s, e = int(data[idx]), int(data[idx + 1])\n        idx += 2\n        ints.append([s, e])\n    res = merge_best(ints)\n    for s, e in res:\n        print(s, e)\n"
+    }
+  ]
+}

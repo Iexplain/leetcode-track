@@ -1,0 +1,43 @@
+{
+  "id": 73,
+  "title": "矩阵置零",
+  "titleEn": "Set Matrix Zeroes",
+  "difficulty": "中等",
+  "tags": ["数组", "哈希表", "矩阵"],
+  "description": "给定一个 m × n 的矩阵 matrix，如果一个元素为 0，则将其所在行和列的所有元素都设为 0。请使用原地算法。",
+  "examples": [
+    {
+      "input": "3 3\n1 1 1\n1 0 1\n1 1 1",
+      "output": "1 0 1\n0 0 0\n1 0 1",
+      "explanation": "中间 0 所在行列全变 0。"
+    },
+    {
+      "input": "3 4\n0 1 2 0\n3 4 5 2\n1 3 1 5",
+      "output": "0 0 0 0\n0 4 5 0\n0 3 1 0",
+      "explanation": "(0,0) 和 (0,3) 都是 0。"
+    }
+  ],
+  "constraints": [
+    "m == matrix.length, n == matrix[i].length",
+    "1 <= m, n <= 200",
+    "-2^31 <= matrix[i][j] <= 2^31 - 1"
+  ],
+  "ioFormat": "第一行 m、n；接着 m 行每行 n 个整数。输出置零后的矩阵（按行输出）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "辅助数组：先扫描一次记录所有为 0 的行、列，再二次扫描根据行/列标志置 0。O(m·n) 时间、O(m+n) 空间，O(1) 辅助内存是后续的优化目标。",
+      "code": "import sys\n\ndef set_zero_brute(m):\n    if not m: return m\n    rows, cols = len(m), len(m[0])\n    zero_rows = [False] * rows\n    zero_cols = [False] * cols\n    for i in range(rows):\n        for j in range(cols):\n            if m[i][j] == 0:\n                zero_rows[i] = True\n                zero_cols[j] = True\n    for i in range(rows):\n        for j in range(cols):\n            if zero_rows[i] or zero_cols[j]:\n                m[i][j] = 0\n    return m\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    matrix = []\n    idx = 2\n    for _ in range(m):\n        matrix.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    set_zero_brute(matrix)\n    for row in matrix:\n        print(' '.join(map(str, row)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "把'行/列标志'塞进第一行/第一列：扫描第一行、第一列记录是否需置零；其余格子里一旦遇到 0 就把对应的 (matrix[0][j], matrix[i][0]) 标记。然后用这些 marker 把非首行/列的格子置零，最后单独处理首行首列。",
+      "code": "import sys\n\ndef set_zero_opt(m):\n    if not m: return m\n    rows, cols = len(m), len(m[0])\n    row0 = any(m[0][j] == 0 for j in range(cols))\n    col0 = any(m[i][0] == 0 for i in range(rows))\n    for i in range(1, rows):\n        for j in range(1, cols):\n            if m[i][j] == 0:\n                m[0][j] = 0\n                m[i][0] = 0\n    for i in range(1, rows):\n        for j in range(1, cols):\n            if m[i][0] == 0 or m[0][j] == 0:\n                m[i][j] = 0\n    if row0:\n        for j in range(cols):\n            m[0][j] = 0\n    if col0:\n        for i in range(rows):\n            m[i][0] = 0\n    return m\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    matrix = []\n    idx = 2\n    for _ in range(m):\n        matrix.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    set_zero_opt(matrix)\n    for row in matrix:\n        print(' '.join(map(str, row)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在优化基础上用位运算的常量标记版本或更紧凑的写法：直接以 m[0][j] 与 m[i][0] 做标志。代码 4 步走，逻辑最简。",
+      "code": "import sys\n\ndef set_zero_best(m):\n    if not m: return m\n    rows, cols = len(m), len(m[0])\n    first_row_zero = any(v == 0 for v in m[0])\n    first_col_zero = any(m[i][0] == 0 for i in range(rows))\n    for i in range(1, rows):\n        for j in range(1, cols):\n            if m[i][j] == 0:\n                m[i][0] = 0\n                m[0][j] = 0\n    for i in range(1, rows):\n        for j in range(1, cols):\n            if m[i][0] == 0 or m[0][j] == 0:\n                m[i][j] = 0\n    if first_row_zero:\n        for j in range(cols):\n            m[0][j] = 0\n    if first_col_zero:\n        for i in range(rows):\n            m[i][0] = 0\n    return m\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    matrix = []\n    idx = 2\n    for _ in range(m):\n        matrix.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    set_zero_best(matrix)\n    for row in matrix:\n        print(' '.join(map(str, row)))\n"
+    }
+  ]
+}
