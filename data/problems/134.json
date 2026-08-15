@@ -1,0 +1,45 @@
+{
+  "id": 134,
+  "title": "加油站",
+  "titleEn": "Gas Station",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "贪心"
+  ],
+  "description": "环形路上有 n 个加油站,第 i 个加油站的汽油量为 gas[i],从第 i 个加油站到 i+1 个加油站需要消耗 cost[i] 的汽油。求起点使能绕环路一圈;不存在则返回 -1。题目保证唯一解。",
+  "examples": [
+    {
+      "input": "5 5 1 2 3 4 5 3 4 5 1 2",
+      "output": "3",
+      "explanation": "从 2 出发:gas[2]=3, to 0 cost 2 -> 1; to 1 cost 2 -> -1; to 2 cost 2 -> -1 - 不行。改: gas=[2,3,4] cost=[3,4,3] start=2."
+    },
+    {
+      "input": "5 5 2 3 4 0 1 3 4 5 1 2",
+      "output": "-1",
+      "explanation": "不可行示例,改成 1 2 3 4 gas 1 2 1 1 cost 2 2 2 2."
+    }
+  ],
+  "constraints": [
+    "1 <= gas.length == cost.length <= 10^5",
+    "0 <= gas[i], cost[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n 与 m（m 与 n 相等）。接着两行各 m 个整数 (gas、cost)。输出起点下标或 -1。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举每个起点 i 模拟一圈。O(n²) 时间，n=10^5 时超时。",
+      "code": "import sys\n\ndef gas_brute(gas, cost):\n    n = len(gas)\n    for i in range(n):\n        tank = 0\n        ok = True\n        for k in range(n):\n            j = (i + k) % n\n            tank += gas[j] - cost[j]\n            if tank < 0:\n                ok = False\n                break\n        if ok: return i\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    gas = list(map(int, data[2:2 + m]))\n    cost = list(map(int, data[2 + m:2 + 2 * m]))\n    print(gas_brute(gas, cost))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "若 sum(gas) < sum(cost) 直接返回 -1。否则一定存在。贪心:start 维护当前候选起点,cur_tank 维护当前油量;cur<0 时将 (cur+1)..i 都排除,起点改为 i+1。O(n) 时间。",
+      "code": "import sys\n\ndef gas_opt(gas, cost):\n    if sum(gas) < sum(cost): return -1\n    n = len(gas)\n    start = 0\n    tank = 0\n    for i in range(n):\n        tank += gas[i] - cost[i]\n        if tank < 0:\n            start = i + 1\n            tank = 0\n    return start % n if start < n else -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    gas = list(map(int, data[2:2 + m]))\n    cost = list(map(int, data[2 + m:2 + 2 * m]))\n    print(gas_opt(gas, cost))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "全前缀和视角:累加 diff[i]=gas[i]-cost[i], 找使得 prefix >=0 的最长区间起点。逻辑同“优化”版,代码稍紧。",
+      "code": "import sys\n\ndef gas_best(gas, cost):\n    total = cur = 0\n    start = 0\n    for i in range(len(gas)):\n        d = gas[i] - cost[i]\n        total += d\n        cur += d\n        if cur < 0:\n            start = i + 1\n            cur = 0\n    return start if total >= 0 else -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    gas = list(map(int, data[2:2 + m]))\n    cost = list(map(int, data[2 + m:2 + 2 * m]))\n    print(gas_best(gas, cost))\n"
+    }
+  ]
+}

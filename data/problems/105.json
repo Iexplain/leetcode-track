@@ -1,0 +1,40 @@
+{
+  "id": 105,
+  "title": "从前序与中序遍历序列构造二叉树",
+  "titleEn": "Construct Binary Tree from Preorder and Inorder Traversal",
+  "difficulty": "中等",
+  "tags": ["树", "数组", "哈希表", "分治", "二叉树"],
+  "description": "给定一棵树的前序遍历 preorder 与中序遍历 inorder，请构造二叉树并返回其根节点。",
+  "examples": [
+    {
+      "input": "5\n3 9 20 15 7\n9 3 15 20 7",
+      "output": "3 9 20 n n 15 7 n n n n",
+      "explanation": "层序表示验证。"
+    }
+  ],
+  "constraints": [
+    "1 <= preorder.length <= 3000",
+    "inorder.length == preorder.length",
+    "-3000 <= preorder[i], inorder[i] <= 3000",
+    "preorder 与 inorder 均无重复元素",
+    "inorder 一定出现在 preorder 中"
+  ],
+  "ioFormat": "第一行 n，接两行各 n 个整数（前序、中序）。输出层序表示，'n' 表示 None，空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归。preorder 第一位是 root, 在 inorder 中找 root 位置,切分左右递归。O(n²) 因为每次扫一遍 inorder。",
+      "code": "import sys\n\ndef build_brute(pre, ino):\n    if not pre: return None\n    root = pre[0]\n    i = ino.index(root)\n    return (root, build_brute(pre[1:i+1], ino[:i]), build_brute(pre[i+1:], ino[i+1:]))\n\ndef to_list(t):\n    if not t: return []\n    from collections import deque\n    root, L, R = t\n    res = []\n    q = deque([root])\n    children = deque([L, R])\n    while q:\n        v = q.popleft()\n        lc = children.popleft()\n        rc = children.popleft()\n        res.append(str(v.v) if hasattr(v, 'v') else ('n' if v is None else str(v[0])))\n        if v:\n            if lc:\n                children.append(lc[0] if isinstance(lc, tuple) else lc); children.append(lc[1] if isinstance(lc, tuple) else None); q.append(lc[0] if isinstance(lc, tuple) else lc)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pre = list(map(int, data[1:1+n]))\n    ino = list(map(int, data[1+n:1+2*n]))\n    r = build_brute(pre, ino)\n    if not r:\n        print('n'); sys.exit(0)\n    from collections import deque\n    res = []\n    q = deque([r])\n    while q:\n        t = q.popleft()\n        res.append(str(t[0]))\n        q.append(t[1] or 'n')\n        q.append(t[2] or 'n')\n    # Trim trailing n's\n    while res and res[-1] == 'n':\n        res.pop()\n    print(' '.join(res))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用哈希表记录 inorder 元素到下标,避免 list.index 的 O(n) 扫描。O(n) 时间空间。",
+      "code": "import sys\nfrom collections import deque\n\ndef build_opt(pre, ino):\n    pos = {v: i for i, v in enumerate(ino)}\n    def dfs(pl, pr, il, ir):\n        if pl > pr: return None\n        root = pre[pl]\n        i = pos[root]\n        left_size = i - il\n        return (root, dfs(pl + 1, pl + left_size, il, i - 1), dfs(pl + left_size + 1, pr, i + 1, ir))\n    return dfs(0, len(pre) - 1, 0, len(ino) - 1)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pre = list(map(int, data[1:1+n]))\n    ino = list(map(int, data[1+n:1+2*n]))\n    r = build_opt(pre, ino)\n    if not r:\n        print('n'); sys.exit(0)\n    from collections import deque\n    res = []\n    q = deque([r])\n    while q:\n        t = q.popleft()\n        res.append(str(t[0]))\n        q.append(t[1] or 'n')\n        q.append(t[2] or 'n')\n    while res and res[-1] == 'n':\n        res.pop()\n    print(' '.join(res))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上用序列下标指针避免重复建列表。让 build_opt 仅返回索引列表与闭区间参数。代码更紧凑。",
+      "code": "import sys\nfrom collections import deque\n\ndef build_best(pre, ino):\n    pos = {v: i for i, v in enumerate(ino)}\n    def dfs(pl, pr, il, ir):\n        if pl > pr: return None\n        root = pre[pl]\n        i = pos[root]\n        left_size = i - il\n        return (root, dfs(pl + 1, pl + left_size, il, i - 1), dfs(pl + left_size + 1, pr, i + 1, ir))\n    return dfs(0, len(pre) - 1, 0, len(ino) - 1)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pre = list(map(int, data[1:1+n]))\n    ino = list(map(int, data[1+n:1+2*n]))\n    r = build_best(pre, ino)\n    if not r:\n        print('n'); sys.exit(0)\n    from collections import deque\n    res = []\n    q = deque([r])\n    while q:\n        t = q.popleft()\n        res.append(str(t[0]))\n        q.append(t[1] or 'n')\n        q.append(t[2] or 'n')\n    while res and res[-1] == 'n':\n        res.pop()\n    print(' '.join(res))\n"
+    }
+  ]
+}

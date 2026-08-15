@@ -1,0 +1,53 @@
+{
+  "id": 209,
+  "title": "长度最小的子数组",
+  "titleEn": "Minimum Size Subarray Sum",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "二分查找",
+    "前缀和",
+    "滑动窗口"
+  ],
+  "description": "给定一个正整数数组 nums 与正整数 target，找出其中和 ≥ target 的最短连续子数组并返回其长度。如果不存在则返回 0。",
+  "examples": [
+    {
+      "input": "7 7 2 3 1 2 4 3 1",
+      "output": "2",
+      "explanation": "7 个数 target=7; [4,3] 长度 2 即满足。"
+    },
+    {
+      "input": "4 4 1 4 4 1",
+      "output": "1",
+      "explanation": "[4] 即可。"
+    },
+    {
+      "input": "3 10 1 1 1",
+      "output": "0",
+      "explanation": "无解。"
+    }
+  ],
+  "constraints": [
+    "1 <= target <= 10^9",
+    "1 <= nums.length <= 10^5",
+    "1 <= nums[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n target（空格分隔）,第二行 n 个整数。输出最短长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举起点 i,扩展终点 j 直到 sum ≥ target。O(n²) 时间，n=10^5 时超时。",
+      "code": "import sys\n\ndef min_len_brute(nums, target):\n    n = len(nums)\n    best = 0\n    for i in range(n):\n        s = 0\n        for j in range(i, n):\n            s += nums[j]\n            if s >= target:\n                if best == 0 or j - i + 1 < best:\n                    best = j - i + 1\n                break\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[2:2 + n]))\n    target = int(data[1])\n    print(min_len_brute(nums, target))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "滑动窗口:左 l、右 r 都单调右移,sum≥target 时记录最短再缩左边界。O(n) 时间。",
+      "code": "import sys\n\ndef min_len_opt(nums, target):\n    n = len(nums)\n    best = 0\n    s = 0\n    l = 0\n    for r in range(n):\n        s += nums[r]\n        while s >= target:\n            cur = r - l + 1\n            if best == 0 or cur < best: best = cur\n            s -= nums[l]\n            l += 1\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[2:2 + n]))\n    target = int(data[1])\n    print(min_len_opt(nums, target))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "前缀和 + 二分:在前缀和数组上找对 (i, j),使 sum[j]-sum[i] ≥ target 即 sum[j] ≥ target + sum[i]。对每个 j,二分 i。O(n log n) 时间。",
+      "code": "import sys\nfrom bisect import bisect_left\n\ndef min_len_best(nums, target):\n    n = len(nums)\n    ps = [0]\n    for x in nums:\n        ps.append(ps[-1] + x)\n    best = 0\n    for j in range(1, n + 1):\n        need = target + ps[j - 1] if False else None\n        # Need: ps[i] <= ps[j] - target\n        i = bisect_left(ps, ps[j] - target + 1) - 1\n        # Actually we want smallest i s.t. ps[j] - ps[i] >= target, equiv. ps[i] <= ps[j] - target\n        i = bisect_left(ps, ps[j] - target + 1) - 1\n        # 重写：bisect_left 找第一个 >= ps[j] - target + 1 的位置 i，ps[i-1] <= ps[j]-target\n        i = bisect_left(ps, ps[j] - target + 1) - 1\n        if i >= 0:\n            cur = j - i\n            if best == 0 or cur < best:\n                best = cur\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[2:2 + n]))\n    target = int(data[1])\n    print(min_len_best(nums, target))\n"
+    }
+  ]
+}

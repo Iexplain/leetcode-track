@@ -1,0 +1,46 @@
+{
+  "id": 240,
+  "title": "搜索二维矩阵 II",
+  "titleEn": "Search a 2D Matrix II",
+  "difficulty": "中等",
+  "tags": ["数组", "二分查找", "分治", "矩阵"],
+  "description": "编写一个高效算法来搜索 m × n 矩阵 matrix 中的一个目标值 target。该矩阵每行元素从左到右递增、每列元素从上到下递增。",
+  "examples": [
+    {
+      "input": "5 5\n1 4 7 11 15\n2 5 8 12 19\n3 6 9 16 22\n10 13 14 17 24\n18 21 23 26 30\n5",
+      "output": "true",
+      "explanation": "5 在矩阵中。"
+    },
+    {
+      "input": "5 5\n1 4 7 11 15\n2 5 8 12 19\n3 6 9 16 22\n10 13 14 17 24\n18 21 23 26 30\n20",
+      "output": "false",
+      "explanation": "20 不在矩阵中。"
+    }
+  ],
+  "constraints": [
+    "m == matrix.length",
+    "n == matrix[i].length",
+    "1 <= n, m <= 300",
+    "-10^9 < matrix[i][j] <= 10^9",
+    "每行每列均严格递增",
+    "-10^9 < target < 10^9"
+  ],
+  "ioFormat": "第一行 m n；接着 m 行每行 n 个整数；最后一行 target。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "暴力双重循环找 target。O(m·n) 时间，未利用排序性质。",
+      "code": "import sys\n\ndef search_brute(matrix, target):\n    m, n = len(matrix), len(matrix[0])\n    for i in range(m):\n        for j in range(n):\n            if matrix[i][j] == target:\n                return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    matrix = []\n    idx = 2\n    for _ in range(m):\n        matrix.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    target = int(data[idx])\n    print('true' if search_brute(matrix, target) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "从右上角起:(0, n-1) 开始,若 target==当前值返回;target < matrix[i][j] 列左移;j=0 上移(target > 当前值)。因为每行每列递增,O(m+n) 时间。",
+      "code": "import sys\n\ndef search_opt(matrix, target):\n    m, n = len(matrix), len(matrix[0])\n    i, j = 0, n - 1\n    while i < m and j >= 0:\n        if matrix[i][j] == target: return True\n        if matrix[i][j] < target:\n            i += 1\n        else:\n            j -= 1\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    matrix = []\n    idx = 2\n    for _ in range(m):\n        matrix.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    target = int(data[idx])\n    print('true' if search_opt(matrix, target) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "对每一行做二分查找:每行有序,二分 O(log n),整体 O(m log n)。思想简单且具一定工程实用性。",
+      "code": "import sys\nfrom bisect import bisect_left\n\ndef search_best(matrix, target):\n    for row in matrix:\n        i = bisect_left(row, target)\n        if i < len(row) and row[i] == target:\n            return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    matrix = []\n    idx = 2\n    for _ in range(m):\n        matrix.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    target = int(data[idx])\n    print('true' if search_best(matrix, target) else 'false')\n"
+    }
+  ]
+}
