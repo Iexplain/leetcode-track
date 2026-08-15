@@ -91,18 +91,6 @@ button, .btn, .chip, .tab, .card, .nav a { touch-action: manipulation; }
   font-size: 26px; flex: 0 0 auto;
   filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
 }
-.dl-btn {
-  flex: 0 0 auto; width: 38px; height: 38px; margin-top: 2px;
-  border-radius: 50%; border: 1px solid var(--card-border);
-  background: var(--card-strong); color: #c4b5fd;
-  display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  box-shadow: var(--glow);
-  transition: transform 0.12s, border-color 0.15s, box-shadow 0.15s;
-}
-.dl-btn:active { transform: scale(0.9); }
-.dl-btn:hover { border-color: rgba(139, 92, 246, 0.6); box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 0 16px rgba(139,92,246,0.35); }
-
 /* 导航 */
 .nav {
   display: flex; gap: 6px; padding: 8px 12px;
@@ -121,10 +109,9 @@ button, .btn, .chip, .tab, .card, .nav a { touch-action: manipulation; }
 main { max-width: 820px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
 .page h2 { margin: 4px 0 14px; font-size: 20px; letter-spacing: 0.2px; }
 
-/* 统计标题 + 备份「＋」按钮（右对齐） */
-.stats-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* 顶栏数据备份「＋」按钮 */
 .add-btn {
-  width: 36px; height: 36px; flex: 0 0 auto;
+  width: 36px; height: 36px; flex: 0 0 auto; margin-top: 3px;
   border-radius: 50%; border: 1px solid var(--card-border);
   background: var(--card-strong); color: #c4b5fd;
   font-size: 22px; font-weight: 300; line-height: 1;

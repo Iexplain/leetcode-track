@@ -99,7 +99,6 @@
     app.innerHTML =
       '<div class="page">' +
       maybeRenderIosHint() +
-      '<h2>题目列表</h2>' +
       '<div class="toolbar">' +
       '<input id="search" class="search" placeholder="搜索题号 / 标题" value="' + esc(state.search) + '" />' +
       '<div class="chips" id="diffChips"></div>' +
@@ -418,9 +417,6 @@
     setNav('stats');
     app.innerHTML =
       '<div class="page">' +
-      '<h2 class="stats-title">打卡统计' +
-      '<button class="add-btn" id="backupBtn" aria-label="数据备份">＋</button>' +
-      '</h2>' +
       reviewModuleHTML() +
       '<div id="kpiRow" class="kpi-row"></div>' +
       '<div class="grid2">' +
@@ -429,16 +425,6 @@
       '</div>' +
       '<div class="chart-card"><div class="chart-title">近 30 天打卡数</div><canvas id="c30"></canvas></div>' +
       '<div class="chart-card"><div class="chart-title">近一年打卡热力图</div><div id="heat"></div></div>' +
-      '<div class="action-sheet-backdrop" id="backupSheet" hidden>' +
-      '<div class="action-sheet">' +
-      '<div class="action-sheet-handle"></div>' +
-      '<div class="action-sheet-title">数据备份</div>' +
-      '<button class="action-sheet-item" data-act="export">⬇︎ 导出全部记录 (JSON)</button>' +
-      '<label class="action-sheet-item" data-act="import">⬆︎ 导入 JSON 备份<input type="file" id="fileImport" accept="application/json" hidden /></label>' +
-      '<button class="action-sheet-item danger" data-act="clear">🗑 清空全部记录</button>' +
-      '<button class="action-sheet-item cancel" data-act="cancel">取消</button>' +
-      '</div>' +
-      '</div>' +
       '</div>';
 
     Charts.render();
@@ -453,10 +439,9 @@
     var badge = $('reviewBadge');
     if (badge) {
       var n = Store.countPendingReviews(Store.todayStr());
-      if (n > 0) { badge.textContent = n > 99 ? '99+' : n; badge.hidden = false; }
+        if (n > 0) { badge.textContent = n > 99 ? '99+' : n; badge.hidden = false; }
       else { badge.hidden = true; }
     }
-    wireBackup();
   }
 
   function wireBackup() {
@@ -532,33 +517,11 @@
     }
   }
 
-  // ---------- 顶部下载按钮：导出备份 ----------
-  function exportBackup() {
-    try {
-      var blob = new Blob([Store.exportData()], { type: 'application/json' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'leetcode-pwa-backup-' + Store.todayStr() + '.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
-    } catch (err) {
-      alert('导出失败：' + err.message);
-    }
-  }
-  function setupDownload() {
-    var btn = $('installBtn');
-    if (!btn) return;
-    btn.title = '导出备份';
-    btn.addEventListener('click', exportBackup);
-  }
-
   // ---------- 启动 ----------
   window.addEventListener('hashchange', function () { router(); scrollTop(); });
   document.addEventListener('DOMContentLoaded', function () {
     fetchIndex().then(function () { router(); }).catch(function () { router(); });
     registerSW();
-    setupDownload();
+    wireBackup();
   });
 })();

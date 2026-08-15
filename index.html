@@ -30,13 +30,7 @@
           <span class="brand-slogan">题海翻遍千行泪，AC难求一寸光</span>
         </span>
       </a>
-      <button class="dl-btn" id="installBtn" type="button" aria-label="导出备份" title="导出备份">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 3v12"></path>
-          <path d="M7 11l5 5 5-5"></path>
-          <path d="M5 21h14"></path>
-        </svg>
-      </button>
+      <button class="add-btn" id="backupBtn" type="button" aria-label="数据备份" title="数据备份">＋</button>
     </div>
     <nav class="nav">
       <a href="#/list" data-nav="list">题目</a>
@@ -45,6 +39,17 @@
   </header>
 
   <main id="app">加载中…</main>
+
+  <div class="action-sheet-backdrop" id="backupSheet" hidden>
+    <div class="action-sheet">
+      <div class="action-sheet-handle"></div>
+      <div class="action-sheet-title">数据备份</div>
+      <button class="action-sheet-item" data-act="export">⬇︎ 导出全部记录 (JSON)</button>
+      <label class="action-sheet-item" data-act="import">⬆︎ 导入 JSON 备份<input type="file" id="fileImport" accept="application/json" hidden /></label>
+      <button class="action-sheet-item danger" data-act="clear">🗑 清空全部记录</button>
+      <button class="action-sheet-item cancel" data-act="cancel">取消</button>
+    </div>
+  </div>
 
   <script src="js/vendor/chart.min.js"></script>
   <script src="js/store.js"></script>
