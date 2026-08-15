@@ -84,8 +84,8 @@
     }));
   }
 
-  // GitHub 暗色 5 级绿阶（0 = 空）
-  var GH_GREEN = ['rgba(255,255,255,0.04)', '#0e4429', '#006d32', '#26a641', '#39d353'];
+  // GitHub 暗色 5 级配色（0 = 空，1-4 = 活跃度递增）
+  var GH_GREEN = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
   var MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
   function levelOf(n) {
     if (n <= 0) return 0;
@@ -134,7 +134,7 @@
         } else {
           var cnt = (checkins[key] || []).length;
           var lvl = levelOf(cnt);
-          cells += '<div class="gh-cell" style="background:' + GH_GREEN[lvl] + ';border:1px solid rgba(255,255,255,0.08)" title="' + key + '：' + cnt + ' 题"></div>';
+          cells += '<div class="gh-cell" style="background:' + GH_GREEN[lvl] + '" title="' + key + '：' + cnt + ' 题"></div>';
         }
       }
     }
@@ -144,7 +144,7 @@
     var daysHtml = dayLabels.map(function (t) { return '<span class="gh-day">' + t + '</span>'; }).join('');
 
     var legendCells = GH_GREEN.map(function (c) {
-      return '<span class="gh-cell" style="background:' + c + ';border:1px solid rgba(255,255,255,0.08)"></span>';
+      return '<span class="gh-cell" style="background:' + c + '"></span>';
     }).join('');
 
     var html =
@@ -152,7 +152,10 @@
         '<div class="gh-top"><div class="gh-spacer"></div><div class="gh-months">' + monthsHtml + '</div></div>' +
         '<div class="gh-main"><div class="gh-days">' + daysHtml + '</div><div class="gh-grid">' + cells + '</div></div>' +
       '</div></div>' +
-      '<div class="heat-legend">少' + legendCells + '多</div>';
+      '<div class="heat-foot">' +
+        '<span></span>' +
+        '<span class="heat-legend">少' + legendCells + '多</span>' +
+      '</div>';
 
     document.getElementById('heat').innerHTML = html;
   }
