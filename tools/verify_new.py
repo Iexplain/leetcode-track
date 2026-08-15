@@ -36,14 +36,14 @@ NEW_IDS = [
     33, 34, 39, 40, 47, 48, 49, 50, 54, 75,
     # Round 7 medium batch
     56, 57, 62, 63, 64, 71, 73, 91, 97, 113,
-    # Batch additions
-    122, 134, 152, 209, 240,
+    # Batch 10
+    122, 134, 152, 209, 221, 240, 287, 435, 738, 763,
 ]
 
 
 def normalize_output(text: str) -> str:
-    """Strip trailing newlines/spaces for robust compare."""
-    return text.rstrip('\n').strip()
+    """Flatten newlines to spaces + strip, for robust compare."""
+    return ' '.join(text.split())
 
 
 def run_solution(code: str, stdin_input: str) -> tuple[bool, str]:

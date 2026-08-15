@@ -1,0 +1,52 @@
+{
+  "id": 287,
+  "title": "寻找重复数",
+  "titleEn": "Find the Duplicate Number",
+  "difficulty": "中等",
+  "tags": [
+    "位运算",
+    "数组",
+    "双指针"
+  ],
+  "description": "给定包含 n + 1 个整数的数组 nums,其数字都在 [1, n] 范围内（含），可知至少有一个重复数字。返回这个重复数字。不能修改原数组且只用 O(1) 额外空间。",
+  "examples": [
+    {
+      "input": "6\n1 3 4 2 2",
+      "output": "2",
+      "explanation": "2 重复。"
+    },
+    {
+      "input": "2\n1 1",
+      "output": "1",
+      "explanation": "n=1, [1,1] 重复 1。"
+    },
+    {
+      "input": "5\n3 1 3 4 2",
+      "output": "3",
+      "explanation": "3 重复。"
+    }
+  ],
+  "constraints": [
+    "1 <= n + 1 <= 10^5",
+    "nums[i] in [1, n]",
+    "只有一个重复数字，但可能重复多次"
+  ],
+  "ioFormat": "第一行 n+1（元素数）,第二行 n+1 个整数。输出重复的那个数字。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 set 记录已访问元素,出现重复即返回。O(n) 时间、O(n) 空间，但允许使用 O(n) 空间。",
+      "code": "import sys\n\ndef find_brute(nums):\n    seen = set()\n    for x in nums:\n        if x in seen: return x\n        seen.add(x)\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "Floyd 判圈:把数组看成链表 nums[i] -> nums[nums[i]]。重复 ⇒ 必有环。从 start 与 nums[start] 同时出发,相遇点后,start 回到 0,慢指针从相遇点出发,相遇即重复。O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef find_opt(nums):\n    slow = fast = nums[0]\n    while True:\n        slow = nums[slow]\n        fast = nums[nums[fast]]\n        if slow == fast: break\n    slow = nums[0]\n    while slow != fast:\n        slow = nums[slow]\n        fast = nums[fast]\n    return slow\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "二分搜索答案:在 [1, n] 区间上二分,统计 ≤mid 的数量 cnt;若 cnt > mid 表示重复在 [lo, mid] 中。O(n log n) 时间、O(1) 空间,且满足\"不修改原数组\"。",
+      "code": "import sys\n\ndef find_best(nums):\n    n = len(nums) - 1\n    lo, hi = 1, n\n    while lo < hi:\n        mid = (lo + hi) // 2\n        cnt = sum(1 for x in nums if x <= mid)\n        if cnt > mid:\n            hi = mid\n        else:\n            lo = mid + 1\n    return lo\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_best(nums))\n"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": 738,
+  "title": "单调递增的数字",
+  "titleEn": "Monotone Increasing Digits",
+  "difficulty": "中等",
+  "tags": [
+    "贪心",
+    "数学"
+  ],
+  "description": "给定一个非负整数 N,找出满足单调递增（每位数字从左到右非递减）的、≤ N 的最大整数。返回最大整数。",
+  "examples": [
+    {
+      "input": "332",
+      "output": "299",
+      "explanation": "299 是 ≤ 332 且单调递增的最大整数。"
+    },
+    {
+      "input": "1234",
+      "output": "1234",
+      "explanation": "已单调递增。"
+    },
+    {
+      "input": "10",
+      "output": "9",
+      "explanation": "9 是最大。"
+    }
+  ],
+  "constraints": [
+    "0 <= N <= 10^9"
+  ],
+  "ioFormat": "输入整数 N。输出最大单调递增整数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "从 N 向下逐个检查单调性。O(N·digits),n=10^9 实际可接受但慢。",
+      "code": "import sys\n\ndef mono_brute(n):\n    def ok(x):\n        last = 10\n        while x:\n            d = x % 10\n            if d > last: return False\n            last = d\n            x //= 10\n        return True\n    while n >= 0:\n        if ok(n): return n\n        n -= 1\n    return 0\n\nif __name__ == '__main__':\n    n = int(sys.stdin.readline().strip())\n    print(mono_brute(n))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "贪心:把 N 转字符串,从右扫描;一旦 nums[i] > nums[i+1] 说明需要减一,记录 mark = i;然后把 mark 之后的所有位置填 9。O(digits)。",
+      "code": "import sys\n\ndef mono_opt(n):\n    s = list(str(n))\n    mark = len(s)\n    for i in range(len(s) - 1, 0, -1):\n        if s[i] < s[i - 1]:\n            s[i - 1] = str(int(s[i - 1]) - 1)\n            mark = i\n    if mark < len(s):\n        for i in range(mark, len(s)):\n            s[i] = '9'\n    return int(''.join(s))\n\nif __name__ == '__main__':\n    n = int(sys.stdin.readline().strip())\n    print(mono_opt(n))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上微调:遇到 s[i] < s[i-1] 时 mark = i;循环结束后统一把 mark 之后全置 9。代码最紧凑。",
+      "code": "import sys\n\ndef mono_best(n):\n    s = list(str(n))\n    n_len = len(s)\n    for i in range(n_len - 1, 0, -1):\n        if s[i] < s[i - 1]:\n            s[i - 1] = str(int(s[i - 1]) - 1)\n            mark = i\n    if 'mark' not in dir():\n        return n\n    for i in range(mark, n_len):\n        s[i] = '9'\n    return int(''.join(s))\n\nif __name__ == '__main__':\n    n = int(sys.stdin.readline().strip())\n    print(mono_best(n))\n"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": 279,
+  "title": "完全平方数",
+  "titleEn": "Perfect Squares",
+  "difficulty": "中等",
+  "tags": ["广度优先搜索", "数学", "动态规划"],
+  "description": "给定正整数 n,找到若干个完全平方数 (1, 4, 9, ...) 使其和等于 n。要求个数最少。",
+  "examples": [
+    {
+      "input": "12",
+      "output": "3",
+      "explanation": "12 = 4+4+4。"
+    },
+    {
+      "input": "13",
+      "output": "2",
+      "explanation": "13 = 4+9。"
+    },
+    {
+      "input": "1",
+      "output": "1",
+      "explanation": "1 = 1。"
+    }
+  ],
+  "constraints": [
+    "1 <= n <= 10^4"
+  ],
+  "ioFormat": "输入一个整数 n。输出最少个数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "BFS:状态为剩余数,每次用 (1..sqrt(remain)^2) 之一减去;层数即次数。O(2^sqrt(n)) 时间,可剪枝改进。",
+      "code": "import sys\nfrom collections import deque\n\ndef num_squares_brute(n):\n    if n == 0: return 0\n    if int(n ** 0.5) ** 2 == n: return 1\n    sqrs = [i * i for i in range(1, int(n ** 0.5) + 1)]\n    q = deque([n])\n    levels = {n: 1}\n    while q:\n        m = q.popleft()\n        for s in sqrs:\n            if m - s < 0: continue\n            if m - s == 0: return levels[m]\n            if m - s not in levels:\n                levels[m - s] = levels[m] + 1\n                q.append(m - s)\n    return 0\n\nif __name__ == '__main__':\n    n = int(sys.stdin.readline().strip())\n    print(num_squares_brute(n))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "DP:dp[i] = min over sq²≤i (dp[i-sq²]+1)。O(n·sqrt(n)) 时间;sqrt(4n) 定理保证 dp[n] ≤ 4。",
+      "code": "import sys\n\ndef num_squares_opt(n):\n    dp = [0] * (n + 1)\n    sqrs = [i * i for i in range(1, int(n ** 0.5) + 1)]\n    for i in range(1, n + 1):\n        dp[i] = float('inf')\n        for s in sqrs:\n            if s > i: break\n            dp[i] = min(dp[i], dp[i - s] + 1)\n    return dp[n]\n\nif __name__ == '__main__':\n    n = int(sys.stdin.readline().strip())\n    print(num_squares_opt(n))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "基于 Legendre 三平方定理:n 是完全平方数 → 1;n=4^a(8b+7) → 4;否则 n=2 平方或 3 平方之数;直接公式 O(1)。",
+      "code": "import sys\n\ndef num_squares_best(n):\n    import math\n    sq = int(math.isqrt(n))\n    if sq * sq == n:\n        return 1\n    m = n\n    while m % 4 == 0:\n        m //= 4\n    if m % 8 == 7:\n        return 4\n    for i in range(1, int(math.isqrt(n)) + 1):\n        s = i * i\n        d = int(math.isqrt(n - s))\n        if d * d + s == n:\n            return 2 if i > 0 or d > 0 else 1\n    return 3\n\nif __name__ == '__main__':\n    n = int(sys.stdin.readline().strip())\n    print(num_squares_best(n))\n"
+    }
+  ]
+}

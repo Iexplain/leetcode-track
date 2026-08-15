@@ -1,0 +1,48 @@
+{
+  "id": 435,
+  "title": "无重叠区间",
+  "titleEn": "Non-overlapping Intervals",
+  "difficulty": "中等",
+  "tags": ["数组", "贪心"],
+  "description": "给定区间集合 intervals,返回使剩余区间互不重叠所需移除的最小区间数。",
+  "examples": [
+    {
+      "input": "4\n1 2\n2 3\n3 4\n1 3",
+      "output": "1",
+      "explanation": "移除 [1,3] 即无重叠。"
+    },
+    {
+      "input": "2\n1 2\n1 2",
+      "output": "1",
+      "explanation": "移除其一。"
+    },
+    {
+      "input": "0",
+      "output": "0",
+      "explanation": "无区间。"
+    }
+  ],
+  "constraints": [
+    "1 <= intervals.length <= 10^5",
+    "intervals[i].length == 2",
+    "-5 * 10^4 <= starti < endi <= 5 * 10^4"
+  ],
+  "ioFormat": "第一行 n,接着 n 行两个整数。输出一行一个整数表示最少移除数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "区间调度经典贪心:按 end 升序排序;遍历取互不重叠的最多数,ans = 总数 - 取到的数。O(n log n) 时间。",
+      "code": "import sys\n\ndef erase_ov(ints):\n    if len(ints) == 0: return 0\n    ints = sorted(ints)\n    end = floats('-inf') if False else -10**9\n    keep = 0\n    for s, e in ints:\n        if s >= end:\n            keep += 1\n            end = e\n    return len(ints) - keep\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(0); sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        ints.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    print(erase_ov(ints))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "同贪心,但用绝对 end 作为哨兵;逻辑与暴力相同。",
+      "code": "import sys\n\ndef erase_opt(ints):\n    if not ints: return 0\n    ints = sorted(ints)\n    end = -10 ** 9\n    keep = 0\n    for s, e in ints:\n        if s >= end:\n            keep += 1\n            end = e\n    return len(ints) - keep\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(0); sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        ints.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    print(erase_opt(ints))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与“优化”同算法,但用 -1e9 表示无穷小,直接省去 len(ints)==0 边界处理。写法一致。",
+      "code": "import sys\n\ndef erase_best(ints):\n    if not ints: return 0\n    ints = sorted(ints)\n    end = -10 ** 9\n    keep = 0\n    for s, e in ints:\n        if s >= end:\n            keep += 1\n            end = e\n    return len(ints) - keep\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        print(0); sys.exit(0)\n    n = int(data[0])\n    ints = []\n    idx = 1\n    for _ in range(n):\n        ints.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    print(erase_best(ints))\n"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": 763,
+  "title": "划分字母区间",
+  "titleEn": "Partition Labels",
+  "difficulty": "中等",
+  "tags": ["贪心", "哈希表", "双指针"],
+  "description": "字符串 S 由小写字母组成。要把字符串划分成尽量多的片段,同一字母最多出现在一个片段中。返回每个片段的长度列表。",
+  "examples": [
+    {
+      "input": "ababcbacadefegdehijhklij",
+      "output": "9 7 8",
+      "explanation": "划分: 'ababcbaca', 'defegde', 'hijhklij'。"
+    },
+    {
+      "input": "eccbbbbdec",
+      "output": "10",
+      "explanation": "整个串为一个片段。"
+    }
+  ],
+  "constraints": [
+    "1 <= S.length <= 500",
+    "S 仅含小写英文字母"
+  ],
+  "ioFormat": "输入一行字符串 S。输出若干行,每行一个片段长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举每段长度+逐段验证:扫描片段内每个字母,看它在片段之后是否还出现。O(n²) 时间,常数小,但 n=500 足够用。",
+      "code": "import sys\n\ndef partition_brute(S):\n    n = len(S)\n    res = []\n    i = 0\n    while i < n:\n        seen = set()\n        j = i\n        while j < n:\n            seen.add(S[j])\n            end = max(S.rfind(c) for c in seen)\n            if end == j:\n                res.append(end - i + 1)\n                i = end + 1\n                break\n            j += 1\n    return res\n\nif __name__ == '__main__':\n    S = sys.stdin.readline().strip()\n    for x in partition_brute(S):\n        print(x)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "先记录每个字符的最远出现下标;然后扫描,凡是当前 end == i 即可切。O(n) 时间、O(1) 额外空间。",
+      "code": "import sys\n\ndef partition_opt(S):\n    n = len(S)\n    last = {c: i for i, c in enumerate(S)}\n    res = []\n    end = start = 0\n    for i, c in enumerate(S):\n        end = max(end, last[c])\n        if i == end:\n            res.append(end - start + 1)\n            start = end + 1\n    return res\n\nif __name__ == '__main__':\n    S = sys.stdin.readline().strip()\n    for x in partition_opt(S):\n        print(x)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与“优化”同一算法,仅变量名紧凑些。最优在于变量命名,无功能升级。",
+      "code": "import sys\n\ndef partition_best(S):\n    last = {c: i for i, c in enumerate(S)}\n    res = []\n    e = b = 0\n    for i, c in enumerate(S):\n        e = max(e, last[c])\n        if i == e:\n            res.append(e - b + 1)\n            b = e + 1\n    return res\n\nif __name__ == '__main__':\n    S = sys.stdin.readline().strip()\n    for x in partition_best(S):\n        print(x)\n"
+    }
+  ]
+}
