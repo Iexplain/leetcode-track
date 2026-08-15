@@ -216,7 +216,6 @@
 
   function renderProblemDetail(p) {
     var solved = Store.isSolved(p.id);
-    var needReview = Store.isReviewScheduled(p.id);
 
     var examples = (p.examples || []).map(function (ex, i) {
       return '<div class="ex">' +
@@ -260,6 +259,7 @@
       '<div class="prob">' +
       '<div class="prob-head">' +
       '<div class="prob-title">' + esc(p.title) + '</div>' +
+      '<button id="checkinBtn" class="btn prob-checkin ' + (solved ? 'btn-done' : '') + '">' + (solved ? '✓ 已打卡' : '打卡') + '</button>' +
       '<div class="prob-sub"><span class="num">#' + p.id + '</span> · <span class="diff ' + diffClass(p.difficulty) + '">' + esc(p.difficulty) + '</span> · ' + esc(p.titleEn || '') + '</div>' +
       '<div class="prob-tags">' + (p.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' +
       '</div>' +
@@ -268,16 +268,10 @@
       (examples ? '<div class="ex-list">' + examples + '</div>' : '') +
       (constraints ? '<div class="cons"><b>约束：</b><ul>' + constraints + '</ul></div>' : '') +
       '<div class="sol">' +
-      '<div class="sol-title">三种解法 <span class="sol-hint">逐层解锁 · 先暴力，后最优</span></div>' +
       '<div class="sol-tabs">' + solTabs + '</div>' +
       '<div class="sol-stage">' + solCards + '</div>' +
       '</div>' +
       '<div class="action">' +
-      (solved
-        ? '<button id="checkinBtn" class="btn btn-done">✓ 已打卡</button>' +
-          '<button id="reviewToggle" class="btn ' + (needReview ? 'btn-done' : 'btn-warn') + '">' + (needReview ? '✓ 已设复习计划' : '看题解才懂') + '</button>'
-        : '<button id="checkinBtn" class="btn">打卡</button>' +
-          '<button id="reviewMark" class="btn btn-warn">看题解才懂</button>') +
       '<a class="btn btn-ghost" href="#/stats">查看统计</a>' +
       '</div>' +
       '</div>';
@@ -333,42 +327,21 @@
       });
     });
 
-    // 打卡：仅标记已做，不触发复习
+    // 打卡：标记已做，并按艾宾浩斯曲线入待复习（取消打卡时一并取消复习）
     var btn = $('checkinBtn');
     btn.addEventListener('click', function () {
       var level = '';
       for (var li = sols.length - 1; li >= 0; li--) { if (unlockedSet.has(li)) { level = sols[li].level; break; } }
       var wasSolved = Store.isSolved(p.id);
       Store.toggleSolved(p.id, level);
-      // 取消已做时，连带移除其复习计划
-      if (wasSolved && !Store.isSolved(p.id) && Store.isReviewScheduled(p.id)) {
-        Store.cancelReview(p.id);
+      if (wasSolved) {
+        // 取消打卡：连带取消复习计划
+        if (Store.isReviewScheduled(p.id)) Store.cancelReview(p.id);
+      } else {
+        // 首次打卡：按艾宾浩斯曲线入待复习（+1/+3/+7/...）
+        Store.markNeedsReview(p.id, { title: p.title, difficulty: p.difficulty });
       }
       renderProblemDetail(p); // 刷新状态
-    });
-
-    // 看题解才懂：标记已做 + 启动艾宾浩斯复习计划（+1/+3/+7 天）
-    var rm = $('reviewMark');
-    if (rm) rm.addEventListener('click', function () {
-      var level = '';
-      for (var li = sols.length - 1; li >= 0; li--) { if (unlockedSet.has(li)) { level = sols[li].level; break; } }
-      Store.toggleSolved(p.id, level);
-      Store.markNeedsReview(p.id, { title: p.title, difficulty: p.difficulty });
-      renderProblemDetail(p);
-    });
-
-    // 已做状态下：切换/取消复习计划
-    var rt = $('reviewToggle');
-    if (rt) rt.addEventListener('click', function () {
-      if (Store.isReviewScheduled(p.id)) {
-        if (confirm('取消该题的复习计划？已完成的复习进度将清除。')) {
-          Store.cancelReview(p.id);
-          renderProblemDetail(p);
-        }
-      } else {
-        Store.markNeedsReview(p.id, { title: p.title, difficulty: p.difficulty });
-        renderProblemDetail(p);
-      }
     });
   }
 
