@@ -101,9 +101,11 @@
       maybeRenderIosHint() +
       '<div class="toolbar">' +
       '<input id="search" class="search" placeholder="搜索题号 / 标题" value="' + esc(state.search) + '" />' +
-      '<div class="chips" id="diffChips"></div>' +
+      '<div class="filter-row">' +
+        '<div class="chips" id="diffChips"></div>' +
+        '<button type="button" class="toggle-only' + (state.onlyUnsolved ? ' on' : '') + '" id="onlyUnsolved" aria-pressed="' + state.onlyUnsolved + '">仅未做</button>' +
+      '</div>' +
       '<div class="chips" id="tagChips"></div>' +
-      '<label class="switch"><input type="checkbox" id="onlyUnsolved" ' + (state.onlyUnsolved ? 'checked' : '') + ' /> 仅未做</label>' +
       '</div>' +
       '<div id="listBody" class="list">加载中…</div>' +
       '</div>';
@@ -146,8 +148,10 @@
       state.search = e.target.value;
       drawList();
     });
-    $('onlyUnsolved').addEventListener('change', function (e) {
-      state.onlyUnsolved = e.target.checked;
+    $('onlyUnsolved').addEventListener('click', function (e) {
+      state.onlyUnsolved = !state.onlyUnsolved;
+      e.currentTarget.classList.toggle('on', state.onlyUnsolved);
+      e.currentTarget.setAttribute('aria-pressed', String(state.onlyUnsolved));
       drawList();
     });
 
