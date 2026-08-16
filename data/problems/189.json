@@ -1,0 +1,47 @@
+{
+  "id": 189,
+  "title": "轮转数组",
+  "titleEn": "Rotate Array",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "数学",
+    "双指针"
+  ],
+  "description": "给定整数数组 nums,向右轮转 k 步使数组变为 [nums[k], nums[k+1], ..., nums[0], nums[1], ...]。原地 O(1) 额外空间。",
+  "examples": [
+    {
+      "input": "7 3\\n1 2 3 4 5 6 7",
+      "output": "5 6 7 1 2 3 4",
+      "explanation": "n=7,k=3 轮转 3 步:[5,6,7,1,2,3,4]。"
+    },
+    {
+      "input": "4 2\n-1 -100 3 99",
+      "output": "3 99 -1 -100",
+      "explanation": "向右轮转 2 步。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^5",
+    "0 <= k <= 10^5",
+    "-2^31 <= nums[i] <= 2^31 - 1"
+  ],
+  "ioFormat": "第一行 n k；第二行 n 个整数。输出右轮转 k 步后的数组（空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用额外数组把 nums[i+k%n] 放到 i 位置然后复用回原数组。O(n) 时间、O(n) 空间。",
+      "code": "import sys\n\ndef rotate_brute(nums, k):\n    n = len(nums)\n    k = k % n\n    tmp = nums[:]\n    for i in range(n):\n        nums[i] = tmp[(i - k) % n]\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, rotate_brute(nums, k))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "三次翻转:全数组翻转,再翻转前 k,再翻转剩余 n-k。原地 O(1) 额外空间。",
+      "code": "import sys\n\ndef rotate_opt(nums, k):\n    n = len(nums)\n    k = k % n\n    nums.reverse()\n    nums[:k] = list(reversed(nums[:k]))\n    nums[k:] = list(reversed(nums[k:]))\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, rotate_opt(nums, k))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用辅助函数 reverse(l, r):每次原地 swap l/r 直到 l >= r。三次同样的子函数,代码比显式切片更工程化、更易读。",
+      "code": "import sys\n\ndef reverse_range(nums, l, r):\n    while l < r:\n        nums[l], nums[r] = nums[r], nums[l]\n        l += 1\n        r -= 1\n\ndef rotate_best(nums, k):\n    n = len(nums)\n    k = k % n\n    reverse_range(nums, 0, n - 1)\n    reverse_range(nums, 0, k - 1)\n    reverse_range(nums, k, n - 1)\n    return nums\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, rotate_best(nums, k))))\n"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": 503,
+  "title": "下一个更大元素 II",
+  "titleEn": "Next Greater Element II",
+  "difficulty": "中等",
+  "tags": ["数组", "栈", "单调栈"],
+  "description": "给定循环数组 nums,返回每个元素的下一个更大元素（如果不存在返回 -1）。",
+  "examples": [
+    {
+      "input": "3\n1 2 1",
+      "output": "2 -1 2",
+      "explanation": "0→2, 1→无(=2 之后无更大), 2→wrap 到 0 的 1 不行 → wrap 到 1 的 2。"
+    },
+    {
+      "input": "4\n1 2 3 4",
+      "output": "2 3 4 -1",
+      "explanation": "标准单调递增序列。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^4",
+    "-10^9 <= nums[i] <= 10^9"
+  ],
+  "ioFormat": "第一行 n,第二行 n 个整数。输出 n 个整数（每个位置的下一个更大元素,无则 -1）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个 i 向右搜索,直到 wrap 一次到结束仍未找到则 -1。O(n²) 时间。",
+      "code": "import sys\n\ndef next_greater_brute(nums):\n    n = len(nums)\n    res = [-1] * n\n    for i in range(n):\n        for k in range(1, n + 1):\n            j = (i + k) % n\n            if nums[j] > nums[i]:\n                res[i] = nums[j]\n                break\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, next_greater_brute(nums))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "单调栈:把数组长度翻倍模拟循环,栈维护递减下标。每当新元素 > 栈顶,栈顶位置的答案就确定了。O(n) 时间。",
+      "code": "import sys\n\ndef next_greater_opt(nums):\n    n = len(nums)\n    res = [-1] * n\n    stack = []\n    for i in range(2 * n):\n        x = nums[i % n]\n        while stack and x > nums[stack[-1]]:\n            res[stack.pop()] = x\n        if i < n:\n            stack.append(i)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, next_greater_opt(nums))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与“优化”思路相同,只是 i < n 限制入栈可省略,改用 in_stack 集合防止重复入栈。",
+      "code": "import sys\n\ndef next_greater_best(nums):\n    n = len(nums)\n    res = [-1] * n\n    stack = []\n    in_stack = [False] * n\n    for i in range(2 * n):\n        x = nums[i % n]\n        while stack and x > nums[stack[-1]]:\n            j = stack.pop(); res[j] = x; in_stack[j] = False\n        if i < n and not in_stack[i]:\n            stack.append(i); in_stack[i] = True\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, next_greater_best(nums))))\n"
+    }
+  ]
+}

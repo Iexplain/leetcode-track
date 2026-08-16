@@ -1,0 +1,43 @@
+{
+  "id": 1004,
+  "title": "最大连续1的个数 III",
+  "titleEn": "Max Consecutive Ones III",
+  "difficulty": "中等",
+  "tags": ["数组", "二分查找", "前缀和", "滑动窗口"],
+  "description": "给定二进制数组 nums 与整数 k,可将最多 k 个 0 翻为 1。返回数组中连续 1 的最大长度。",
+  "examples": [
+    {
+      "input": "8 1\n1 1 0 1 1 1 1 1",
+      "output": "6",
+      "explanation": "[1,1,1,1,1,1] (翻转中间 0)。"
+    },
+    {
+      "input": "4 2\n0 0 1 1",
+      "output": "4",
+      "explanation": "翻转两个 0 后全 1。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^5",
+    "nums[i] 是 0 或 1",
+    "0 <= k <= nums.length"
+  ],
+  "ioFormat": "第一行 n k;第二行 n 个 0/1。输出最大连续 1 长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举起点 i、终点 j,检查区间内 0 的数量 ≤ k。O(n²) 时间,n=10^5 时会超时。",
+      "code": "import sys\n\ndef longest_brute(nums, k):\n    n = len(nums)\n    best = 0\n    for i in range(n):\n        zeros = 0\n        for j in range(i, n):\n            if nums[j] == 0: zeros += 1\n            if zeros > k: break\n            if j - i + 1 > best: best = j - i + 1\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(longest_brute(nums, k))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "滑动窗口:维护 l、r 之间的 0 计数 ≤ k,扩 r 满则缩 l。O(n) 时间。",
+      "code": "import sys\n\ndef longest_opt(nums, k):\n    n = len(nums)\n    best = l = zeros = 0\n    for r in range(n):\n        if nums[r] == 0: zeros += 1\n        while zeros > k:\n            if nums[l] == 0: zeros -= 1\n            l += 1\n        if r - l + 1 > best: best = r - l + 1\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(longest_opt(nums, k))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上把 while 循环包在 for 中,只扩张 r 一次,或采用 deque 优化常数。代码逻辑相同,写法更紧凑。",
+      "code": "import sys\n\ndef longest_best(nums, k):\n    l = zeros = 0\n    for r, x in enumerate(nums):\n        if x == 0: zeros += 1\n        if zeros > k:\n            if nums[l] == 0: zeros -= 1\n            l += 1\n    return len(nums) - l\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(longest_best(nums, k))\n"
+    }
+  ]
+}

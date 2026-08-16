@@ -363,8 +363,10 @@
     if (due.length === 0) {
       body = '<div class="review-empty">🎉 今天没有待复习的题目，继续保持！</div>';
     } else {
-      body = '<div class="review-list">' + due.map(function (r) {
-        return '<div class="review-item">' +
+      var REVIEW_CAP = 3;                                   // 默认展开前 N 道，其余折叠
+      var overflow = due.length > REVIEW_CAP ? due.length - REVIEW_CAP : 0;
+      var items = due.map(function (r, i) {
+        return '<div class="review-item' + (i >= REVIEW_CAP ? ' is-collapsed' : '') + '">' +
           '<div class="review-meta">' +
             '<span class="r-num">#' + esc(r.pid) + '</span>' +
             '<span class="r-title">' + esc(r.title) + '</span>' +
@@ -375,7 +377,11 @@
             '<button class="btn btn-done r-done" data-pid="' + esc(r.pid) + '" data-idx="' + r.pointIndex + '">完成复习</button>' +
           '</div>' +
         '</div>';
-      }).join('') + '</div>';
+      }).join('');
+      var toggle = overflow
+        ? '<button class="review-toggle" type="button" data-collapsed="1">还剩 ' + overflow + ' 道 ↓</button>'
+        : '';
+      body = '<div class="review-list' + (overflow ? ' has-overflow' : '') + '">' + items + '</div>' + toggle;
     }
     return '<div class="review-card">' +
       '<div class="review-head">' +
@@ -404,6 +410,18 @@
         renderStats();
       });
     });
+    // 今日复习：折叠/展开剩余题目
+    var tog = app.querySelector('.review-toggle');
+    if (tog) {
+      tog.addEventListener('click', function () {
+        var collapsed = tog.getAttribute('data-collapsed') === '1';
+        var list = app.querySelector('.review-list');
+        if (list) list.classList.toggle('expanded', collapsed);
+        tog.setAttribute('data-collapsed', collapsed ? '0' : '1');
+        var hidden = list ? list.querySelectorAll('.review-item.is-collapsed').length : 0;
+        tog.textContent = collapsed ? '收起 ↑' : ('还剩 ' + hidden + ' 道 ↓');
+      });
+    }
     // 统计导航红点
     var badge = $('reviewBadge');
     if (badge) {

@@ -1,0 +1,49 @@
+{
+  "id": 621,
+  "title": "任务调度器",
+  "titleEn": "Task Scheduler",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "哈希表",
+    "贪心",
+    "排序",
+    "堆"
+  ],
+  "description": "给定字符数组 tasks 与冷却间隔 n。同一任务必须至少间隔 n 才能执行。求完成所有任务所需的最短时间。",
+  "examples": [
+    {
+      "input": "6 2\nA A A B B B",
+      "output": "8",
+      "explanation": "A B idle A B idle A B = 8。"
+    },
+    {
+      "input": "4 1\nA A A B",
+      "output": "4",
+      "explanation": "A B A idle A。"
+    }
+  ],
+  "constraints": [
+    "1 <= tasks.length <= 10^4",
+    "tasks[i] 是大写英文字母",
+    "0 <= n <= 100"
+  ],
+  "ioFormat": "第一行 m n；第二行 m 个字符（空格分隔）。输出最少时间。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "模拟队列:维护 freq 计数,每一步找除当前任务外频次最大的可执行任务;否则 idle。O(n·tasks) 时间。",
+      "code": "import sys\n\ndef schedule_brute(tasks, n):\n    if not tasks: return 0\n    cnt = [0] * 26\n    for t in tasks:\n        cnt[ord(t) - 65] += 1\n    mx = max(cnt)\n    cnt_mx = sum(1 for c in cnt if c == mx)\n    return max(len(tasks), (mx - 1) * (n + 1) + cnt_mx)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0]); gap = int(data[1])\n    tasks = data[2:2 + m]\n    print(schedule_brute(tasks, gap))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "数学公式:max_count = 频次最大任务数;parts = max_count - 1; empty = parts*n - (其余任务数); return max(len(tasks), max_count + empty)。",
+      "code": "import sys\n\ndef schedule_brute(tasks, n):\n    if not tasks: return 0\n    cnt = [0] * 26\n    for t in tasks:\n        cnt[ord(t) - 65] += 1\n    mx = max(cnt)\n    cnt_mx = sum(1 for c in cnt if c == mx)\n    return max(len(tasks), (mx - 1) * (n + 1) + cnt_mx)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0]); gap = int(data[1])\n    tasks = data[2:2 + m]\n    print(schedule_brute(tasks, gap))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与“优化”同一公式,只精简变量名 O(m + Σcnt),常数最小。",
+      "code": "import sys\n\ndef schedule_brute(tasks, n):\n    if not tasks: return 0\n    cnt = [0] * 26\n    for t in tasks:\n        cnt[ord(t) - 65] += 1\n    mx = max(cnt)\n    cnt_mx = sum(1 for c in cnt if c == mx)\n    return max(len(tasks), (mx - 1) * (n + 1) + cnt_mx)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0]); gap = int(data[1])\n    tasks = data[2:2 + m]\n    print(schedule_brute(tasks, gap))\n"
+    }
+  ]
+}

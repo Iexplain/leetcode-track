@@ -1,0 +1,43 @@
+{
+  "id": 238,
+  "title": "除自身以外数组的乘积",
+  "titleEn": "Product of Array Except Self",
+  "difficulty": "中等",
+  "tags": ["数组", "前缀和"],
+  "description": "给你一个整数数组 nums,返回数组 answer,其中 answer[i] 等于 nums 中除 nums[i] 之外其余各元素的乘积。不能使用除法。",
+  "examples": [
+    {
+      "input": "4\n1 2 3 4",
+      "output": "24 12 8 6",
+      "explanation": "除自身外乘积: 1×2×3×4/1=24 等。"
+    },
+    {
+      "input": "5\n-1 1 0 -3 3",
+      "output": "0 0 9 0 0",
+      "explanation": "中间有 0 时其它位置都为 0。"
+    }
+  ],
+  "constraints": [
+    "2 <= nums.length <= 10^5",
+    "-30 <= nums[i] <= 30",
+    "结果保证为 32 位整数"
+  ],
+  "ioFormat": "第一行 n,第二行 n 个整数。输出每个位置除自身外的乘积（空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个 i 计算所有 nums[j] (j≠i) 的积。O(n²) 时间,n=10^5 时超时。",
+      "code": "import sys\n\ndef product_brute(nums):\n    n = len(nums)\n    res = [1] * n\n    for i in range(n):\n        for j, x in enumerate(nums):\n            if i != j: res[i] *= x\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, product_brute(nums))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "两次前缀乘积:pre[i] = product(nums[0..i-1]);post[i] = product(nums[i+1..n-1]);res[i]=pre[i]*post[i]。O(n) 时间、O(n) 空间。",
+      "code": "import sys\n\ndef product_opt(nums):\n    n = len(nums)\n    pre = [1] * n\n    post = [1] * n\n    for i in range(1, n):\n        pre[i] = pre[i - 1] * nums[i - 1]\n    for i in range(n - 2, -1, -1):\n        post[i] = post[i + 1] * nums[i + 1]\n    return [pre[i] * post[i] for i in range(n)]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, product_opt(nums))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "只用 1 个结果数组 + 1 个 right 变量:res[i] = product of left, 累计 right 后再乘到 res。O(1) 额外空间,符合题目\"不能用除法\"的隐藏要求。",
+      "code": "import sys\n\ndef product_best(nums):\n    n = len(nums)\n    res = [1] * n\n    for i in range(1, n):\n        res[i] = res[i - 1] * nums[i - 1]\n    right = 1\n    for i in range(n - 1, -1, -1):\n        res[i] = res[i] * right\n        right *= nums[i]\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, product_best(nums))))\n"
+    }
+  ]
+}

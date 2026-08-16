@@ -1,0 +1,43 @@
+{
+  "id": 452,
+  "title": "用最少数量的箭引爆气球",
+  "titleEn": "Minimum Number of Arrows to Burst Balloons",
+  "difficulty": "中等",
+  "tags": ["数组", "贪心", "排序"],
+  "description": "二维平面上若干气球由 xstart, xend 表示,一支箭垂直射出可击破区间内所有气球。求击破所有气球所需最少箭数。",
+  "examples": [
+    {
+      "input": "4\n10 16\n2 8\n1 6\n7 12",
+      "output": "2",
+      "explanation": "射 6 与 11 即可。"
+    },
+    {
+      "input": "2\n1 2\n3 4",
+      "output": "2",
+      "explanation": "不重叠,2 支。"
+    }
+  ],
+  "constraints": [
+    "1 <= points.length <= 10^5",
+    "points[i].length == 2",
+    "-2^31 <= xstart < xend <= 2^31 - 1"
+  ],
+  "ioFormat": "第一行 n,接着 n 行两整数。输出最少箭数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "按 xend 升序排序:取第一个,移除与之重叠的;不重叠的+1,继续。O(n log n) 时间。",
+      "code": "import sys\n\ndef min_arrows_brute(pts):\n    pts = sorted(pts)\n    n = len(pts)\n    used = [False] * n\n    ans = 0\n    for i in range(n):\n        if used[i]: continue\n        ans += 1\n        for j in range(i + 1, n):\n            if not used[j] and pts[j][0] <= pts[i][1]:\n                used[j] = True\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pts = []\n    idx = 1\n    for _ in range(n):\n        pts.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    print(min_arrows_brute(pts))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "同样按 xend 排序,但用 end 指针遍历:若下一段 start > end 则需要新箭。O(n log n) 时间。",
+      "code": "import sys\n\ndef min_arrows_opt(pts):\n    if not pts: return 0\n    pts = sorted(pts)\n    ans = 1\n    end = pts[0][1]\n    for s, e in pts[1:]:\n        if s > end:\n            ans += 1\n            end = e\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pts = []\n    idx = 1\n    for _ in range(n):\n        pts.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    print(min_arrows_opt(pts))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与“优化”同算法;采用 sort(key=lambda x: x[1]) 形式更工程化。",
+      "code": "import sys\n\ndef min_arrows_best(pts):\n    if not pts: return 0\n    pts.sort(key=lambda x: x[1])\n    ans = 1\n    end = pts[0][1]\n    for s, e in pts[1:]:\n        if s > end:\n            ans += 1\n            end = e\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pts = []\n    idx = 1\n    for _ in range(n):\n        pts.append([int(data[idx]), int(data[idx + 1])])\n        idx += 2\n    print(min_arrows_best(pts))\n"
+    }
+  ]
+}

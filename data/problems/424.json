@@ -1,0 +1,43 @@
+{
+  "id": 424,
+  "title": "替换后的最长重复字符",
+  "titleEn": "Longest Repeating Character Replacement",
+  "difficulty": "中等",
+  "tags": ["字符串", "滑动窗口"],
+  "description": "给定字符串 s 与整数 k,可将字符串中至多 k 个字符改成任意其他字符,返回含有相同字母的最长子串长度。",
+  "examples": [
+    {
+      "input": "5 1\nAABAA",
+      "output": "5",
+      "explanation": "把 B 改 A -> AAAAA。"
+    },
+    {
+      "input": "1 0\nA",
+      "output": "1",
+      "explanation": "已单调。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 10^5",
+    "s 仅含大写英文字母",
+    "0 <= k <= s.length"
+  ],
+  "ioFormat": "第一行 n k;第二行字符串 s。输出最大长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举每段起点,扩到右,字符计数 + max_count > k 就 break。O(n²) 时间。",
+      "code": "import sys\n\ndef rep_brute(s, k):\n    n = len(s)\n    best = 0\n    for i in range(n):\n        cnt = {}\n        for j in range(i, n):\n            cnt[s[j]] = cnt.get(s[j], 0) + 1\n            others = (j - i + 1) - max(cnt.values())\n            if others > k: break\n            if j - i + 1 > best: best = j - i + 1\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    s = data[2] if len(data) > 2 else ''\n    print(rep_brute(s, k))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "滑动窗口:扩张 r,记录 max_count;若 r-l+1 - max_count > k 则缩 l。O(n) 时间。",
+      "code": "import sys\n\ndef rep_opt(s, k):\n    cnt = {}\n    best = l = 0\n    for r, ch in enumerate(s):\n        cnt[ch] = cnt.get(ch, 0) + 1\n        if r - l + 1 - max(cnt.values()) > k:\n            cnt[s[l]] -= 1\n            l += 1\n        best = max(best, r - l + 1)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    s = data[2] if len(data) > 2 else ''\n    print(rep_opt(s, k))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”基础上维护 only max_count 不需要每次重算:对 r 字符 +1,若 r-l+1 - max_count > k 缩 l。O(n) 时间 O(1) 空间。",
+      "code": "import sys\n\ndef rep_best(s, k):\n    cnt = [0] * 26\n    best = l = 0\n    max_count = 0\n    for r, ch in enumerate(s):\n        idx = ord(ch) - ord('A')\n        cnt[idx] += 1\n        if cnt[idx] > max_count: max_count = cnt[idx]\n        if r - l + 1 - max_count > k:\n            cnt[ord(s[l]) - ord('A')] -= 1\n            l += 1\n    return len(s) - l\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    s = data[2] if len(data) > 2 else ''\n    print(rep_best(s, k))\n"
+    }
+  ]
+}

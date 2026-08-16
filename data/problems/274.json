@@ -1,0 +1,48 @@
+{
+  "id": 274,
+  "title": "H 指数",
+  "titleEn": "H-Index",
+  "difficulty": "中等",
+  "tags": ["数组", "排序", "计数排序"],
+  "description": "给定研究者论文被引次数数组 citations,其中 citations[i] 表示第 i 篇论文的引用次数。h 指数是最大 h 使得有 h 篇论文至少各被引用 h 次。",
+  "examples": [
+    {
+      "input": "5\n3 0 6 1 5",
+      "output": "3",
+      "explanation": "至少 3 篇引用次数 ≥ 3。"
+    },
+    {
+      "input": "1\n1",
+      "output": "1",
+      "explanation": "1 篇至少引用 1 次。"
+    },
+    {
+      "input": "3\n0 0 0",
+      "output": "0",
+      "explanation": "全 0 引用,h=0。"
+    }
+  ],
+  "constraints": [
+    "n == citations.length",
+    "1 <= n <= 5000",
+    "0 <= citations[i] <= 1000"
+  ],
+  "ioFormat": "第一行 n,第二行 n 个整数（引用次数）。输出 H 指数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举 h:判断引用次数 ≥ h 的论文数是否 ≥ h。O(n²) 时间。",
+      "code": "import sys\n\ndef h_brute(c):\n    n = len(c)\n    for h in range(n, -1, -1):\n        if sum(1 for x in c if x >= h) >= h:\n            return h\n    return 0\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    c = list(map(int, data[1:1 + n]))\n    print(h_brute(c))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "降序排序后:最大 i 使得 citations[i] >= i+1 即 h。O(n log n) 时间。",
+      "code": "import sys\n\ndef h_opt(c):\n    c = sorted(c, reverse=True)\n    h = 0\n    for i, x in enumerate(c):\n        if x >= i + 1:\n            h = i + 1\n        else:\n            break\n    return h\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    c = list(map(int, data[1:1 + n]))\n    print(h_opt(c))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "计数排序:计数 cnt[cite] = cite 出现次数;再从大到小累加,首次 sum >= cite+1 即 h。O(n + max_cite) 时间,适合小值域。",
+      "code": "import sys\n\ndef h_best(c):\n    n = len(c)\n    max_c = max(c)\n    cnt = [0] * (max_c + 1)\n    for x in c:\n        cnt[x] += 1\n    s = 0\n    for cite in range(max_c, -1, -1):\n        s += cnt[cite]\n        if s >= cite:\n            return cite\n    return 0\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    c = list(map(int, data[1:1 + n]))\n    print(h_best(c))\n"
+    }
+  ]
+}
