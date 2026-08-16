@@ -3,12 +3,17 @@
   "title": "填充每个节点的下一个右侧节点指针",
   "titleEn": "Populating Next Right Pointers in Each Node",
   "difficulty": "中等",
-  "tags": ["树", "深度优先搜索", "广度优先搜索", "二叉树"],
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "广度优先搜索",
+    "二叉树"
+  ],
   "description": "给定一个完美二叉树，其中所有叶子节点都在同一层，每个父节点都有两个子节点。每个节点应额外包含 next 指针，初始为 NULL，要被填充为指向其右侧节点（若没有则为 NULL）。要求只用 O(1) 额外空间（递归栈除外）。",
   "examples": [
     {
       "input": "7\n1 2 3 4 5 6 7",
-      "output": "1 n 1 2 3 3 3 n 4 5 6 7 n n n",
+      "output": "1 2 3 n 2 4 5 3 3 6 7 n 4 n n 5 5 n n 6 6 n n 7 7 n n n",
       "explanation": "根 next=null,每个节点的 next 指向同层右侧。"
     }
   ],

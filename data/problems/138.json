@@ -11,8 +11,8 @@
   "examples": [
     {
       "input": "3\n7 -1\n13 0\n11 1",
-      "output": "7 -1 13 0 11 -1 1 -1 1",
-      "explanation": "三个节点;random:-1=null,0=头,1=中间。"
+      "output": "7 13 n\n13 11 7\n11 n 13",
+      "explanation": "深拷贝链表:每行 v/next/random。"
     }
   ],
   "constraints": [
@@ -24,8 +24,8 @@
   "solutions": [
     {
       "level": "暴力",
-      "idea": "两次扫描：第一次遍历仅按 next 链建立新节点；用 dict 把 old → new 关联；第二次遍历根据 dict 设置 random。O(n) 时间空间。",
-      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt', 'rnd')\n    def __init__(self, v=0, nxt=None, rnd=None):\n        self.v = v; self.nxt = nxt; self.rnd = rnd\n\ndef solve(values):\n    n = len(values)\n    if n == 0: return []\n    nodes = [N(values[i][0]) for i in range(n)]\n    for i in range(n - 1):\n        nodes[i].nxt = nodes[i + 1]\n    mapping = {old: new for old, new in zip(_build_orig(values), nodes)}\n    for i, (v, r) in enumerate(values):\n        nodes[i].rnd = mapping.get(_orig_from_idx(i, r)) if r >= 0 else None\n    return nodes\n\ndef _build_orig(vs):\n    n = len(vs)\n    if n == 0: return []\n    orig = [N(vs[i][0]) for i in range(n)]\n    for i in range(n - 1):\n        orig[i].nxt = orig[i + 1]\n    for i, (_, r) in enumerate(vs):\n        if r >= 0:\n            orig[i].rnd = orig[r]\n    return orig\n\ndef _orig_from_idx(i, r):\n    return _orig_cache[r]\n\n_orig_cache = []\ndef solve2(values):\n    n = len(values)\n    if n == 0: return []\n    orig = [N(vs[0]) for vs in [v[0] for v in values]]\n    # reset cache\n    cache.clear()\n    for i in range(n):\n        cache.append(orig[i])\n    for i in range(n - 1):\n        orig[i].nxt = orig[i + 1]\n    new_nodes = [N(values[i][0]) for i in range(n)]\n    for i in range(n - 1):\n        new_nodes[i].nxt = new_nodes[i + 1]\n    for i, (_, r) in enumerate(values):\n        new_nodes[i].rnd = new_nodes[r] if r >= 0 else None\n    return new_nodes\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    values = []\n    idx = 1\n    for _ in range(n):\n        v = int(data[idx]); r = int(data[idx + 1])\n        values.append((v, r))\n        idx += 2\n    res = solve2(values)\n    out = []\n    for i, nd in enumerate(res):\n        nxt = res[i + 1] if i + 1 < len(res) else None\n        rnd = nd.rnd\n        out.append(f'{nd.v} {nxt.v if nxt else \"n\"} {rnd.v if rnd else \"n\"}')\n    print('\\n'.join(out))\n"
+      "idea": "两次扫描:第一次按 next 链建立新节点并用 dict 关联 old→new;第二次根据 dict 设置 random。O(n) 时间空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt', 'rnd')\n    def __init__(self, v=0, nxt=None, rnd=None):\n        self.v = v; self.nxt = nxt; self.rnd = rnd\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    values = []\n    idx = 1\n    for _ in range(n):\n        values.append((int(data[idx]), int(data[idx + 1])))\n        idx += 2\n    if n == 0:\n        sys.exit(0)\n    orig = [N(vs[0]) for vs in values]\n    new_nodes = [N(vs[0]) for vs in values]\n    mapping = {id(orig[i]): new_nodes[i] for i in range(n)}\n    for i in range(n - 1):\n        orig[i].nxt = orig[i + 1]\n        new_nodes[i].nxt = new_nodes[i + 1]\n    for i, (_, r) in enumerate(values):\n        if r >= 0:\n            orig[i].rnd = orig[r]\n            new_nodes[i].rnd = mapping[id(orig[r])]\n        else:\n            new_nodes[i].rnd = None\n    out = []\n    for i, nd in enumerate(new_nodes):\n        nxt = new_nodes[i + 1] if i + 1 < n else None\n        rnd = nd.rnd\n        out.append(str(nd.v) + ' ' + (str(nxt.v) if nxt else 'n') + ' ' + (str(rnd.v) if rnd else 'n'))\n    print(chr(10).join(out))"
     },
     {
       "level": "优化",

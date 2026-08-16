@@ -1,0 +1,49 @@
+{
+  "id": 68,
+  "title": "文本左右对齐",
+  "titleEn": "Text Justification",
+  "difficulty": "困难",
+  "tags": [
+    "数组",
+    "字符串",
+    "模拟"
+  ],
+  "description": "给定一个单词数组 words 和最大宽度 maxWidth，按两端对齐的规则把这些单词排版成多行文本。规则：每行尽量多放单词；除最后一行外左右两端都要对齐，多余空格尽量均匀分配到单词之间（不足时左边的空隙先多分一个空格）；最后一行左对齐，右侧补足空格到最大宽度。",
+  "examples": [
+    {
+      "input": "7 16\nThis is an example of text justification.",
+      "output": "This    is    an\nexample  of text\njustification.  ",
+      "explanation": "第 1 行 \"This is an\" 有 8 个多余空格分给 2 个空隙，每空 4 个；第 2 行 \"example of text\" 有 3 个多余空格分给 2 个空隙（左边 2、右边 1）；最后一行左对齐并在右侧补 2 个空格。"
+    },
+    {
+      "input": "1 10\nHello",
+      "output": "Hello     ",
+      "explanation": "只有一个单词且是最后一行，左对齐，右侧补足 5 个空格到宽度 10。"
+    }
+  ],
+  "constraints": [
+    "1 <= words.length <= 300",
+    "1 <= words[i].length <= 20",
+    "words[i] 由小写英文字母和符号组成",
+    "1 <= maxWidth <= 100",
+    "words[i].length <= maxWidth"
+  ],
+  "ioFormat": "第一行两个整数 m 和 maxWidth（m 为单词个数），随后 m 个空格分隔的单词。输出对齐后的每一行文本。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "贪心分组后逐行拼装：第一趟把单词按宽度分到各行，第二趟对每行按\"左边空隙优先多分空格\"的规则逐个字符拼接。",
+      "code": "import sys\n\ndef full_justify_brute(words, max_width):\n    lines = []\n    cur = []\n    cur_len = 0\n    for w in words:\n        if cur and cur_len + len(w) + len(cur) > max_width:\n            lines.append((cur, cur_len))\n            cur = []\n            cur_len = 0\n        cur.append(w)\n        cur_len += len(w)\n    if cur:\n        lines.append((cur, cur_len))\n\n    res = []\n    for idx, (line, text_len) in enumerate(lines):\n        n_words = len(line)\n        spaces = max_width - text_len\n        if idx == len(lines) - 1 or n_words == 1:\n            s = ' '.join(line)\n            while len(s) < max_width:\n                s += ' '\n            res.append(s)\n        else:\n            gaps = n_words - 1\n            s = ''\n            for j, w in enumerate(line):\n                s += w\n                if j < gaps:\n                    need = spaces // gaps + (1 if j < spaces % gaps else 0)\n                    for _ in range(need):\n                        s += ' '\n            res.append(s)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    max_width = int(data[1])\n    words = data[2:2 + m]\n    for line in full_justify_brute(words, max_width):\n        print(line)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "同样的贪心分组，但拼装时直接用算术算出每个空隙的基础空格数和多余空格数，用字符串乘法一次性生成空格序列，减少逐字符循环。",
+      "code": "import sys\n\ndef full_justify_opt(words, max_width):\n    lines = []\n    cur = []\n    cur_len = 0\n    for w in words:\n        if cur and cur_len + len(w) + len(cur) > max_width:\n            lines.append((cur, cur_len))\n            cur = []\n            cur_len = 0\n        cur.append(w)\n        cur_len += len(w)\n    if cur:\n        lines.append((cur, cur_len))\n\n    res = []\n    for idx, (line, text_len) in enumerate(lines):\n        gaps = len(line) - 1\n        spaces = max_width - text_len\n        if idx == len(lines) - 1 or gaps == 0:\n            res.append(' '.join(line).ljust(max_width))\n        else:\n            base = spaces // gaps\n            extra = spaces % gaps\n            parts = []\n            for j, w in enumerate(line):\n                parts.append(w)\n                if j < gaps:\n                    parts.append(' ' * (base + (1 if j < extra else 0)))\n            res.append(''.join(parts))\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    max_width = int(data[1])\n    words = data[2:2 + m]\n    for line in full_justify_opt(words, max_width):\n        print(line)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "单指针流的经典写法：分组的同时直接在行内单词上追加空格，用\"空隙数取模\"循环分配多余空格；最后一行用 ljust 补齐，代码最简洁。",
+      "code": "import sys\n\ndef full_justify_best(words, max_width):\n    res, row, row_len = [], [], 0\n    for w in words:\n        if row and row_len + len(w) + len(row) > max_width:\n            for i in range(max_width - row_len):\n                row[i % (len(row) - 1 or 1)] += ' '\n            res.append(''.join(row))\n            row, row_len = [], 0\n        row.append(w)\n        row_len += len(w)\n    res.append(' '.join(row).ljust(max_width))\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m = int(data[0])\n    max_width = int(data[1])\n    words = data[2:2 + m]\n    for line in full_justify_best(words, max_width):\n        print(line)\n"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": 201,
+  "title": "数字范围按位与",
+  "titleEn": "Bitwise AND of Numbers Range",
+  "difficulty": "中等",
+  "tags": [
+    "位运算"
+  ],
+  "description": "给你两个整数 left 和 right（left <= right），表示区间 [left, right]，返回此区间内所有数字按位与的结果（包含 left、right 两端点）。",
+  "examples": [
+    {
+      "input": "5 7",
+      "output": "4",
+      "explanation": "5 & 6 & 7 = 0101 & 0110 & 0111 = 0100 = 4。"
+    },
+    {
+      "input": "0 0",
+      "output": "0",
+      "explanation": "区间只有 0，结果即 0。"
+    },
+    {
+      "input": "1 2147483647",
+      "output": "0",
+      "explanation": "1 & 2 = 0，之后结果保持为 0。"
+    }
+  ],
+  "constraints": [
+    "0 <= left <= right <= 2^31 - 1"
+  ],
+  "ioFormat": "一行两个整数 left right。输出区间内所有数字按位与的结果。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "从 left 开始逐个对区间内每个数做按位与。为加速测试加入“结果一旦变为 0 就提前结束”的剪枝。最坏 O(right-left) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef range_and_brute(left, right):\n    res = left\n    for i in range(left + 1, right + 1):\n        res &= i\n        if res == 0:\n            break\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    left = int(data[0]); right = int(data[1])\n    print(range_and_brute(left, right))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "区间按位与的结果等于 left 与 right 的公共前缀（在高位相同、低位全 0）。不断把 left 与 right 同时右移直到相等，再左移回去。O(log right) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef range_and_opt(left, right):\n    shift = 0\n    while left < right:\n        left >>= 1\n        right >>= 1\n        shift += 1\n    return left << shift\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    left = int(data[0]); right = int(data[1])\n    print(range_and_opt(left, right))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "核心：清除 right 二进制最低位的 1（right &= right - 1），重复直到 right <= left。此时 right 就是公共前缀部分，即答案。O(log right) 时间、O(1) 空间，代码最简洁。",
+      "code": "import sys\n\ndef range_and_best(left, right):\n    while left < right:\n        right &= right - 1\n    return right\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    left = int(data[0]); right = int(data[1])\n    print(range_and_best(left, right))\n"
+    }
+  ]
+}

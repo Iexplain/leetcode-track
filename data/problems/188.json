@@ -1,0 +1,51 @@
+{
+  "id": 188,
+  "title": "买卖股票的最佳时机 IV",
+  "titleEn": "Best Time to Buy and Sell Stock IV",
+  "difficulty": "困难",
+  "tags": [
+    "数组",
+    "动态规划"
+  ],
+  "description": "给定一个整数数组 prices，它的第 i 个元素 prices[i] 表示一支给定的股票在第 i 天的价格。设计一个算法来计算你所能获取的最大利润。你最多可以完成 k 笔交易（一次买入和一次卖出算一笔交易）。注意：不能同时持有多支股票（即必须在再次买入前卖出）。",
+  "examples": [
+    {
+      "input": "2 6\n3 2 6 5 0 3",
+      "output": "7",
+      "explanation": "k=2。第 2 天（价格 2）买入、第 3 天（价格 6）卖出，利润 4；再第 5 天（价格 0）买入、第 6 天（价格 3）卖出，利润 3。总利润 7。"
+    },
+    {
+      "input": "2 4\n1 2 4 2",
+      "output": "3",
+      "explanation": "买 1 卖 4（利润 3），或买 1 卖 2、再买 2 卖 4（同为 3）。最大利润 3。"
+    },
+    {
+      "input": "0 3\n1 2 3",
+      "output": "0",
+      "explanation": "k=0 时不能交易，利润为 0。"
+    }
+  ],
+  "constraints": [
+    "1 <= k <= 100",
+    "1 <= prices.length <= 1000",
+    "0 <= prices[i] <= 1000"
+  ],
+  "ioFormat": "第一行 k n（允许交易次数与天数），第二行 n 个整数（每天价格）。输出最大利润。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "三维动态规划：dp[i][j][0/1] 表示前 i 天、已完成 j 笔交易、当前不持有/持有股票的最大利润。转移时考虑“卖出”与“买入”。O(n·k) 时间、O(n·k) 空间，思路直观但空间开销大。",
+      "code": "import sys\n\ndef max_profit_brute(k, prices):\n    n = len(prices)\n    if n <= 1 or k == 0:\n        return 0\n    dp = [[[0, 0] for _ in range(k + 1)] for _ in range(n)]\n    for j in range(1, k + 1):\n        dp[0][j][1] = -prices[0]\n    for i in range(1, n):\n        for j in range(1, k + 1):\n            dp[i][j][0] = max(dp[i - 1][j][0], dp[i - 1][j][1] + prices[i])\n            dp[i][j][1] = max(dp[i - 1][j][1], dp[i - 1][j - 1][0] - prices[i])\n    return max(dp[n - 1][j][0] for j in range(k + 1))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    k = int(data[0]); n = int(data[1])\n    prices = list(map(int, data[2:2 + n]))\n    print(max_profit_brute(k, prices))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二维滚动 DP：dp[i][j] 表示最多进行 i 笔交易、第 j 天结束时的最大利润。每行用 max_diff 记录 dp[i-1][j] - prices[j] 的最大值，从而在 O(1) 内完成转移。O(n·k) 时间、O(n·k) 空间（可压缩为 O(k)）。",
+      "code": "import sys\n\ndef max_profit_opt(k, prices):\n    n = len(prices)\n    if n <= 1 or k == 0:\n        return 0\n    if k >= n // 2:\n        return sum(max(0, prices[i + 1] - prices[i]) for i in range(n - 1))\n    dp = [[0] * n for _ in range(k + 1)]\n    for i in range(1, k + 1):\n        max_diff = -prices[0]\n        for j in range(1, n):\n            dp[i][j] = max(dp[i][j - 1], prices[j] + max_diff)\n            max_diff = max(max_diff, dp[i - 1][j] - prices[j])\n    return dp[k][n - 1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    k = int(data[0]); n = int(data[1])\n    prices = list(map(int, data[2:2 + n]))\n    print(max_profit_opt(k, prices))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "状态机压缩：用 buy[j] 与 sell[j] 两个一维数组，buy[j] = max(buy[j], sell[j-1] - price)，sell[j] = max(sell[j], buy[j] + price)，按天滚动更新。O(n·k) 时间、O(k) 空间；当 k >= n/2 时退化为不限次交易，直接累加所有上涨段。",
+      "code": "import sys\n\ndef max_profit_best(k, prices):\n    n = len(prices)\n    if n <= 1 or k == 0:\n        return 0\n    if k >= n // 2:\n        return sum(max(0, prices[i + 1] - prices[i]) for i in range(n - 1))\n    buy = [float('-inf')] * (k + 1)\n    sell = [0] * (k + 1)\n    for price in prices:\n        for j in range(1, k + 1):\n            buy[j] = max(buy[j], sell[j - 1] - price)\n            sell[j] = max(sell[j], buy[j] + price)\n    return sell[k]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    k = int(data[0]); n = int(data[1])\n    prices = list(map(int, data[2:2 + n]))\n    print(max_profit_best(k, prices))\n"
+    }
+  ]
+}

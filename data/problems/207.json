@@ -1,0 +1,49 @@
+{
+  "id": 207,
+  "title": "课程表",
+  "titleEn": "Course Schedule",
+  "difficulty": "中等",
+  "tags": [
+    "深度优先搜索",
+    "广度优先搜索",
+    "图"
+  ],
+  "description": "你这个学期必须选修 numCourses 门课程，记为 0 到 numCourses-1。在选修某些课程之前需要一些先修课程，例如选修课程 0 之前必须先修完课程 1。给定课程总数以及先修课程对列表 prerequisites（其中 prerequisites[i] = [ai, bi] 表示要学 ai 必须先学 bi），判断是否可能完成所有课程的学习。",
+  "examples": [
+    {
+      "input": "2 1\n1 0",
+      "output": "true",
+      "explanation": "学课程 1 之前必须学课程 0，因此按 0 → 1 的顺序可全部完成。"
+    },
+    {
+      "input": "2 2\n1 0\n0 1",
+      "output": "false",
+      "explanation": "0 与 1 互为先修，构成环，无法安排学习顺序。"
+    }
+  ],
+  "constraints": [
+    "1 <= numCourses <= 2000",
+    "0 <= prerequisites.length <= 5000",
+    "prerequisites[i].length == 2",
+    "0 <= prerequisites[i][0], prerequisites[i][1] < numCourses",
+    "先修课程对中不含重复"
+  ],
+  "ioFormat": "第一行 n m（课程数与先修关系数），之后 m 行每行两个整数 a b（表示 a 的先修课程是 b）。可以完成输出 true，否则输出 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "DFS 检测环：建邻接表（b → a，即先修指向后继），用三色标记（0 未访问 / 1 访问中 / 2 完成）对每个节点做 DFS。若在递归栈中再次遇到“访问中”节点说明存在环，返回 false。O(n + m) 时间、O(n + m) 空间。",
+      "code": "import sys\n\ndef can_finish_brute(n, edges):\n    adj = [[] for _ in range(n)]\n    for a, b in edges:\n        adj[b].append(a)\n    state = [0] * n\n    def dfs(u):\n        state[u] = 1\n        for v in adj[u]:\n            if state[v] == 1:\n                return False\n            if state[v] == 0 and not dfs(v):\n                return False\n        state[u] = 2\n        return True\n    for i in range(n):\n        if state[i] == 0 and not dfs(i):\n            return False\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0]); m = int(data[1])\n    edges = []\n    idx = 2\n    for _ in range(m):\n        a = int(data[idx]); b = int(data[idx + 1]); idx += 2\n        edges.append((a, b))\n    print('true' if can_finish_brute(n, edges) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "BFS 拓扑排序（Kahn 算法）：统计每个节点的入度，把所有入度为 0 的节点入队；每次弹出节点并把其邻接节点入度减 1，减到 0 时入队。若最终入队节点数等于课程总数则无环，可以完成。O(n + m) 时间、O(n + m) 空间。",
+      "code": "import sys\nfrom collections import deque\n\ndef can_finish_bfs(n, edges):\n    adj = [[] for _ in range(n)]\n    indeg = [0] * n\n    for a, b in edges:\n        adj[b].append(a)\n        indeg[a] += 1\n    q = deque([i for i in range(n) if indeg[i] == 0])\n    cnt = 0\n    while q:\n        u = q.popleft()\n        cnt += 1\n        for v in adj[u]:\n            indeg[v] -= 1\n            if indeg[v] == 0:\n                q.append(v)\n    return cnt == n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0]); m = int(data[1])\n    edges = []\n    idx = 2\n    for _ in range(m):\n        a = int(data[idx]); b = int(data[idx + 1]); idx += 2\n        edges.append((a, b))\n    print('true' if can_finish_bfs(n, edges) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与“优化”相同的 Kahn 拓扑排序，用 cnt 记录已处理的节点数，结束后检查 cnt == n 判定是否有环。代码紧凑清晰，是面试标准写法。",
+      "code": "import sys\nfrom collections import deque\n\ndef can_finish_best(n, edges):\n    adj = [[] for _ in range(n)]\n    indeg = [0] * n\n    for a, b in edges:\n        adj[b].append(a)\n        indeg[a] += 1\n    q = deque([i for i in range(n) if indeg[i] == 0])\n    cnt = 0\n    while q:\n        u = q.popleft()\n        cnt += 1\n        for v in adj[u]:\n            indeg[v] -= 1\n            if indeg[v] == 0:\n                q.append(v)\n    return cnt == n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0]); m = int(data[1])\n    edges = []\n    idx = 2\n    for _ in range(m):\n        a = int(data[idx]); b = int(data[idx + 1]); idx += 2\n        edges.append((a, b))\n    print('true' if can_finish_best(n, edges) else 'false')\n"
+    }
+  ]
+}

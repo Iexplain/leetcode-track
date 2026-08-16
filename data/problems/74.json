@@ -1,0 +1,48 @@
+{
+  "id": 74,
+  "title": "搜索二维矩阵",
+  "titleEn": "Search a 2D Matrix",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "二分查找",
+    "矩阵"
+  ],
+  "description": "编写一个高效的算法，判断目标值 target 是否存在于一个 m x n 的矩阵中。矩阵满足：每一行从左到右递增，且每一行的第一个整数都大于上一行的最后一个整数，因此整个矩阵可以看作一维升序数组的展开。只要判断 target 是否存在即可，存在输出 true，否则输出 false。",
+  "examples": [
+    {
+      "input": "3 4\n1 3 5 7\n10 11 16 20\n23 30 34 60\n3",
+      "output": "true",
+      "explanation": "目标 3 位于第 0 行第 1 列。"
+    },
+    {
+      "input": "3 4\n1 3 5 7\n10 11 16 20\n23 30 34 60\n13",
+      "output": "false",
+      "explanation": "13 不在矩阵中。"
+    }
+  ],
+  "constraints": [
+    "1 <= m, n <= 100",
+    "-10^4 <= matrix[i][j], target <= 10^4",
+    "每行整数从左到右升序排列",
+    "每行第一个整数大于上一行最后一个整数"
+  ],
+  "ioFormat": "第一行两个整数 m n（矩阵行数、列数），接下来 m 行每行 n 个整数构成矩阵，最后一行一个整数 target。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接遍历整个矩阵，逐个比较每个元素是否等于 target。时间复杂度 O(m*n)，直观但完全没有利用矩阵的有序性。",
+      "code": "import sys\n\ndef search_brute(mat, target):\n    for row in mat:\n        for v in row:\n            if v == target:\n                return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    mat = []\n    idx = 2\n    for _ in range(m):\n        mat.append(list(map(int, data[idx:idx + n])))\n        idx += n\n    target = int(data[idx])\n    print('true' if search_brute(mat, target) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "利用“每行首元素大于上一行尾元素”的性质：由于各行值域互不重叠，目标只可能落在某一行，先判断 target 是否落在该行首尾区间内，再对该行做二分查找。时间复杂度 O(m + log n)。",
+      "code": "import sys\n\ndef bsearch(row, target):\n    lo, hi = 0, len(row) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if row[mid] == target:\n            return True\n        elif row[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return False\n\ndef search_opt(mat, target):\n    for row in mat:\n        if row and row[0] <= target <= row[-1] and bsearch(row, target):\n            return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    mat = []\n    idx = 2\n    for _ in range(m):\n        mat.append(list(map(int, data[idx:idx + n])))\n        idx += n\n    target = int(data[idx])\n    print('true' if search_opt(mat, target) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "把 m x n 矩阵视为一个长度为 m*n 的升序一维数组，用下标映射 mat[mid//n][mid%n] 做一次二分查找。时间复杂度 O(log(m*n))，最省。",
+      "code": "import sys\n\ndef search_best(mat, m, n, target):\n    lo, hi = 0, m * n - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        v = mat[mid // n][mid % n]\n        if v == target:\n            return True\n        elif v < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    mat = []\n    idx = 2\n    for _ in range(m):\n        mat.append(list(map(int, data[idx:idx + n])))\n        idx += n\n    target = int(data[idx])\n    print('true' if search_best(mat, m, n, target) else 'false')\n"
+    }
+  ]
+}

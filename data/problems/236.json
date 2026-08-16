@@ -11,12 +11,12 @@
   "description": "给定一个二叉树,找到该树中两个指定节点 p、q 的最近公共祖先。",
   "examples": [
     {
-      "input": "7\n3 5 1 6 2 0 8 n n n n n n n\n5 4",
-      "output": "5",
-      "explanation": "root=3; 5 和 4 都在其下；LCA 是 5（其中 4 是 5 的子孙）。"
+      "input": "11\n3 5 1 6 2 0 8 n n 7 4\n5 1",
+      "output": "3",
+      "explanation": "5 与 1 分别是根 3 的左右孩子,LCA 是 3。"
     },
     {
-      "input": "5\n3 5 n 4 2\n5 4",
+      "input": "11\n3 5 1 6 2 0 8 n n 7 4\n5 4",
       "output": "5",
       "explanation": "4 是 5 的子孙,5 即为 LCA。"
     }

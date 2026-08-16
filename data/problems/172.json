@@ -1,0 +1,43 @@
+{
+  "id": 172,
+  "title": "阶乘后的零",
+  "titleEn": "Factorial Trailing Zeroes",
+  "difficulty": "中等",
+  "tags": [
+    "数学"
+  ],
+  "description": "给定一个整数 n，返回 n!（n 的阶乘）结果中尾随零的数量。注意 n! = 1 * 2 * 3 * ... * n。",
+  "examples": [
+    {
+      "input": "5",
+      "output": "1",
+      "explanation": "5! = 120，尾随 1 个 0。"
+    },
+    {
+      "input": "3",
+      "output": "0",
+      "explanation": "3! = 6，不含尾随 0。"
+    }
+  ],
+  "constraints": [
+    "0 <= n <= 10^4"
+  ],
+  "ioFormat": "第一行一个整数 n。输出 n! 结果中尾随零的数量。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "先用 Python 大整数直接算出 n!（math.factorial），再把结果转成字符串，从末尾开始数连续的 '0'。思路最直观，O(n) 时间，但只适用于 n 较小的场景。",
+      "code": "import sys\nimport math\n\ndef trailing_brute(n):\n    s = str(math.factorial(n))\n    cnt = 0\n    for ch in reversed(s):\n        if ch == '0':\n            cnt += 1\n        else:\n            break\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(trailing_brute(n))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "尾随 0 由因子 10 产生，而 10 = 2 × 5。阶乘中因子 2 的数量远多于因子 5，所以只需统计 1..n 中因子 5 的个数。枚举 5 的倍数并反复除以 5 计数。O(n log n) 时间。",
+      "code": "import sys\n\ndef trailing_opt(n):\n    cnt = 0\n    for i in range(5, n + 1, 5):\n        x = i\n        while x % 5 == 0:\n            cnt += 1\n            x //= 5\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(trailing_opt(n))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "因子 5 的个数等于 floor(n/5) + floor(n/25) + floor(n/125) + ...。用循环 n //= 5 累加即可。O(log n) 时间、O(1) 空间，是最优解法。",
+      "code": "import sys\n\ndef trailing_best(n):\n    cnt = 0\n    while n:\n        n //= 5\n        cnt += n\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    print(trailing_best(n))\n"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": 380,
+  "title": "O(1) 时间插入、删除和获取随机元素",
+  "titleEn": "Insert Delete GetRandom O(1)",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "哈希表",
+    "数学",
+    "设计",
+    "随机化"
+  ],
+  "description": "实现 RandomizedSet 类：RandomizedSet() 初始化；bool insert(val) 当元素 val 不存在时向集合中插入该项并返回 true，否则返回 false；bool remove(val) 当元素 val 存在时从集合中移除该项并返回 true，否则返回 false；int getRandom() 随机返回现有集合中的一项（每个元素被返回的概率相同）。所有方法应平均 O(1) 时间。",
+  "examples": [
+    {
+      "input": "5\ninsert 5\ngetRandom\nremove 5\ninsert 9\ngetRandom",
+      "output": "5\n9",
+      "explanation": "插入 5 后集合中只有 {5}，getRandom 必得 5；删除 5 后插入 9，集合中只有 {9}，getRandom 必得 9。"
+    }
+  ],
+  "constraints": [
+    "-2^31 <= val <= 2^31 - 1",
+    "最多调用 insert、remove、getRandom 共 2*10^5 次",
+    "getRandom 调用时保证集合非空"
+  ],
+  "ioFormat": "第一行 q（操作数），随后 q 行操作：insert val / remove val / getRandom。仅 getRandom 输出一行结果；insert/remove 不输出。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "纯 list：insert 用 in 判断去重再 append；remove 用 list.remove 逐个查找；getRandom 用 random.choice。insert/remove 都是 O(n)，getRandom O(1)。写法直观但不符合 O(1) 要求。",
+      "code": "import sys\nimport random\n\nclass RandomizedSetBrute:\n    def __init__(self):\n        self.lst = []\n    def insert(self, val):\n        if val in self.lst:\n            return False\n        self.lst.append(val)\n        return True\n    def remove(self, val):\n        if val not in self.lst:\n            return False\n        self.lst.remove(val)\n        return True\n    def getRandom(self):\n        return random.choice(self.lst)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    q = int(data[0])\n    rs = RandomizedSetBrute()\n    i = 1\n    while q > 0 and i < len(data):\n        op = data[i]\n        if op == 'insert':\n            rs.insert(int(data[i + 1])); i += 2\n        elif op == 'remove':\n            rs.remove(int(data[i + 1])); i += 2\n        else:\n            print(rs.getRandom()); i += 1\n        q -= 1\n"
+    },
+    {
+      "level": "优化",
+      "idea": "哈希表 + 数组：哈希表记录 值→下标，数组按下标存值。删除时把待删元素与数组最后一个元素交换位置再 pop，哈希表同步更新，实现平均 O(1)。这是本题的标准解法。",
+      "code": "import sys\nimport random\n\nclass RandomizedSetOpt:\n    def __init__(self):\n        self.pos = {}\n        self.arr = []\n    def insert(self, val):\n        if val in self.pos:\n            return False\n        self.pos[val] = len(self.arr)\n        self.arr.append(val)\n        return True\n    def remove(self, val):\n        if val not in self.pos:\n            return False\n        i = self.pos[val]\n        last = self.arr[-1]\n        self.arr[i] = last\n        self.pos[last] = i\n        self.arr.pop()\n        del self.pos[val]\n        return True\n    def getRandom(self):\n        return random.choice(self.arr)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    q = int(data[0])\n    rs = RandomizedSetOpt()\n    i = 1\n    while q > 0 and i < len(data):\n        op = data[i]\n        if op == 'insert':\n            rs.insert(int(data[i + 1])); i += 2\n        elif op == 'remove':\n            rs.remove(int(data[i + 1])); i += 2\n        else:\n            print(rs.getRandom()); i += 1\n        q -= 1\n"
+    },
+    {
+      "level": "最优",
+      "idea": "哈希表 + 数组 + 交换删除的紧凑写法：remove 时直接用 pos.pop 取下标，若被删元素不是末尾元素则用末尾元素覆盖，再 pop 末尾。边界处理更严谨，代码更精简，仍是平均 O(1) 时间。",
+      "code": "import sys\nimport random\n\nclass RandomizedSetBest:\n    def __init__(self):\n        self.idx = {}\n        self.arr = []\n    def insert(self, val):\n        if val in self.idx:\n            return False\n        self.idx[val] = len(self.arr)\n        self.arr.append(val)\n        return True\n    def remove(self, val):\n        if val not in self.idx:\n            return False\n        i = self.idx.pop(val)\n        if i != len(self.arr) - 1:\n            moved = self.arr[-1]\n            self.arr[i] = moved\n            self.idx[moved] = i\n        self.arr.pop()\n        return True\n    def getRandom(self):\n        return random.choice(self.arr)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    q = int(data[0])\n    rs = RandomizedSetBest()\n    i = 1\n    while q > 0 and i < len(data):\n        op = data[i]\n        if op == 'insert':\n            rs.insert(int(data[i + 1])); i += 2\n        elif op == 'remove':\n            rs.remove(int(data[i + 1])); i += 2\n        else:\n            print(rs.getRandom()); i += 1\n        q -= 1\n"
+    }
+  ]
+}

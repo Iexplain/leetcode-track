@@ -1,0 +1,50 @@
+{
+  "id": 12,
+  "title": "整数转罗马数字",
+  "titleEn": "Integer to Roman",
+  "difficulty": "中等",
+  "tags": [
+    "哈希表",
+    "数学",
+    "字符串"
+  ],
+  "description": "罗马数字由 I、V、X、L、C、D、M 七种符号构成。一个整数可以按从大到小的顺序拆成若干符号的和，其中 4 和 9 这类数字用\"左减右加\"的特殊形式表示，例如 4 写作 IV，9 写作 IX。给定一个不超过 3999 的整数，把它转换成对应的罗马数字字符串。",
+  "examples": [
+    {
+      "input": "3",
+      "output": "III",
+      "explanation": "3 = 1 + 1 + 1，即 III。"
+    },
+    {
+      "input": "58",
+      "output": "LVIII",
+      "explanation": "58 = 50 + 5 + 3，即 LVIII。"
+    },
+    {
+      "input": "1994",
+      "output": "MCMXCIV",
+      "explanation": "1994 = 1000 + 900 + 90 + 4，即 MCMXCIV。"
+    }
+  ],
+  "constraints": [
+    "1 <= num <= 3999"
+  ],
+  "ioFormat": "输入一个整数 num，输出对应的罗马数字字符串。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "维护 (数值, 符号) 的降序表，从大到小用 while 反复减去当前数值并拼接对应符号。直观但每个符号可能要循环多次。",
+      "code": "import sys\n\ndef int_to_roman_brute(num):\n    table = [\n        (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),\n        (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),\n        (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')\n    ]\n    res = ''\n    for val, sym in table:\n        while num >= val:\n            res += sym\n            num -= val\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    num = int(data[0])\n    print(int_to_roman_brute(num))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "按位查表：把千位、百位、十位、个位分别映射到预置的罗马字符串表，用整除和取模提取每一位，一次拼接完成。",
+      "code": "import sys\n\ndef int_to_roman_opt(num):\n    thousands = [\"\", \"M\", \"MM\", \"MMM\"]\n    hundreds = [\"\", \"C\", \"CC\", \"CCC\", \"CD\", \"D\", \"DC\", \"DCC\", \"DCCC\", \"CM\"]\n    tens = [\"\", \"X\", \"XX\", \"XXX\", \"XL\", \"L\", \"LX\", \"LXX\", \"LXXX\", \"XC\"]\n    ones = [\"\", \"I\", \"II\", \"III\", \"IV\", \"V\", \"VI\", \"VII\", \"VIII\", \"IX\"]\n    return (thousands[num // 1000] + hundreds[(num % 1000) // 100]\n            + tens[(num % 100) // 10] + ones[num % 10])\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    num = int(data[0])\n    print(int_to_roman_opt(num))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "贪心降序表配合 divmod：4 和 9 的特殊组合（IV、IX、XL、XC、CD、CM）直接硬编码进符号表，每次用除法一次性得到当前符号应重复的次数，代码最紧凑。",
+      "code": "import sys\n\ndef int_to_roman_best(num):\n    table = [\n        (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),\n        (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),\n        (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')\n    ]\n    res = ''\n    for val, sym in table:\n        cnt, num = divmod(num, val)\n        res += sym * cnt\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    num = int(data[0])\n    print(int_to_roman_best(num))\n"
+    }
+  ]
+}

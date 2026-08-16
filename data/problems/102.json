@@ -1,0 +1,41 @@
+{
+  "id": 102,
+  "title": "二叉树的层序遍历",
+  "titleEn": "Binary Tree Level Order Traversal",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "广度优先搜索",
+    "二叉树"
+  ],
+  "description": "给定一棵二叉树的根节点 root，返回其节点值的层序遍历结果：按层从左到右收集所有节点，每一层的节点值单独作为一行输出。",
+  "examples": [
+    {
+      "input": "7\n3 9 20 n n 15 7",
+      "output": "3\n9 20\n15 7",
+      "explanation": "第 0 层 [3]，第 1 层 [9,20]，第 2 层 [15,7]。"
+    }
+  ],
+  "constraints": [
+    "0 <= 节点数 <= 2000",
+    "-1000 <= 节点值 <= 1000"
+  ],
+  "ioFormat": "第一行整数 n（层序 token 数），第二行 n 个 token（'n' 表示空节点）。每行输出一层的节点值（空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "双队列：cur 队列保存当前层节点，nxt 队列收集下一层节点，当前层清空后交换两个队列。直观，但多用一个队列。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i]))\n            q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i]))\n            q.append(node.r)\n        i += 1\n    return root\n\ndef level_order_brute(root):\n    if root is None:\n        return []\n    res = []\n    cur = deque([root])\n    nxt = deque()\n    while cur:\n        level = []\n        while cur:\n            node = cur.popleft()\n            level.append(node.v)\n            if node.l:\n                nxt.append(node.l)\n            if node.r:\n                nxt.append(node.r)\n        res.append(level)\n        cur, nxt = nxt, cur\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    for level in level_order_brute(root):\n        print(' '.join(map(str, level)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "BFS + 层计数：进入每一层前先记录当前队列长度 count，本层只处理 count 个节点，从而自然切分出每一层。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i]))\n            q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i]))\n            q.append(node.r)\n        i += 1\n    return root\n\ndef level_order_opt(root):\n    if root is None:\n        return []\n    res = []\n    q = deque([root])\n    while q:\n        count = len(q)\n        level = []\n        while count > 0:\n            node = q.popleft()\n            level.append(node.v)\n            if node.l:\n                q.append(node.l)\n            if node.r:\n                q.append(node.r)\n            count -= 1\n        res.append(level)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    for level in level_order_opt(root):\n        print(' '.join(map(str, level)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "队列 + len：每层用 for _ in range(len(q)) 固定本层规模，即使入队了新节点也不影响本轮循环次数，写法最简洁。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i]))\n            q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i]))\n            q.append(node.r)\n        i += 1\n    return root\n\ndef level_order_best(root):\n    if root is None:\n        return []\n    res = []\n    q = deque([root])\n    while q:\n        level = []\n        for _ in range(len(q)):\n            node = q.popleft()\n            level.append(node.v)\n            if node.l:\n                q.append(node.l)\n            if node.r:\n                q.append(node.r)\n        res.append(level)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    for level in level_order_best(root):\n        print(' '.join(map(str, level)))\n"
+    }
+  ]
+}

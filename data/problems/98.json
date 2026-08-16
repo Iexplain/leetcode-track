@@ -1,0 +1,46 @@
+{
+  "id": 98,
+  "title": "验证二叉搜索树",
+  "titleEn": "Validate Binary Search Tree",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "二叉搜索树"
+  ],
+  "description": "给定一棵二叉树的根节点 root，判断它是否是一棵有效的二叉搜索树 (BST)。有效 BST 定义为：左子树的所有节点值严格小于根节点值，右子树的所有节点值严格大于根节点值，并且左右子树本身也都是 BST。",
+  "examples": [
+    {
+      "input": "3\n2 1 3",
+      "output": "true",
+      "explanation": "左子 1 < 2 < 3 右子，满足 BST 约束。"
+    },
+    {
+      "input": "7\n5 1 4 n n 3 6",
+      "output": "false",
+      "explanation": "根节点右子为 4，但 4 < 5，违反 BST 中右子树所有节点大于根节点的约束。"
+    }
+  ],
+  "constraints": [
+    "1 <= 节点数 <= 10^4",
+    "-2^31 <= 节点值 <= 2^31 - 1"
+  ],
+  "ioFormat": "第一行整数 n（层序 token 数），第二行 n 个 token（'n' 表示空节点）。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "中序遍历二叉树收集节点值，若得到严格递增序列则是 BST，否则不是。O(n) 时间 O(n) 空间，先遍历完再统一校验。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i]))\n            q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i]))\n            q.append(node.r)\n        i += 1\n    return root\n\ndef inorder(root, out):\n    if root:\n        inorder(root.l, out)\n        out.append(root.v)\n        inorder(root.r, out)\n\ndef is_valid_brute(root):\n    vals = []\n    inorder(root, vals)\n    return all(vals[i] < vals[i + 1] for i in range(len(vals) - 1))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print('true' if is_valid_brute(root) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "递归传递上下界：每次把 (lo, hi) 作为当前节点允许的取值范围，左子树传 (lo, node.v)、右子树传 (node.v, hi)，越界立即返回 false。O(n) 时间 O(h) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i]))\n            q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i]))\n            q.append(node.r)\n        i += 1\n    return root\n\ndef ok(node, lo, hi):\n    if node is None:\n        return True\n    if not (lo < node.v < hi):\n        return False\n    return ok(node.l, lo, node.v) and ok(node.r, node.v, hi)\n\ndef is_valid_opt(root):\n    return ok(root, float('-inf'), float('inf'))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print('true' if is_valid_opt(root) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "迭代栈模拟递归：用显式栈保存 (node, lo, hi)，逻辑与递归上下界一致，但避免了极端不平衡树导致的递归栈溢出。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i]))\n            q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i]))\n            q.append(node.r)\n        i += 1\n    return root\n\ndef is_valid_best(root):\n    stack = [(root, float('-inf'), float('inf'))]\n    while stack:\n        node, lo, hi = stack.pop()\n        if node is None:\n            continue\n        if not (lo < node.v < hi):\n            return False\n        stack.append((node.r, node.v, hi))\n        stack.append((node.l, lo, node.v))\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print('true' if is_valid_best(root) else 'false')\n"
+    }
+  ]
+}

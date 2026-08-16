@@ -1,0 +1,51 @@
+{
+  "id": 137,
+  "title": "只出现一次的数字 II",
+  "titleEn": "Single Number II",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "位运算"
+  ],
+  "description": "给你一个整数数组 nums，除某个元素仅出现一次外，其余每个元素都恰好出现三次。请你找出并返回那个只出现了一次的元素。",
+  "examples": [
+    {
+      "input": "7\n0 1 0 1 0 1 99",
+      "output": "99",
+      "explanation": "0 和 1 各出现 3 次，99 只出现 1 次。"
+    },
+    {
+      "input": "7\n-1 -1 -1 5 2 2 2",
+      "output": "5",
+      "explanation": "-1 与 2 各出现 3 次，5 只出现 1 次。"
+    },
+    {
+      "input": "4\n2 2 3 2",
+      "output": "3",
+      "explanation": "2 出现 3 次，3 只出现 1 次。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 3 * 10^4",
+    "-2^31 <= nums[i] <= 2^31 - 1",
+    "除某个元素仅出现一次外，其余每个元素恰好出现三次"
+  ],
+  "ioFormat": "第一行 n（数组长度），第二行 n 个整数。输出只出现一次的元素。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 Counter 统计每个数字出现次数，返回次数为 1 的那个。直观清晰，O(n) 时间、O(n) 空间，需要额外哈希表。",
+      "code": "import sys\n\ndef single_number_brute(nums):\n    from collections import Counter\n    cnt = Counter(nums)\n    for k, v in cnt.items():\n        if v == 1:\n            return k\n    return 0\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(single_number_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "逐位统计：对 32 个二进制位分别统计该位为 1 的次数，若某位次数模 3 余 1，说明只出现一次的数字在该位为 1。最后按 32 位补码修正负数。O(32n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef single_number_opt(nums):\n    ans = 0\n    for i in range(32):\n        bit = 0\n        for x in nums:\n            bit += (x >> i) & 1\n        if bit % 3:\n            ans |= 1 << i\n    if ans >= 1 << 31:\n        ans -= 1 << 32\n    return ans\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(single_number_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "有限状态自动机：用 ones、twos 两个变量记录各位出现 1 次 / 2 次的掩码，每次把当前数纳入状态机后让出现 3 次的位自动清零。只扫描一遍、O(1) 空间，且天然支持负数。",
+      "code": "import sys\n\ndef single_number_best(nums):\n    ones = 0\n    twos = 0\n    for x in nums:\n        ones = (ones ^ x) & ~twos\n        twos = (twos ^ x) & ~ones\n    return ones\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(single_number_best(nums))\n"
+    }
+  ]
+}

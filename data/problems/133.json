@@ -1,0 +1,49 @@
+{
+  "id": 133,
+  "title": "克隆图",
+  "titleEn": "Clone Graph",
+  "difficulty": "中等",
+  "tags": [
+    "哈希表",
+    "深度优先搜索",
+    "广度优先搜索",
+    "图"
+  ],
+  "description": "给你无向连通图中一个节点的引用，请你返回该图的深拷贝（克隆）。图中的每个节点都包含它的值 val（int）和其邻居的列表。克隆图的结构必须与原图完全一致：克隆图中的每个节点值与对应原节点相同，邻居指向也一一对应。输出时按节点编号 1..n 顺序逐行输出克隆图，格式与输入一致。",
+  "examples": [
+    {
+      "input": "4\n1 2 2 4\n2 2 1 3\n3 2 2 4\n4 2 1 3",
+      "output": "4\n1 2 2 4\n2 2 1 3\n3 2 2 4\n4 2 1 3",
+      "explanation": "深拷贝后图结构与原图完全一致，输出与原输入相同。"
+    },
+    {
+      "input": "1\n1 0",
+      "output": "1\n1 0",
+      "explanation": "单节点且没有邻居的图。"
+    }
+  ],
+  "constraints": [
+    "节点数 n 在 [0, 100] 范围内",
+    "1 <= Node.val <= 100",
+    "图是连通的无向图",
+    "输入的邻接表是图的一种有效表示"
+  ],
+  "ioFormat": "第一行 n（节点数）。随后 n 行，每行格式：val 邻居数 邻居编号列表。输出克隆图，格式与输入相同，按节点编号 1..n 逐行输出。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "显式栈迭代 DFS + dict：用字典 d 记录已克隆节点，遍历时若邻居未克隆则先创建并入栈。O(V+E) 时间，需要手动管理栈稍显繁琐。",
+      "code": "import sys\nfrom collections import deque\n\n\nclass Node:\n    __slots__ = ('val', 'neighbors')\n    def __init__(self, val=0, neighbors=None):\n        self.val = val\n        self.neighbors = neighbors if neighbors is not None else []\n\n\ndef clone_brute(node):\n    if node is None:\n        return None\n    d = {node.val: Node(node.val)}\n    stack = [node]\n    while stack:\n        n = stack.pop()\n        for nb in n.neighbors:\n            if nb.val not in d:\n                d[nb.val] = Node(nb.val)\n                stack.append(nb)\n            d[n.val].neighbors.append(d[nb.val])\n    return d[node.val]\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    idx = 0\n    n = int(data[idx]); idx += 1\n    nodes = {i: Node(i) for i in range(1, n + 1)}\n    for _ in range(n):\n        val = int(data[idx]); idx += 1\n        cnt = int(data[idx]); idx += 1\n        for _ in range(cnt):\n            nb = int(data[idx]); idx += 1\n            nodes[val].neighbors.append(nodes[nb])\n    if n == 0:\n        print(0)\n        sys.exit(0)\n    cloned = clone_brute(nodes[1])\n    cmap = {}\n    q = deque([cloned])\n    cmap[cloned.val] = cloned\n    while q:\n        c = q.popleft()\n        for nb in c.neighbors:\n            if nb.val not in cmap:\n                cmap[nb.val] = nb\n                q.append(nb)\n    lines = [str(n)]\n    for i in range(1, n + 1):\n        c = cmap[i]\n        nbs = ' '.join(str(x.val) for x in c.neighbors)\n        lines.append('{} {} {}'.format(c.val, len(c.neighbors), nbs) if nbs else '{} {}'.format(c.val, len(c.neighbors)))\n    print('\\n'.join(lines))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "BFS + dict：用队列按层克隆，同样是 O(V+E)。与 DFS 等价但遍历顺序不同，实现上先入队再克隆邻居，代码结构清晰。",
+      "code": "import sys\nfrom collections import deque\n\n\nclass Node:\n    __slots__ = ('val', 'neighbors')\n    def __init__(self, val=0, neighbors=None):\n        self.val = val\n        self.neighbors = neighbors if neighbors is not None else []\n\n\ndef clone_opt(node):\n    if node is None:\n        return None\n    d = {node.val: Node(node.val)}\n    q = deque([node])\n    while q:\n        n = q.popleft()\n        for nb in n.neighbors:\n            if nb.val not in d:\n                d[nb.val] = Node(nb.val)\n                q.append(nb)\n            d[n.val].neighbors.append(d[nb.val])\n    return d[node.val]\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    idx = 0\n    n = int(data[idx]); idx += 1\n    nodes = {i: Node(i) for i in range(1, n + 1)}\n    for _ in range(n):\n        val = int(data[idx]); idx += 1\n        cnt = int(data[idx]); idx += 1\n        for _ in range(cnt):\n            nb = int(data[idx]); idx += 1\n            nodes[val].neighbors.append(nodes[nb])\n    if n == 0:\n        print(0)\n        sys.exit(0)\n    cloned = clone_opt(nodes[1])\n    cmap = {}\n    q = deque([cloned])\n    cmap[cloned.val] = cloned\n    while q:\n        c = q.popleft()\n        for nb in c.neighbors:\n            if nb.val not in cmap:\n                cmap[nb.val] = nb\n                q.append(nb)\n    lines = [str(n)]\n    for i in range(1, n + 1):\n        c = cmap[i]\n        nbs = ' '.join(str(x.val) for x in c.neighbors)\n        lines.append('{} {} {}'.format(c.val, len(c.neighbors), nbs) if nbs else '{} {}'.format(c.val, len(c.neighbors)))\n    print('\\n'.join(lines))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归 DFS + dict：每遇到未克隆节点就创建并放入 dict，再递归克隆其全部邻居。天然处理环（已克隆直接返回），是官方推荐的简洁写法。",
+      "code": "import sys\nfrom collections import deque\n\n\nclass Node:\n    __slots__ = ('val', 'neighbors')\n    def __init__(self, val=0, neighbors=None):\n        self.val = val\n        self.neighbors = neighbors if neighbors is not None else []\n\n\ndef clone_best(node):\n    d = {}\n\n    def dfs(n):\n        if n.val in d:\n            return d[n.val]\n        c = Node(n.val)\n        d[n.val] = c\n        for nb in n.neighbors:\n            c.neighbors.append(dfs(nb))\n        return c\n\n    return dfs(node)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    idx = 0\n    n = int(data[idx]); idx += 1\n    nodes = {i: Node(i) for i in range(1, n + 1)}\n    for _ in range(n):\n        val = int(data[idx]); idx += 1\n        cnt = int(data[idx]); idx += 1\n        for _ in range(cnt):\n            nb = int(data[idx]); idx += 1\n            nodes[val].neighbors.append(nodes[nb])\n    if n == 0:\n        print(0)\n        sys.exit(0)\n    cloned = clone_best(nodes[1])\n    cmap = {}\n    q = deque([cloned])\n    cmap[cloned.val] = cloned\n    while q:\n        c = q.popleft()\n        for nb in c.neighbors:\n            if nb.val not in cmap:\n                cmap[nb.val] = nb\n                q.append(nb)\n    lines = [str(n)]\n    for i in range(1, n + 1):\n        c = cmap[i]\n        nbs = ' '.join(str(x.val) for x in c.neighbors)\n        lines.append('{} {} {}'.format(c.val, len(c.neighbors), nbs) if nbs else '{} {}'.format(c.val, len(c.neighbors)))\n    print('\\n'.join(lines))\n"
+    }
+  ]
+}

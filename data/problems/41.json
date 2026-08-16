@@ -1,0 +1,50 @@
+{
+  "id": 41,
+  "title": "缺失的第一个正数",
+  "titleEn": "First Missing Positive",
+  "difficulty": "困难",
+  "tags": [
+    "数组",
+    "哈希表"
+  ],
+  "description": "给定一个未排序的整数数组，找出其中没有出现的最小正整数。例如 [3,4,-1,1] 中缺失的最小正数是 2。",
+  "examples": [
+    {
+      "input": "4\n3 4 -1 1",
+      "output": "2",
+      "explanation": "1 和 3、4 都在数组中，最小缺失的正数是 2。"
+    },
+    {
+      "input": "3\n1 2 0",
+      "output": "3",
+      "explanation": "1、2 都在数组中，0 不是正数，所以答案是 3。"
+    },
+    {
+      "input": "5\n7 8 9 11 12",
+      "output": "1",
+      "explanation": "1 没有出现，是最小缺失的正数。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 5 * 10^5",
+    "-2^31 <= nums[i] <= 2^31 - 1"
+  ],
+  "ioFormat": "第一行为整数 n，第二行 n 个空格分隔的整数。输出数组中缺失的最小正整数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对候选答案 1,2,3,...,n+1 逐个在数组里线性查找是否存在。O(n^2) 时间。",
+      "code": "import sys\n\ndef first_missing_positive_brute(nums):\n    n = len(nums)\n    for i in range(1, n + 2):\n        found = False\n        for x in nums:\n            if x == i:\n                found = True\n                break\n        if not found:\n            return i\n    return n + 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(first_missing_positive_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "把所有数字放入集合，从 1 开始逐个查询是否在集合中。O(n) 时间但需要 O(n) 额外空间。",
+      "code": "import sys\n\ndef first_missing_positive_opt(nums):\n    s = set(nums)\n    i = 1\n    while i in s:\n        i += 1\n    return i\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(first_missing_positive_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "原地置换：把每个落在 [1,n] 内的数字 x 放到下标 x-1 处，然后扫一遍找第一个不满足 nums[i]==i+1 的位置。O(n) 时间、O(1) 额外空间。",
+      "code": "import sys\n\ndef first_missing_positive_best(nums):\n    n = len(nums)\n    for i in range(n):\n        while 1 <= nums[i] <= n and nums[nums[i] - 1] != nums[i]:\n            j = nums[i] - 1\n            nums[i], nums[j] = nums[j], nums[i]\n    for i in range(n):\n        if nums[i] != i + 1:\n            return i + 1\n    return n + 1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(first_missing_positive_best(nums))\n"
+    }
+  ]
+}

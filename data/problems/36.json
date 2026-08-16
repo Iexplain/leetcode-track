@@ -1,0 +1,47 @@
+{
+  "id": 36,
+  "title": "有效的数独",
+  "titleEn": "Valid Sudoku",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "哈希表",
+    "矩阵"
+  ],
+  "description": "判断一个 9×9 的数独是否有效：每行、每列、每个 3×3 宫格内已填入的数字 1-9 都不能重复，'.' 表示空格。只判断已填数字是否合规，不要求该数独一定有解。",
+  "examples": [
+    {
+      "input": "9\n5 3 . . 7 . . . .\n6 . . 1 9 5 . . .\n. 9 8 . . . . 6 .\n8 . . . 6 . . . 3\n4 . . 8 . 3 . . 1\n7 . . . 2 . . . 6\n. 6 . . . . 2 8 .\n. . . 4 1 9 . . 5\n. . . . 8 . . 7 9",
+      "output": "true",
+      "explanation": "每行、每列、每个宫格都没有重复数字，所以有效。"
+    },
+    {
+      "input": "9\n8 3 . . 7 . . . .\n6 . . 1 9 5 . . .\n. 9 8 . . . . 6 .\n8 . . . 6 . . . 3\n4 . . 8 . 3 . . 1\n7 . . . 2 . . . 6\n. 6 . . . . 2 8 .\n. . . 4 1 9 . . 5\n. . . . 8 . . 7 9",
+      "output": "false",
+      "explanation": "第一列出现两个 8（第 1 行和第 4 行），因此无效。"
+    }
+  ],
+  "constraints": [
+    "board.length == 9",
+    "board[i].length == 9",
+    "board[i][j] 是一位数字或 '.'"
+  ],
+  "ioFormat": "第一行为行数 n（固定为 9），随后 n 行每行 9 个字符（'.' 表示空位）。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "三趟扫描：先逐行、再逐列、最后逐 3×3 宫格，每趟用集合去重，任一重复即返回 false。",
+      "code": "import sys\n\ndef is_valid_sudoku_brute(board):\n    for i in range(9):\n        seen = set()\n        for j in range(9):\n            if board[i][j] != '.':\n                if board[i][j] in seen:\n                    return False\n                seen.add(board[i][j])\n    for j in range(9):\n        seen = set()\n        for i in range(9):\n            if board[i][j] != '.':\n                if board[i][j] in seen:\n                    return False\n                seen.add(board[i][j])\n    for bi in range(3):\n        for bj in range(3):\n            seen = set()\n            for i in range(bi * 3, bi * 3 + 3):\n                for j in range(bj * 3, bj * 3 + 3):\n                    if board[i][j] != '.':\n                        if board[i][j] in seen:\n                            return False\n                        seen.add(board[i][j])\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    board = []\n    idx = 1\n    for _ in range(n):\n        board.append(data[idx:idx + n])\n        idx += n\n    print('true' if is_valid_sudoku_brute(board) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "一趟扫描：把\"行、列、宫格\"三类约束编码成元组放入同一个集合，扫描每个格子时检查三类元组是否已存在。",
+      "code": "import sys\n\ndef is_valid_sudoku_opt(board):\n    seen = set()\n    for i in range(9):\n        for j in range(9):\n            v = board[i][j]\n            if v == '.':\n                continue\n            if (i, v) in seen or (v, j) in seen or (i // 3, j // 3, v) in seen:\n                return False\n            seen.add((i, v))\n            seen.add((v, j))\n            seen.add((i // 3, j // 3, v))\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    board = []\n    idx = 1\n    for _ in range(n):\n        board.append(data[idx:idx + n])\n        idx += n\n    print('true' if is_valid_sudoku_opt(board) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "位掩码：每行、每列、每个宫格各用一个整数作为 9 位掩码，把数字映射到对应位，用按位与判断是否已出现，用按位或写入。",
+      "code": "import sys\n\ndef is_valid_sudoku_best(board):\n    rows = [0] * 9\n    cols = [0] * 9\n    boxes = [0] * 9\n    for i in range(9):\n        for j in range(9):\n            v = board[i][j]\n            if v == '.':\n                continue\n            bit = 1 << (ord(v) - ord('0'))\n            b = (i // 3) * 3 + j // 3\n            if rows[i] & bit or cols[j] & bit or boxes[b] & bit:\n                return False\n            rows[i] |= bit\n            cols[j] |= bit\n            boxes[b] |= bit\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    board = []\n    idx = 1\n    for _ in range(n):\n        board.append(data[idx:idx + n])\n        idx += n\n    print('true' if is_valid_sudoku_best(board) else 'false')\n"
+    }
+  ]
+}

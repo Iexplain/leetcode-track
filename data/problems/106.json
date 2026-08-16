@@ -1,0 +1,50 @@
+{
+  "id": 106,
+  "title": "从中序与后序遍历序列构造二叉树",
+  "titleEn": "Construct Binary Tree from Inorder and Postorder Traversal",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "哈希表",
+    "分治",
+    "树",
+    "二叉树"
+  ],
+  "description": "给定两个整数数组 inorder 和 postorder，其中 inorder 是二叉树的中序遍历，postorder 是同一棵树的后序遍历。请你构造并返回这棵二叉树。",
+  "examples": [
+    {
+      "input": "5\n9 3 15 20 7\n9 15 7 20 3",
+      "output": "3 9 20 n n 15 7",
+      "explanation": "构造出的树层序为 [3,9,20,null,null,15,7]。"
+    },
+    {
+      "input": "2\n2 1\n2 1",
+      "output": "1 2",
+      "explanation": "中序与后序均为 [2,1]，树为根 1、左子 2。"
+    }
+  ],
+  "constraints": [
+    "1 <= inorder.length <= 3000",
+    "postorder.length == inorder.length",
+    "-3000 <= Node.val <= 3000",
+    "inorder 与 postorder 均无重复元素，且保证是某棵二叉树的合法遍历"
+  ],
+  "ioFormat": "第一行节点总数 cnt，第二行 cnt 个中序遍历值，第三行 cnt 个后序遍历值。输出按层序遍历的节点值，空位用 'n' 表示。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "利用后序最后一个元素是根、中序根左侧为左子树的特点递归构造。每次用 inorder.index(root) 找根并切片出左右子树区间，切片导致 O(n^2) 时间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build_brute(inorder, postorder):\n    if not inorder:\n        return None\n    root_v = postorder[-1]\n    root = T(root_v)\n    k = inorder.index(root_v)\n    root.l = build_brute(inorder[:k], postorder[:k])\n    root.r = build_brute(inorder[k + 1:], postorder[k:-1])\n    return root\n\n\ndef level_order(root):\n    if not root:\n        return ''\n    q = deque([root])\n    res = []\n    while q:\n        node = q.popleft()\n        if node is None:\n            res.append('n')\n        else:\n            res.append(str(node.v))\n            q.append(node.l)\n            q.append(node.r)\n    while res and res[-1] == 'n':\n        res.pop()\n    return ' '.join(res)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    inorder = list(map(int, data[1:1 + n]))\n    postorder = list(map(int, data[1 + n:1 + 2 * n]))\n    root = build_brute(inorder, postorder)\n    print(level_order(root))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用哈希表 pos 记录中序中每个值的下标，把 index 查找降为 O(1)，再在递归中只传下标区间 (il,ir,pl,pr) 不再切片。时间降为 O(n)。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build_opt(inorder, postorder):\n    pos = {v: i for i, v in enumerate(inorder)}\n\n    def rec(il, ir, pl, pr):\n        if il > ir:\n            return None\n        root_v = postorder[pr]\n        root = T(root_v)\n        k = pos[root_v]\n        left_len = k - il\n        root.l = rec(il, k - 1, pl, pl + left_len - 1)\n        root.r = rec(k + 1, ir, pl + left_len, pr - 1)\n        return root\n\n    return rec(0, len(inorder) - 1, 0, len(postorder) - 1)\n\n\ndef level_order(root):\n    if not root:\n        return ''\n    q = deque([root])\n    res = []\n    while q:\n        node = q.popleft()\n        if node is None:\n            res.append('n')\n        else:\n            res.append(str(node.v))\n            q.append(node.l)\n            q.append(node.r)\n    while res and res[-1] == 'n':\n        res.pop()\n    return ' '.join(res)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    inorder = list(map(int, data[1:1 + n]))\n    postorder = list(map(int, data[1 + n:1 + 2 * n]))\n    root = build_opt(inorder, postorder)\n    print(level_order(root))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在哈希表基础上，利用后序 L-R-root 的性质：从末尾倒着取根，先递归右子树再递归左子树，仅用 (il, ir) 两个下标，彻底去掉切片与 pr 参数。O(n) 时间，代码最简洁。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build_best(inorder, postorder):\n    pos = {v: i for i, v in enumerate(inorder)}\n    idx = len(postorder) - 1\n\n    def rec(il, ir):\n        nonlocal idx\n        if il > ir:\n            return None\n        root_v = postorder[idx]\n        idx -= 1\n        root = T(root_v)\n        k = pos[root_v]\n        root.r = rec(k + 1, ir)\n        root.l = rec(il, k - 1)\n        return root\n\n    return rec(0, len(inorder) - 1)\n\n\ndef level_order(root):\n    if not root:\n        return ''\n    q = deque([root])\n    res = []\n    while q:\n        node = q.popleft()\n        if node is None:\n            res.append('n')\n        else:\n            res.append(str(node.v))\n            q.append(node.l)\n            q.append(node.r)\n    while res and res[-1] == 'n':\n        res.pop()\n    return ' '.join(res)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    inorder = list(map(int, data[1:1 + n]))\n    postorder = list(map(int, data[1 + n:1 + 2 * n]))\n    root = build_best(inorder, postorder)\n    print(level_order(root))\n"
+    }
+  ]
+}

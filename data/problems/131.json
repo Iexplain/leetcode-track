@@ -1,0 +1,46 @@
+{
+  "id": 131,
+  "title": "分割回文串",
+  "titleEn": "Palindrome Partitioning",
+  "difficulty": "中等",
+  "tags": [
+    "字符串",
+    "动态规划",
+    "回溯"
+  ],
+  "description": "给你一个字符串 s，请你将 s 分割成一些子串，使每个子串都是回文串。返回 s 所有可能的分割方案。",
+  "examples": [
+    {
+      "input": "aab",
+      "output": "a a b\naa b",
+      "explanation": "两种分割：[\"a\",\"a\",\"b\"] 与 [\"aa\",\"b\"]。"
+    },
+    {
+      "input": "a",
+      "output": "a",
+      "explanation": "单个字符本身就是回文，只有一种分割。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 16",
+    "s 仅由小写英文字母组成"
+  ],
+  "ioFormat": "输入一行字符串 s。输出每一行一个分割方案，方案内子串用空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "回溯枚举所有可能的分割方式（每个切分点都切），全部生成后再逐一检查是否每个子串都是回文。会生成大量无效方案再过滤，比较浪费。",
+      "code": "import sys\n\n\ndef part_brute(s):\n    n = len(s)\n    res = []\n\n    def is_pal(x):\n        return x == x[::-1]\n\n    def dfs(i, path):\n        if i == n:\n            res.append(path[:])\n            return\n        for j in range(i, n):\n            path.append(s[i:j + 1])\n            dfs(j + 1, path)\n            path.pop()\n\n    dfs(0, [])\n    return [p for p in res if all(is_pal(x) for x in p)]\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    for part in part_brute(s):\n        print(' '.join(part))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "回溯 + 回文预判：递归时只在当前前缀是回文时才继续深入，剪掉大量无效分支。判断回文用双指针 O(L)，整体快很多。",
+      "code": "import sys\n\n\ndef part_opt(s):\n    n = len(s)\n    res = []\n\n    def is_pal(i, j):\n        while i < j:\n            if s[i] != s[j]:\n                return False\n            i += 1\n            j -= 1\n        return True\n\n    def dfs(i, path):\n        if i == n:\n            res.append(path[:])\n            return\n        for j in range(i, n):\n            if is_pal(i, j):\n                path.append(s[i:j + 1])\n                dfs(j + 1, path)\n                path.pop()\n\n    dfs(0, [])\n    return res\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    for part in part_opt(s):\n        print(' '.join(part))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "DP 回文表 + 回溯：先用 O(n^2) 动态规划预处理出 dp[i][j] 表示 s[i..j] 是否回文，回溯时 O(1) 查询。剪枝最充分，时间最优。",
+      "code": "import sys\n\n\ndef part_best(s):\n    n = len(s)\n    if n == 0:\n        return []\n    dp = [[False] * n for _ in range(n)]\n    for j in range(n):\n        for i in range(j + 1):\n            if s[i] == s[j] and (j - i <= 2 or dp[i + 1][j - 1]):\n                dp[i][j] = True\n    res = []\n\n    def dfs(i, path):\n        if i == n:\n            res.append(path[:])\n            return\n        for j in range(i, n):\n            if dp[i][j]:\n                path.append(s[i:j + 1])\n                dfs(j + 1, path)\n                path.pop()\n\n    dfs(0, [])\n    return res\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    for part in part_best(s):\n        print(' '.join(part))\n"
+    }
+  ]
+}

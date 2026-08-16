@@ -1,0 +1,47 @@
+{
+  "id": 114,
+  "title": "二叉树展开为链表",
+  "titleEn": "Flatten Binary Tree to Linked List",
+  "difficulty": "中等",
+  "tags": [
+    "栈",
+    "树",
+    "深度优先搜索",
+    "链表"
+  ],
+  "description": "给你二叉树的根节点 root，请你将它展开为一个单链表：展开后的单链表应使用同样的节点结构，其中 right 子指针指向链表中下一个结点，而左子指针始终为 null。展开后的单链表应与二叉树先序遍历顺序相同。",
+  "examples": [
+    {
+      "input": "7\n1 2 5 3 4 n 6",
+      "output": "1 2 3 4 5 6",
+      "explanation": "先序遍历为 1,2,3,4,5,6，展开后的链也按此顺序。"
+    },
+    {
+      "input": "1\nn",
+      "output": "",
+      "explanation": "空树展开后仍为空。"
+    }
+  ],
+  "constraints": [
+    "节点数在 [0, 2000] 范围内",
+    "-100 <= Node.val <= 100"
+  ],
+  "ioFormat": "第一行 n（节点数），第二行 n 个层序 token，'n' 表示空。输出展开后链表的节点值序列（即先序顺序）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "先递归先序遍历把节点收集到 list，再线性地把相邻节点用 right 串起来并把 left 置空。需要 O(n) 额外空间存先序序列。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef flatten_brute(root):\n    pre = []\n    def dfs(node):\n        if not node:\n            return\n        pre.append(node)\n        dfs(node.l)\n        dfs(node.r)\n    dfs(root)\n    for i in range(len(pre) - 1):\n        pre[i].l = None\n        pre[i].r = pre[i + 1]\n    return root\n\n\ndef chain(root):\n    res = []\n    while root:\n        res.append(str(root.v))\n        root = root.r\n    return ' '.join(res)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    flatten_brute(root)\n    print(chain(root))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "原地前驱法（Morris 风格）：当 cur 有左子树时，找到左子树中最右的前驱节点 p，把 p.r 接到 cur.r，再把 cur.r 整体移到左子树位置并清空 cur.l，随后 cur 右移。O(n) 时间 O(1) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef flatten_opt(root):\n    cur = root\n    while cur:\n        if cur.l:\n            p = cur.l\n            while p.r:\n                p = p.r\n            p.r = cur.r\n            cur.r = cur.l\n            cur.l = None\n        cur = cur.r\n    return root\n\n\ndef chain(root):\n    res = []\n    while root:\n        res.append(str(root.v))\n        root = root.r\n    return ' '.join(res)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    flatten_opt(root)\n    print(chain(root))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "迭代栈模拟先序遍历：维护 prev 指针，弹出节点时把 prev 的 left 置空、right 指向当前节点；先压右子树再压左子树以保持先序。O(n) 时间 O(n) 栈空间，写法最清晰。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef flatten_best(root):\n    if not root:\n        return root\n    stack = [root]\n    prev = None\n    while stack:\n        node = stack.pop()\n        if prev:\n            prev.l = None\n            prev.r = node\n        if node.r:\n            stack.append(node.r)\n        if node.l:\n            stack.append(node.l)\n        prev = node\n    return root\n\n\ndef chain(root):\n    res = []\n    while root:\n        res.append(str(root.v))\n        root = root.r\n    return ' '.join(res)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    flatten_best(root)\n    print(chain(root))\n"
+    }
+  ]
+}

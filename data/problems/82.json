@@ -1,0 +1,46 @@
+{
+  "id": 82,
+  "title": "删除排序链表中的重复元素 II",
+  "titleEn": "Remove Duplicates from Sorted List II",
+  "difficulty": "中等",
+  "tags": [
+    "链表",
+    "双指针"
+  ],
+  "description": "给定一个已经按升序排列的链表头节点 head，删除链表中所有出现重复的节点，即任何值出现超过一次的节点整组删除，只保留从未重复过的节点，并返回新链表的头节点。",
+  "examples": [
+    {
+      "input": "7\n1 2 3 3 4 4 5",
+      "output": "1 2 5",
+      "explanation": "3 和 4 都出现了重复，整组删除，只保留 1、2、5。"
+    },
+    {
+      "input": "2\n1 1",
+      "output": "",
+      "explanation": "所有节点都重复，链表为空。"
+    }
+  ],
+  "constraints": [
+    "节点数范围 0 ~ 1000",
+    "0 <= 节点值 <= 1000",
+    "链表已按升序排列"
+  ],
+  "ioFormat": "第一行整数 n（节点数），第二行 n 个节点值。输出删除重复后链表（空格分隔），空链表输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "第一遍遍历链表把值收集到列表并用 Counter 计数，第二遍只保留出现次数为 1 的值并重新建链。直观易懂，但使用了 O(n) 额外空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef delete_brute(head):\n    from collections import Counter\n    vals = []\n    cur = head\n    while cur:\n        vals.append(cur.v)\n        cur = cur.nxt\n    cnt = Counter(vals)\n    keep = [v for v in vals if cnt[v] == 1]\n    return build(keep)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, to_list(delete_brute(build(vals))))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "递归：若当前节点与下一节点值不同，则保留当前节点并递归处理其 next；若相同，则跳过整段重复值后递归处理。代码简洁，但最坏情况递归深度为 O(n)。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef delete_opt(head):\n    if head is None or head.nxt is None:\n        return head\n    if head.v != head.nxt.v:\n        head.nxt = delete_opt(head.nxt)\n        return head\n    while head.nxt and head.v == head.nxt.v:\n        head = head.nxt\n    return delete_opt(head.nxt)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, to_list(delete_opt(build(vals))))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "迭代 + 哨兵：用 dummy 哨兵统一处理头节点可能被删除的情况。prev 指向已确认保留的链表尾部，遇到重复段整体跳过再接续。O(n) 时间 O(1) 空间，无递归栈开销。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef delete_best(head):\n    dummy = N(0, head)\n    prev = dummy\n    while head:\n        if head.nxt and head.v == head.nxt.v:\n            while head.nxt and head.v == head.nxt.v:\n                head = head.nxt\n            prev.nxt = head.nxt\n        else:\n            prev = head\n        head = head.nxt\n    return dummy.nxt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    print(' '.join(map(str, to_list(delete_best(build(vals))))))\n"
+    }
+  ]
+}

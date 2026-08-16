@@ -1,0 +1,41 @@
+{
+  "id": 80,
+  "title": "删除有序数组中的重复项 II",
+  "titleEn": "Remove Duplicates from Sorted Array II",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "双指针"
+  ],
+  "description": "给定一个已经按非递减顺序排列的数组 nums，请你原地删除重复出现的元素，使得每个元素最多出现两次，并返回删除后数组的新长度。删除后的结果应保留在数组前部，且不改变元素的相对顺序。不要使用额外的数组空间。",
+  "examples": [
+    {
+      "input": "6\n1 1 1 2 2 3",
+      "output": "5\n1 1 2 2 3",
+      "explanation": "元素 1 出现了 3 次，删除多余的一个，得到 [1,1,2,2,3]，长度为 5。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 3 * 10^4",
+    "-10^4 <= nums[i] <= 10^4",
+    "nums 已按非递减顺序排列"
+  ],
+  "ioFormat": "第一行整数 n（数组长度），第二行 n 个整数。第一行输出新长度，第二行输出修改后数组的前 k 个元素（空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用 Counter 统计每个值出现次数，再按出现顺序重建数组，每个值最多保留 2 个。O(n) 时间，但使用了 O(n) 额外空间，不符合原地要求。",
+      "code": "import sys\nfrom collections import Counter\n\ndef remove_brute(nums):\n    cnt = Counter(nums)\n    res = []\n    for v in sorted(cnt):\n        res.extend([v] * min(2, cnt[v]))\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    res = remove_brute(nums)\n    print(len(res))\n    print(' '.join(map(str, res)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "双指针原地：由于数组已排序，维护慢指针 slow 作为写入位置。对于 fast 位置的元素，只要 nums[fast] != nums[slow-2] 就写入，保证每个值最多出现两次。O(n) 时间 O(1) 空间。",
+      "code": "import sys\n\ndef remove_opt(nums):\n    if len(nums) <= 2:\n        return nums\n    slow = 2\n    for fast in range(2, len(nums)):\n        if nums[fast] != nums[slow - 2]:\n            nums[slow] = nums[fast]\n            slow += 1\n    return nums[:slow]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    res = remove_opt(nums)\n    print(len(res))\n    print(' '.join(map(str, res)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "把上面的思路推广为“允许 k 次重复”的通用模板（此处 k=2）：只有 nums[slow-k] != v 时才写入。逻辑等价但更普适，修改 k 即可复用于“最多出现一次”等变体。",
+      "code": "import sys\n\ndef remove_best(nums, k=2):\n    slow = 0\n    for v in nums:\n        if slow < k or nums[slow - k] != v:\n            nums[slow] = v\n            slow += 1\n    return nums[:slow]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    res = remove_best(nums)\n    print(len(res))\n    print(' '.join(map(str, res)))\n"
+    }
+  ]
+}

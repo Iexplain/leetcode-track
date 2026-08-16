@@ -1,0 +1,46 @@
+{
+  "id": 373,
+  "title": "查找和最小的 K 对数字",
+  "titleEn": "Find K Pairs with Smallest Sums",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "堆"
+  ],
+  "description": "给定两个以升序排列的整数数组 nums1 和 nums2，以及一个整数 k。定义一对值 (u, v)，其中第一个元素来自 nums1，第二个元素来自 nums2。请找到和最小的 k 个数对 (u1, v1), (u2, v2), ..., (uk, vk)。",
+  "examples": [
+    {
+      "input": "3 3\n1 7 11\n2 4 6\n3",
+      "output": "1 2\n1 4\n1 6",
+      "explanation": "所有 9 个数对按和升序为：(1,2)=3、(1,4)=5、(1,6)=7、(7,2)=9... 取前 3 对。"
+    },
+    {
+      "input": "2 3\n1 2\n1 2 3\n2",
+      "output": "1 1\n1 2",
+      "explanation": "和最小的两对：(1,1)=2、(1,2)=3；和同为 3 的 (2,1) 按下标序排在 (1,2) 之后。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums1.length, nums2.length <= 10^4",
+    "-10^9 <= nums1[i], nums2[i] <= 10^9",
+    "1 <= k <= 10^4"
+  ],
+  "ioFormat": "第一行 m n（两数组长度），第二行 m 个整数 nums1，第三行 n 个整数 nums2，第四行整数 k。按和的升序输出 k 行，每行两个整数 u v。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举所有 m*n 个数对，按 (和, nums1 下标, nums2 下标) 排序后取前 k 个。O(m*n log(m*n)) 时间，思路最简单，数据大时不可用。",
+      "code": "import sys\n\ndef k_smallest_pairs_brute(nums1, nums2, k):\n    pairs = []\n    for i, a in enumerate(nums1):\n        for j, b in enumerate(nums2):\n            pairs.append((a + b, a, b, i, j))\n    pairs.sort(key=lambda t: (t[0], t[3], t[4]))\n    return [(a, b) for _, a, b, _, _ in pairs[:k]]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    nums1 = list(map(int, data[2:2 + m]))\n    nums2 = list(map(int, data[2 + m:2 + m + n]))\n    k = int(data[2 + m + n])\n    for a, b in k_smallest_pairs_brute(nums1, nums2, k):\n        print(a, b)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "多路归并堆：先把每行 nums1[i] 与 nums2[0] 的和作为候选入堆，弹出 (i,j) 时把同一行的 (i,j+1) 入堆。利用两数组升序，堆顶总是当前最小和。O(k log m) 时间。",
+      "code": "import sys\nimport heapq\n\ndef k_smallest_pairs_opt(nums1, nums2, k):\n    m, n = len(nums1), len(nums2)\n    heap = []\n    for i in range(min(m, k)):\n        heapq.heappush(heap, (nums1[i] + nums2[0], i, 0))\n    res = []\n    while heap and len(res) < k:\n        _, i, j = heapq.heappop(heap)\n        res.append((nums1[i], nums2[j]))\n        if j + 1 < n:\n            heapq.heappush(heap, (nums1[i] + nums2[j + 1], i, j + 1))\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    nums1 = list(map(int, data[2:2 + m]))\n    nums2 = list(map(int, data[2 + m:2 + m + n]))\n    k = int(data[2 + m + n])\n    for a, b in k_smallest_pairs_opt(nums1, nums2, k):\n        print(a, b)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "堆 + visited 剪枝：从 (0,0) 出发，弹出最小和节点后把其右邻 (i,j+1) 与下邻 (i+1,j) 入堆，用 set 去重防重复入堆。K 次操作均为 O(log K)，且不会像多路归并那样需要预推 k 行，空间更省。",
+      "code": "import sys\nimport heapq\n\ndef k_smallest_pairs_best(nums1, nums2, k):\n    m, n = len(nums1), len(nums2)\n    if not m or not n:\n        return []\n    seen = {(0, 0)}\n    heap = [(nums1[0] + nums2[0], 0, 0)]\n    res = []\n    while heap and len(res) < k:\n        _, i, j = heapq.heappop(heap)\n        res.append((nums1[i], nums2[j]))\n        if i + 1 < m and (i + 1, j) not in seen:\n            seen.add((i + 1, j))\n            heapq.heappush(heap, (nums1[i + 1] + nums2[j], i + 1, j))\n        if j + 1 < n and (i, j + 1) not in seen:\n            seen.add((i, j + 1))\n            heapq.heappush(heap, (nums1[i] + nums2[j + 1], i, j + 1))\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    nums1 = list(map(int, data[2:2 + m]))\n    nums2 = list(map(int, data[2 + m:2 + m + n]))\n    k = int(data[2 + m + n])\n    for a, b in k_smallest_pairs_best(nums1, nums2, k):\n        print(a, b)\n"
+    }
+  ]
+}

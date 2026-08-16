@@ -3,11 +3,16 @@
   "title": "打家劫舍 III",
   "titleEn": "House Robber III",
   "difficulty": "中等",
-  "tags": ["树", "深度优先搜索", "动态规划", "二叉树"],
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "动态规划",
+    "二叉树"
+  ],
   "description": "房屋排成二叉树，相邻（同父/同母直接相连）的房屋不能同夜偷。求最大金额。",
   "examples": [
     {
-      "input": "5\n3 2 3 n 3 n 1",
+      "input": "7\n3 2 3 n 3 n 1",
       "output": "7",
       "explanation": "3+3+1=7 或 3+1=4，最大 7。"
     },
@@ -31,12 +36,12 @@
     {
       "level": "优化",
       "idea": "DFS 返回 (不抢, 抢) 双值：f(node) = (no_take, take)。take = v + l[0] + r[0]; no_take = max(l) + max(r)。O(n) 时间，O(h) 空间。",
-      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef rob_opt(root):\n    def dfs(n):\n        if not n: return (0, 0)\n        ln, lt = dfs(n.l); rn, rt = dfs(n.r)\n        take = n.v + ln + rn\n        skip = max(ln, lt) + max(rn, rt)\n        return (max(take, skip), take)\n    return max(dfs(root))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build(arr)\n    print(rob_opt(root))\n"
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef rob_opt(root):\n    def dfs(n):\n        if not n:\n            return (0, 0)\n        l0, l1 = dfs(n.l)  # (not_take, take)\n        r0, r1 = dfs(n.r)\n        take = n.v + l0 + r0\n        not_take = max(l0, l1) + max(r0, r1)\n        return (not_take, take)\n    return max(dfs(root))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build(arr)\n    print(rob_opt(root))\n"
     },
     {
       "level": "最优",
       "idea": "“优化”版的另一种紧凑写法：dfs 仅返回 (no, take)，在外层 max 取最大值。代码结构相同但更紧凑",
-      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef rob_best(root):\n    def dfs(n):\n        if not n: return (0, 0)\n        ln, lt = dfs(n.l); rn, rt = dfs(n.r)\n        return (max(ln, lt) + max(rn, rt), n.v + ln + rn)\n    a, b = dfs(root)\n    return max(a, b)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build(arr)\n    print(rob_best(root))\n"
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef rob_best(root):\n    def dfs(n):\n        if not n:\n            return (0, 0)\n        l0, l1 = dfs(n.l)  # (not_take, take)\n        r0, r1 = dfs(n.r)\n        take = n.v + l0 + r0\n        not_take = max(l0, l1) + max(r0, r1)\n        return (not_take, take)\n    return max(dfs(root))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    root = build(arr)\n    print(rob_best(root))\n"
     }
   ]
 }

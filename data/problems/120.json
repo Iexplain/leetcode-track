@@ -1,0 +1,47 @@
+{
+  "id": 120,
+  "title": "三角形最小路径和",
+  "titleEn": "Triangle",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "动态规划"
+  ],
+  "description": "给定一个三角形 triangle，找出自顶向下的最小路径和。每一步只能移动到下一行中相邻的结点上。相邻的结点指的是下标与上一层结点下标相同或者等于上一层结点下标 + 1 的两个结点。",
+  "examples": [
+    {
+      "input": "4\n2\n3 4\n6 5 7\n4 1 8 3",
+      "output": "11",
+      "explanation": "自顶向下的最小路径和为 2 + 3 + 5 + 1 = 11。"
+    },
+    {
+      "input": "1\n-10",
+      "output": "-10",
+      "explanation": "只有一行的三角形，最小路径和就是该元素本身。"
+    }
+  ],
+  "constraints": [
+    "1 <= triangle.length <= 200",
+    "triangle[0].length == 1",
+    "triangle[i].length == triangle[i-1].length + 1",
+    "-10^4 <= triangle[i][j] <= 10^4"
+  ],
+  "ioFormat": "第一行 n（行数），随后 n 行，第 i 行包含 i 个整数（i 从 1 到 n）。输出一个整数表示最小路径和。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "朴素递归：从 (0,0) 出发，每次选择下一行 j 或 j+1 中较优者，把路径和一路累加。存在大量重复子问题，最坏 O(2^n) 时间，n 大时会超时。",
+      "code": "import sys\n\n\ndef min_tri_brute(tri):\n    def dfs(i, j):\n        if i == len(tri) - 1:\n            return tri[i][j]\n        return tri[i][j] + min(dfs(i + 1, j), dfs(i + 1, j + 1))\n    return dfs(0, 0)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    tri = []\n    idx = 1\n    for i in range(1, n + 1):\n        tri.append(list(map(int, data[idx:idx + i])))\n        idx += i\n    print(min_tri_brute(tri))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二维动态规划：dp[i][j] 表示从顶部到 (i,j) 的最小路径和，转移来自上一行 j 与 j-1 两者较小者。自顶向下填表，O(n^2) 时间 O(n^2) 空间。",
+      "code": "import sys\n\n\ndef min_tri_opt(tri):\n    n = len(tri)\n    dp = [[0] * n for _ in range(n)]\n    dp[0][0] = tri[0][0]\n    for i in range(1, n):\n        for j in range(i + 1):\n            best = float('inf')\n            if j < i:\n                best = min(best, dp[i - 1][j])\n            if j > 0:\n                best = min(best, dp[i - 1][j - 1])\n            dp[i][j] = tri[i][j] + best\n    return min(dp[n - 1])\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    tri = []\n    idx = 1\n    for i in range(1, n + 1):\n        tri.append(list(map(int, data[idx:idx + i])))\n        idx += i\n    print(min_tri_opt(tri))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "一维滚动数组：自底向上只保留一行 dp，dp[j] = tri[i][j] + min(dp[j], dp[j+1])。空间降到 O(n)，且代码更短。",
+      "code": "import sys\n\n\ndef min_tri_best(tri):\n    dp = tri[-1][:]\n    for i in range(len(tri) - 2, -1, -1):\n        for j in range(i + 1):\n            dp[j] = tri[i][j] + min(dp[j], dp[j + 1])\n    return dp[0]\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    tri = []\n    idx = 1\n    for i in range(1, n + 1):\n        tri.append(list(map(int, data[idx:idx + i])))\n        idx += i\n    print(min_tri_best(tri))\n"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": 909,
+  "title": "蛇梯棋",
+  "titleEn": "Snakes and Ladders",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "广度优先搜索",
+    "矩阵"
+  ],
+  "description": "给你一个 n x n 的整数矩阵 board。方格从 1 到 n^2 编号，编号从最左下角开始，按蛇形方向从下往上排列（奇数行从左到右、偶数行从右到左）。如果 board[r][c] != -1，则到达该格的玩家必须跳转到 board[r][c] 指定的格子（蛇或梯子）。玩家从编号 1 出发，每回合掷一次 1~6 的骰子并向前移动对应步数，若停在有蛇/梯子的格子则必须跳转。返回到达编号 n^2 所需的最少移动次数；若无法到达则返回 -1。",
+  "examples": [
+    {
+      "input": "6 6\n-1 -1 -1 -1 -1 -1\n-1 -1 -1 -1 -1 -1\n-1 -1 -1 -1 -1 -1\n-1 35 -1 -1 13 -1\n-1 -1 -1 -1 -1 -1\n-1 15 -1 -1 -1 -1",
+      "output": "4",
+      "explanation": "一条最短路径：1 掷 1 到 2（梯子到 15），15 掷 2 到 17（蛇到 13），13 掷 1 到 14（梯子到 35），35 掷 1 到 36，共 4 步。"
+    }
+  ],
+  "constraints": [
+    "n == board.length == board[i].length",
+    "2 <= n <= 20",
+    "board[i][j] 是 -1 或范围 [1, n^2] 内的整数"
+  ],
+  "ioFormat": "第一行两个整数 m n（m == n），接下来 m 行每行 n 个整数表示 board（按从上到下的行顺序给出）。输出一个整数表示最少移动次数，无法到达输出 -1。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "广度优先搜索：从编号 1 出发，每个状态枚举骰子 1~6 得到下一个格子并处理蛇/梯子跳转，用 visited 集合去重，记录步数。首次到达 n^2 即是最少步数。",
+      "code": "import sys\nfrom collections import deque\n\ndef snakes_brute(board):\n    n = len(board)\n    total = n * n\n    def pos_of(p):\n        row = (p - 1) // n\n        r = n - 1 - row\n        c = (p - 1) % n\n        if row % 2 == 1:\n            c = n - 1 - c\n        return r, c\n    visited = set()\n    q = deque()\n    q.append((1, 0))\n    visited.add(1)\n    while q:\n        cur, step = q.popleft()\n        if cur == total:\n            return step\n        for d in range(1, 7):\n            nxt = cur + d\n            if nxt > total:\n                break\n            r, c = pos_of(nxt)\n            if board[r][c] != -1:\n                nxt = board[r][c]\n            if nxt in visited:\n                continue\n            visited.add(nxt)\n            q.append((nxt, step + 1))\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    print(snakes_brute(board))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "预计算跳转表 + BFS：先把每个格子的真实落点（无蛇/梯则为自身）预存到 nxt_cell 数组，BFS 时直接查表，并用 dist 数组记录步数代替 visited 集合。O(n^2) 时间。",
+      "code": "import sys\nfrom collections import deque\n\ndef snakes_opt(board):\n    n = len(board)\n    total = n * n\n    nxt_cell = [0] * (total + 1)\n    for p in range(1, total + 1):\n        row = (p - 1) // n\n        r = n - 1 - row\n        c = (p - 1) % n\n        if row % 2 == 1:\n            c = n - 1 - c\n        nxt_cell[p] = board[r][c] if board[r][c] != -1 else p\n    dist = [-1] * (total + 1)\n    q = deque([1])\n    dist[1] = 0\n    while q:\n        cur = q.popleft()\n        if cur == total:\n            return dist[cur]\n        for d in range(1, 7):\n            nxt = cur + d\n            if nxt > total:\n                break\n            nxt = nxt_cell[nxt]\n            if dist[nxt] == -1:\n                dist[nxt] = dist[cur] + 1\n                q.append(nxt)\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    print(snakes_opt(board))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "逐层 BFS + 早退出：用 frontier 列表按“层”扩展（同一层代表同一步数），每层先检查是否已到终点，同时用 dist 数组去重避免重复扩展。逻辑清晰且能在找到终点的当层立即返回。",
+      "code": "import sys\n\ndef snakes_best(board):\n    n = len(board)\n    total = n * n\n    nxt_cell = [0] * (total + 1)\n    for p in range(1, total + 1):\n        row = (p - 1) // n\n        r = n - 1 - row\n        c = (p - 1) % n\n        if row % 2 == 1:\n            c = n - 1 - c\n        nxt_cell[p] = board[r][c] if board[r][c] != -1 else p\n    dist = [-1] * (total + 1)\n    dist[1] = 0\n    frontier = [1]\n    step = 0\n    while frontier:\n        nxt_frontier = []\n        for cur in frontier:\n            if cur == total:\n                return step\n            for d in range(1, 7):\n                nxt = cur + d\n                if nxt > total:\n                    break\n                nxt = nxt_cell[nxt]\n                if dist[nxt] == -1:\n                    dist[nxt] = step + 1\n                    nxt_frontier.append(nxt)\n        frontier = nxt_frontier\n        step += 1\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    board = []\n    idx = 2\n    for _ in range(m):\n        board.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    print(snakes_best(board))\n"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "id": 162,
+  "title": "寻找峰值",
+  "titleEn": "Find Peak Element",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "二分查找"
+  ],
+  "description": "峰值元素指其值严格大于左右相邻值的元素。给定整数数组 nums，nums[-1] = nums[n] = -∞，即首尾元素只要大于唯一的相邻元素就是峰值。返回任意一个峰值元素的索引。",
+  "examples": [
+    {
+      "input": "4\n1 2 3 1",
+      "output": "2",
+      "explanation": "nums[2]=3 严格大于左右邻居，是峰值。"
+    },
+    {
+      "input": "3\n1 2 3",
+      "output": "2",
+      "explanation": "数组严格递增，末尾元素是峰值。"
+    },
+    {
+      "input": "2\n3 2",
+      "output": "0",
+      "explanation": "数组严格递减，首元素是峰值。"
+    }
+  ],
+  "constraints": [
+    "1 <= n <= 1000",
+    "-2^31 <= nums[i] <= 2^31 - 1",
+    "对所有有效的 i，nums[i] != nums[i+1]"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出任意一个峰值元素的下标。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "线性扫描：对每个位置判断它是否大于左右邻居（首尾只判断一侧），找到第一个满足条件的下标返回。O(n) 时间，O(1) 空间。",
+      "code": "import sys\n\ndef find_peak(nums):\n    n = len(nums)\n    for i in range(n):\n        left_ok = (i == 0) or nums[i] > nums[i - 1]\n        right_ok = (i == n - 1) or nums[i] > nums[i + 1]\n        if left_ok and right_ok:\n            return i\n    return -1\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_peak(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二分查找：比较 nums[mid] 与 nums[mid+1]，若 mid 更大说明峰值在左半边（含 mid），否则在右半边。每次把区间减半，O(log n) 时间。",
+      "code": "import sys\n\ndef find_peak(nums):\n    lo, hi = 0, len(nums) - 1\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if nums[mid] > nums[mid + 1]:\n            hi = mid\n        else:\n            lo = mid + 1\n    return lo\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_peak(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "二分 + 局部梯度判断：检查中点两侧邻居，若中点已是峰则返回；否则向值更大的那一侧收缩区间。思路更贴近“爬坡”，保证必能收敛到一个峰，O(log n) 时间。",
+      "code": "import sys\n\ndef find_peak(nums):\n    lo, hi = 0, len(nums) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        left = nums[mid - 1] if mid > 0 else float('-inf')\n        right = nums[mid + 1] if mid < len(nums) - 1 else float('-inf')\n        if nums[mid] > left and nums[mid] > right:\n            return mid\n        if nums[mid] < right:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_peak(nums))\n"
+    }
+  ]
+}

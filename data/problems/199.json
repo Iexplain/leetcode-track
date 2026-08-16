@@ -1,0 +1,46 @@
+{
+  "id": 199,
+  "title": "二叉树的右视图",
+  "titleEn": "Binary Tree Right Side View",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "广度优先搜索"
+  ],
+  "description": "给定一棵二叉树的根节点 root，想象自己站在它的右侧，按照从顶部到底部的顺序，返回从右侧所能看到的节点值。",
+  "examples": [
+    {
+      "input": "7\n1 2 3 n 5 n 4",
+      "output": "1 3 4",
+      "explanation": "从右侧看：第一层看到 1，第二层看到 3（2 被遮挡），第三层看到 4（5 被遮挡）。"
+    },
+    {
+      "input": "3\n1 2 3",
+      "output": "1 3",
+      "explanation": "两层分别看到 1 与 3。"
+    }
+  ],
+  "constraints": [
+    "树的节点数在 [0, 100] 内",
+    "-100 <= Node.val <= 100"
+  ],
+  "ioFormat": "第一行 n（层序数组长度），第二行层序数组（'n' 表示 None）。输出从右侧可见的节点值，空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "广度优先（BFS）按层遍历：用一个队列逐层处理，记录当前层的所有节点值，取每层最后一个节点加入结果。O(n) 时间、O(w) 空间（w 为最大层宽）。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef right_brute(root):\n    if not root:\n        return []\n    q = deque([root])\n    res = []\n    while q:\n        level = []\n        for _ in range(len(q)):\n            n = q.popleft()\n            level.append(n.v)\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n        res.append(level[-1])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(' '.join(map(str, right_brute(root))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "深度优先（DFS）优先访问右子树：维护 depth 与结果数组，当 depth == len(res) 时把该节点加入结果（说明该深度第一个被访问到）。O(n) 时间、O(h) 空间（h 为树高）。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef right_dfs(root):\n    res = []\n    def dfs(node, depth):\n        if not node:\n            return\n        if depth == len(res):\n            res.append(node.v)\n        dfs(node.r, depth + 1)\n        dfs(node.l, depth + 1)\n    dfs(root, 0)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(' '.join(map(str, right_dfs(root))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "BFS 配合 for _ in range(len(q)) 按层推进，每层直接把队尾（最后一个）加入结果，无需保存整层数组。代码最紧凑，O(n) 时间、O(w) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\ndef right_best(root):\n    if not root:\n        return []\n    q = deque([root])\n    res = []\n    while q:\n        level = []\n        for _ in range(len(q)):\n            n = q.popleft()\n            level.append(n.v)\n            if n.l: q.append(n.l)\n            if n.r: q.append(n.r)\n        res.append(level[-1])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(' '.join(map(str, right_best(root))))\n"
+    }
+  ]
+}

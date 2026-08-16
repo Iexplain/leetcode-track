@@ -1,0 +1,49 @@
+{
+  "id": 139,
+  "title": "单词拆分",
+  "titleEn": "Word Break",
+  "difficulty": "中等",
+  "tags": [
+    "字典树",
+    "记忆化搜索",
+    "数组",
+    "动态规划"
+  ],
+  "description": "给你一个字符串 s 和一个字符串列表 wordDict，如果可以利用字典中出现的单词拼接出 s，则返回 true。字典中的单词可以被重复使用。",
+  "examples": [
+    {
+      "input": "applepenapple\n2\napple pen",
+      "output": "true",
+      "explanation": "apple + pen + apple 可拼接出 s。"
+    },
+    {
+      "input": "catsandog\n5\ncats dog sand and cat",
+      "output": "false",
+      "explanation": "无法用这些单词拼接出 catsandog。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 300",
+    "1 <= wordDict.length <= 1000",
+    "1 <= wordDict[i].length <= 20",
+    "s 与 wordDict[i] 仅由小写英文字母组成"
+  ],
+  "ioFormat": "第一行字符串 s，第二行 m（字典单词数），第三行 m 个单词（空格分隔）。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归回溯：枚举 s 的前缀，若某个单词是前缀则递归处理剩余部分。大量重复子问题，最坏 O(2^n) 指数时间，但思路最直接。",
+      "code": "import sys\n\ndef word_break_brute(s, words):\n    if not s:\n        return True\n    for w in words:\n        if s.startswith(w) and word_break_brute(s[len(w):], words):\n            return True\n    return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    m = int(data[1])\n    words = data[2:2 + m]\n    print('true' if word_break_brute(s, words) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "在暴力递归基础上加记忆化：用 lru_cache 缓存剩余子串是否可拆，避免重复计算同一后缀。O(n^2) 级别的子问题，每个子问题枚举单词，总体 O(n^3) 最坏。",
+      "code": "import sys\nfrom functools import lru_cache\n\ndef word_break_opt(s, words):\n    @lru_cache(maxsize=None)\n    def dfs(rest):\n        if not rest:\n            return True\n        for w in words:\n            if rest.startswith(w) and dfs(rest[len(w):]):\n                return True\n        return False\n    return dfs(s)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    m = int(data[1])\n    words = data[2:2 + m]\n    print('true' if word_break_opt(s, words) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "一维动态规划：dp[i] 表示 s 的前 i 个字符能否被拆成单词。枚举切分点 j，若 dp[j] 且 s[j:i] 在字典中则 dp[i] 为真。把单词放入哈希集合实现 O(1) 查询，整体 O(n^2)。",
+      "code": "import sys\n\ndef word_break_best(s, words):\n    n = len(s)\n    word_set = set(words)\n    dp = [False] * (n + 1)\n    dp[0] = True\n    for i in range(1, n + 1):\n        for j in range(i):\n            if dp[j] and s[j:i] in word_set:\n                dp[i] = True\n                break\n    return dp[n]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    m = int(data[1])\n    words = data[2:2 + m]\n    print('true' if word_break_best(s, words) else 'false')\n"
+    }
+  ]
+}

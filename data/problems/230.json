@@ -1,0 +1,47 @@
+{
+  "id": 230,
+  "title": "二叉搜索树中第 K 小的元素",
+  "titleEn": "Kth Smallest Element in a BST",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "二叉搜索树"
+  ],
+  "description": "给定一棵二叉搜索树的根节点 root，和一个整数 k，请你设计一个算法查找其中第 k 个最小元素（从 1 开始计数）。",
+  "examples": [
+    {
+      "input": "5\n3 1 4 n 2\n1",
+      "output": "1",
+      "explanation": "树 [3,1,4,null,2] 的中序序列为 [1,2,3,4]，第 1 小为 1。"
+    },
+    {
+      "input": "5\n3 1 4 n 2\n3",
+      "output": "3",
+      "explanation": "同一棵树，第 3 小为 3。"
+    }
+  ],
+  "constraints": [
+    "1 <= k <= 节点数 <= 10^4",
+    "0 <= Node.val <= 10^5",
+    "树以层序数组给出，'n' 代表 None"
+  ],
+  "ioFormat": "第一行 n（层序 token 数），第二行 n 个 token（整数或 n），第三行整数 k。输出第 k 小元素的值。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "中序遍历整棵树收集到列表，直接取第 k-1 个。O(n) 时间、O(n) 空间，思路最直观，但把所有节点都遍历完了。",
+      "code": "import sys\nfrom collections import deque\n\nclass TreeNode:\n    __slots__ = ('val', 'left', 'right')\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val; self.left = left; self.right = right\n\ndef build_tree(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = TreeNode(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.left = TreeNode(int(arr[i]))\n            q.append(node.left)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.right = TreeNode(int(arr[i]))\n            q.append(node.right)\n        i += 1\n    return root\n\ndef kth_brute(root, k):\n    vals = []\n    def dfs(node):\n        if not node:\n            return\n        dfs(node.left)\n        vals.append(node.val)\n        dfs(node.right)\n    dfs(root)\n    return vals[k - 1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    k = int(data[1 + n])\n    root = build_tree(arr)\n    print(kth_brute(root, k))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "递归中序+计数：用全局计数器在访问根节点时自增，数到第 k 个立即返回，不再访问右侧剩余节点。O(k + 高度) 时间，平均更快。",
+      "code": "import sys\nfrom collections import deque\n\nclass TreeNode:\n    __slots__ = ('val', 'left', 'right')\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val; self.left = left; self.right = right\n\ndef build_tree(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = TreeNode(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.left = TreeNode(int(arr[i]))\n            q.append(node.left)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.right = TreeNode(int(arr[i]))\n            q.append(node.right)\n        i += 1\n    return root\n\ndef kth_opt(root, k):\n    cnt = 0\n    res = None\n    def dfs(node):\n        nonlocal cnt, res\n        if not node or res is not None:\n            return\n        dfs(node.left)\n        cnt += 1\n        if cnt == k:\n            res = node.val\n            return\n        dfs(node.right)\n    dfs(root)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    k = int(data[1 + n])\n    root = build_tree(arr)\n    print(kth_opt(root, k))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "迭代栈模拟中序：cur 沿左子树压栈到底，出栈访问时计数，数到 k 即返回；不需要额外递归栈，空间 O(h)。BST 特性保证中序即升序。",
+      "code": "import sys\nfrom collections import deque\n\nclass TreeNode:\n    __slots__ = ('val', 'left', 'right')\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val; self.left = left; self.right = right\n\ndef build_tree(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = TreeNode(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.left = TreeNode(int(arr[i]))\n            q.append(node.left)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.right = TreeNode(int(arr[i]))\n            q.append(node.right)\n        i += 1\n    return root\n\ndef kth_best(root, k):\n    stack = []\n    cur = root\n    cnt = 0\n    while cur or stack:\n        while cur:\n            stack.append(cur)\n            cur = cur.left\n        cur = stack.pop()\n        cnt += 1\n        if cnt == k:\n            return cur.val\n        cur = cur.right\n    return -1\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    arr = data[1:1 + n]\n    k = int(data[1 + n])\n    root = build_tree(arr)\n    print(kth_best(root, k))\n"
+    }
+  ]
+}

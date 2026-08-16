@@ -1,0 +1,39 @@
+{
+  "id": 77,
+  "title": "组合",
+  "titleEn": "Combinations",
+  "difficulty": "中等",
+  "tags": [
+    "回溯"
+  ],
+  "description": "给定两个整数 n 和 k，返回 1 到 n 之间所有可能的包含 k 个数的组合。每个组合内部按升序排列，所有组合之间按字典序排列。",
+  "examples": [
+    {
+      "input": "4 2",
+      "output": "1 2\n1 3\n1 4\n2 3\n2 4\n3 4",
+      "explanation": "从 1..4 中任选 2 个数的全部组合，共 C(4,2)=6 个。"
+    }
+  ],
+  "constraints": [
+    "1 <= n <= 20",
+    "1 <= k <= n"
+  ],
+  "ioFormat": "一行两个整数 n k。每行输出一个组合，组合内数字以空格分隔。无组合时输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接使用标准库 itertools.combinations 生成 1..n 中所有 k 元组合。代码最短、不易出错，但未展示组合生成的回溯思想。",
+      "code": "import sys\nfrom itertools import combinations\n\ndef combine(n, k):\n    return list(combinations(range(1, n + 1), k))\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n, k = int(data[0]), int(data[1])\n    for c in combine(n, k):\n        print(' '.join(map(str, c)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "经典回溯：在 backtrack(start, path) 中从 start 开始枚举下一个数字，选够 k 个时记录答案，然后回溯撤销。时间复杂度 O(C(n,k))。",
+      "code": "import sys\n\ndef combine(n, k):\n    res = []\n    def backtrack(start, path):\n        if len(path) == k:\n            res.append(path[:])\n            return\n        for i in range(start, n + 1):\n            path.append(i)\n            backtrack(i + 1, path)\n            path.pop()\n    backtrack(1, [])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n, k = int(data[0]), int(data[1])\n    for c in combine(n, k):\n        print(' '.join(map(str, c)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "回溯 + 剪枝：当剩余可选数字不足以凑满 k 个时提前终止。for 循环上界取 n - (k - len(path)) + 1，避免无意义的递归分支，常数更小。",
+      "code": "import sys\n\ndef combine(n, k):\n    res = []\n    def backtrack(start, path):\n        if len(path) == k:\n            res.append(path[:])\n            return\n        for i in range(start, n - (k - len(path)) + 2):\n            path.append(i)\n            backtrack(i + 1, path)\n            path.pop()\n    backtrack(1, [])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n, k = int(data[0]), int(data[1])\n    for c in combine(n, k):\n        print(' '.join(map(str, c)))\n"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "id": 55,
+  "title": "跳跃游戏",
+  "titleEn": "Jump Game",
+  "difficulty": "中等",
+  "tags": [
+    "贪心",
+    "数组",
+    "动态规划"
+  ],
+  "description": "给定一个非负整数数组 nums，初始位于下标 0，nums[i] 表示在下标 i 处最多能向前跳的步数。判断能否到达最后一个下标。",
+  "examples": [
+    {
+      "input": "5\n2 3 1 1 4",
+      "output": "true",
+      "explanation": "0 -> 1 -> 4 可以到达末尾。"
+    },
+    {
+      "input": "5\n3 2 1 0 4",
+      "output": "false",
+      "explanation": "无论怎么跳，都会被困在下标 3 的位置（nums[3]=0），无法到达末尾。"
+    },
+    {
+      "input": "3\n0 2 3",
+      "output": "false",
+      "explanation": "起点 nums[0]=0 一步都跳不出去，无法到达末尾。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^4",
+    "0 <= nums[i] <= 10^5"
+  ],
+  "ioFormat": "第一行为整数 n，第二行 n 个空格分隔的整数。输出 true 或 false。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "回溯（DFS + 记忆化）：从每个位置尝试所有可能的跳跃步数，记忆已计算的位置避免重复搜索。",
+      "code": "import sys\n\ndef can_jump_brute(nums):\n    n = len(nums)\n    memo = {}\n\n    def dfs(i):\n        if i >= n - 1:\n            return True\n        if i in memo:\n            return memo[i]\n        for j in range(i + 1, min(n, i + nums[i] + 1)):\n            if dfs(j):\n                memo[i] = True\n                return True\n        memo[i] = False\n        return False\n\n    return dfs(0)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print('true' if can_jump_brute(nums) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "动态规划：dp[i] 表示下标 i 是否可达，从 0 开始把所有能一步到达的位置标记为可达。O(n^2) 时间、O(n) 空间。",
+      "code": "import sys\n\ndef can_jump_opt(nums):\n    n = len(nums)\n    dp = [False] * n\n    dp[0] = True\n    for i in range(n):\n        if not dp[i]:\n            continue\n        for j in range(i + 1, min(n, i + nums[i] + 1)):\n            dp[j] = True\n    return dp[-1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print('true' if can_jump_opt(nums) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "贪心：维护当前能到达的最远位置 reach，遍历每个下标时若已超过 reach 则失败，否则用 i+nums[i] 更新 reach。O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef can_jump_best(nums):\n    reach = 0\n    for i, v in enumerate(nums):\n        if i > reach:\n            return False\n        reach = max(reach, i + v)\n    return True\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print('true' if can_jump_best(nums) else 'false')\n"
+    }
+  ]
+}

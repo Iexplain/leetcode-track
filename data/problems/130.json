@@ -18,9 +18,9 @@
       "explanation": "中间的 O 形成一个被围区域,边界的 O 不动。"
     },
     {
-      "input": "4 3\nX X X\nX O O\nX O O\nX X X",
-      "output": "X X X\nX X X\nX X X\nX X X",
-      "explanation": "4×3 网格全 O 被 X 围住,全部转 X。"
+      "input": "4 4\nX X X X\nX O O X\nX O O X\nX X X X",
+      "output": "X X X X\nX X X X\nX X X X\nX X X X",
+      "explanation": "4×4 网格中间 2×2 的 O 完全被 X 包围,全部转 X。"
     }
   ],
   "constraints": [

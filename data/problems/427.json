@@ -1,0 +1,53 @@
+{
+  "id": 427,
+  "title": "建立四叉树",
+  "titleEn": "Construct Quad Tree",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "分治",
+    "树",
+    "矩阵"
+  ],
+  "description": "给你一个 n * n 矩阵 grid，矩阵由若干 0 和 1 组成。请你用四叉树表示该矩阵。四叉树中每个节点要么是叶子（isLeaf=1）且 val 表示整块区域的值（全 0 或全 1）；要么是内部节点（isLeaf=0）并拥有 4 个子节点（顺序为左上、右上、左下、右下）。矩阵尺寸 n 为 2 的幂。",
+  "examples": [
+    {
+      "input": "2 2\n1 1\n1 1",
+      "output": "1 1",
+      "explanation": "整个 2x2 区域全为 1，根节点即叶子，val=1, isLeaf=1。"
+    },
+    {
+      "input": "2 2\n0 1\n1 0",
+      "output": "0 0\n0 1\n1 1\n1 1\n0 1",
+      "explanation": "根区域不统一，为内部节点（0 0），四个 1x1 子块依次为 0、1、1、0 的叶子。"
+    },
+    {
+      "input": "4 4\n1 1 1 1\n1 1 1 1\n0 0 1 1\n0 0 1 1",
+      "output": "0 0\n1 1\n1 1\n0 1\n1 1",
+      "explanation": "左上、右上、右下 2x2 全 1，左下 2x2 全 0，根为内部节点。"
+    }
+  ],
+  "constraints": [
+    "n == grid.length == grid[i].length",
+    "n 为 2 的幂，1 <= n <= 64",
+    "0 <= grid[i][j] <= 1"
+  ],
+  "ioFormat": "第一行 m n（m==n 且为 2 的幂），随后 n 行每行 n 个 0/1。按层序输出四叉树节点，每个节点一行 'val isLeaf'；内部节点输出 '0 0'。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "递归构建，检查某块区域是否全同：对每个区域遍历所有格点判断是否统一，若统一则建叶子，否则均分 4 份递归。最坏 O(n^2 log n) 时间（每层都全扫一遍）。",
+      "code": "import sys\nfrom collections import deque\n\nclass QuadNode:\n    __slots__ = ('val', 'isLeaf', 'children')\n    def __init__(self, val=0, isLeaf=False, children=None):\n        self.val = val\n        self.isLeaf = isLeaf\n        self.children = children if children is not None else [None] * 4\n\ndef serialize(root):\n    res = []\n    q = deque([root])\n    while q:\n        node = q.popleft()\n        res.append('%d %d' % (node.val, 1 if node.isLeaf else 0))\n        if not node.isLeaf:\n            q.extend(node.children)\n    return res\n\ndef build(grid, r, c, size):\n    first = grid[r][c]\n    same = True\n    for i in range(r, r + size):\n        for j in range(c, c + size):\n            if grid[i][j] != first:\n                same = False\n                break\n        if not same:\n            break\n    if same:\n        return QuadNode(first, True)\n    half = size // 2\n    children = [\n        build(grid, r, c, half),\n        build(grid, r, c + half, half),\n        build(grid, r + half, c, half),\n        build(grid, r + half, c + half, half),\n    ]\n    return QuadNode(0, False, children)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    grid = []\n    idx = 2\n    for _ in range(m):\n        grid.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    root = build(grid, 0, 0, m)\n    for line in serialize(root):\n        print(line)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "递归构建 + 合并：先递归构建 4 个子块，若四个子块都是叶子且值相同，则把当前节点合并成叶子，无需单独扫描区域。每格只被访问一次，O(n^2) 时间。",
+      "code": "import sys\nfrom collections import deque\n\nclass QuadNode:\n    __slots__ = ('val', 'isLeaf', 'children')\n    def __init__(self, val=0, isLeaf=False, children=None):\n        self.val = val\n        self.isLeaf = isLeaf\n        self.children = children if children is not None else [None] * 4\n\ndef serialize(root):\n    res = []\n    q = deque([root])\n    while q:\n        node = q.popleft()\n        res.append('%d %d' % (node.val, 1 if node.isLeaf else 0))\n        if not node.isLeaf:\n            q.extend(node.children)\n    return res\n\ndef build(grid, r, c, size):\n    if size == 1:\n        return QuadNode(grid[r][c], True)\n    half = size // 2\n    children = [\n        build(grid, r, c, half),\n        build(grid, r, c + half, half),\n        build(grid, r + half, c, half),\n        build(grid, r + half, c + half, half),\n    ]\n    if all(ch.isLeaf for ch in children) and children[0].val == children[1].val \\\n            and children[1].val == children[2].val and children[2].val == children[3].val:\n        return QuadNode(children[0].val, True)\n    return QuadNode(0, False, children)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    grid = []\n    idx = 2\n    for _ in range(m):\n        grid.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    root = build(grid, 0, 0, m)\n    for line in serialize(root):\n        print(line)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "递归 + 二维前缀和：先用 O(n^2) 预处理二维前缀和，判断某区域是否全同只需 O(1)（和为 0 或等于区域面积即统一）。构建树时不再扫描子区域。O(n^2) 时间、O(n^2) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass QuadNode:\n    __slots__ = ('val', 'isLeaf', 'children')\n    def __init__(self, val=0, isLeaf=False, children=None):\n        self.val = val\n        self.isLeaf = isLeaf\n        self.children = children if children is not None else [None] * 4\n\ndef serialize(root):\n    res = []\n    q = deque([root])\n    while q:\n        node = q.popleft()\n        res.append('%d %d' % (node.val, 1 if node.isLeaf else 0))\n        if not node.isLeaf:\n            q.extend(node.children)\n    return res\n\ndef build(grid, r, c, size, ps):\n    total = ps[r + size][c + size] - ps[r][c + size] - ps[r + size][c] + ps[r][c]\n    if total == 0 or total == size * size:\n        return QuadNode(1 if total else 0, True)\n    half = size // 2\n    children = [\n        build(grid, r, c, half, ps),\n        build(grid, r, c + half, half, ps),\n        build(grid, r + half, c, half, ps),\n        build(grid, r + half, c + half, half, ps),\n    ]\n    return QuadNode(0, False, children)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    m, n = int(data[0]), int(data[1])\n    grid = []\n    idx = 2\n    for _ in range(m):\n        grid.append([int(x) for x in data[idx:idx + n]])\n        idx += n\n    ps = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(m):\n        row_sum = 0\n        for j in range(n):\n            row_sum += grid[i][j]\n            ps[i + 1][j + 1] = ps[i][j + 1] + row_sum\n    root = build(grid, 0, 0, m, ps)\n    for line in serialize(root):\n        print(line)\n"
+    }
+  ]
+}

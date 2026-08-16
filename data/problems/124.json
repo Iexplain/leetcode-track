@@ -1,0 +1,46 @@
+{
+  "id": 124,
+  "title": "二叉树中的最大路径和",
+  "titleEn": "Binary Tree Maximum Path Sum",
+  "difficulty": "困难",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "动态规划"
+  ],
+  "description": "路径被定义为一条从树中任意节点出发，沿父节点-子节点连接，达到任意节点的序列。同一个节点在一条路径序列中至多出现一次。该路径至少包含一个节点，且不一定经过根节点。路径和是路径中各节点值的总和。给你一个二叉树的根节点 root，返回其最大路径和。",
+  "examples": [
+    {
+      "input": "7\n-10 9 20 n n 15 7",
+      "output": "42",
+      "explanation": "最优路径是 15 -> 20 -> 7，路径和为 42。"
+    },
+    {
+      "input": "1\n-3",
+      "output": "-3",
+      "explanation": "只有一个节点 -3，最大路径和就是 -3。"
+    }
+  ],
+  "constraints": [
+    "树中节点数在 [1, 3 * 10^4] 范围内",
+    "-1000 <= Node.val <= 1000"
+  ],
+  "ioFormat": "第一行 n（节点数），第二行 n 个层序 token，'n' 表示空。输出最大路径和。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "双递归：对每个节点先求其左右子树的向下最大单链 down()，再以该节点为拐点合并求经过它的路径和。因为每个节点都要重算 down，最坏 O(n^2) 时间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef max_path_brute(root):\n    def down(node):\n        if not node:\n            return 0\n        return node.v + max(0, down(node.l), down(node.r))\n    best = -10**18\n    def dfs(node):\n        nonlocal best\n        if not node:\n            return\n        cur = node.v + max(0, down(node.l)) + max(0, down(node.r))\n        best = max(best, cur)\n        dfs(node.l)\n        dfs(node.r)\n    dfs(root)\n    return best\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(max_path_brute(root))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "单递归 + 全局最大：dfs 返回以该节点为端点向下的最大单链（负数视为 0），同时在每个节点用 左链+右链+自身 更新全局最大值。O(n) 时间 O(h) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef max_path_opt(root):\n    best = -10**18\n    def dfs(node):\n        nonlocal best\n        if not node:\n            return 0\n        l = max(0, dfs(node.l))\n        r = max(0, dfs(node.r))\n        best = max(best, node.v + l + r)\n        return node.v + max(l, r)\n    dfs(root)\n    return best\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(max_path_opt(root))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "显式栈做后序迭代：用一个 gain 字典缓存每个节点向下单链值，按后序访问到节点时用其左右孩子的 gain 合并更新答案。O(n) 时间 O(n) 空间，规避递归深度限制。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef max_path_best(root):\n    ans = -10**18\n    gain = {}\n    stack = [(root, False)]\n    while stack:\n        node, visited = stack.pop()\n        if node is None:\n            continue\n        if visited:\n            l = max(0, gain.get(node.l, 0))\n            r = max(0, gain.get(node.r, 0))\n            ans = max(ans, node.v + l + r)\n            gain[node] = node.v + max(l, r)\n        else:\n            stack.append((node, True))\n            stack.append((node.r, False))\n            stack.append((node.l, False))\n    return ans\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(max_path_best(root))\n"
+    }
+  ]
+}

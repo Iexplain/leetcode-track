@@ -1,0 +1,54 @@
+{
+  "id": 918,
+  "title": "环形子数组的最大和",
+  "titleEn": "Maximum Sum Circular Subarray",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "分治",
+    "动态规划",
+    "队列",
+    "单调队列"
+  ],
+  "description": "给定一个环形整数数组 nums（nums[i] 的下一个元素是 nums[(i + 1) mod n]，nums[0] 是最后一个元素的下一个），返回 nums 的非空子数组的最大可能和。子数组可以经过数组首尾相接，但每个元素最多只能被使用一次。",
+  "examples": [
+    {
+      "input": "4\n1 -2 3 -2",
+      "output": "3",
+      "explanation": "最大子数组为 [3]，和为 3（也可取环形 [3, -2, 1]，和同样为 2，不如 3 大）。"
+    },
+    {
+      "input": "3\n5 -3 5",
+      "output": "10",
+      "explanation": "取环形子数组 [5, 5]（首尾相接），和为 10。"
+    },
+    {
+      "input": "3\n-3 -2 -3",
+      "output": "-2",
+      "explanation": "所有元素都为负数，只能取最大单元素 [-2]。"
+    }
+  ],
+  "constraints": [
+    "n == nums.length",
+    "1 <= n <= 3 * 10^4",
+    "-3 * 10^4 <= nums[i] <= 3 * 10^4"
+  ],
+  "ioFormat": "第一行整数 n 表示数组长度，第二行 n 个整数。输出一个整数表示最大环形子数组和。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举起点：对每个起点 i，在长度为 n 的环形范围内做 Kadane，覆盖所有可能的子数组。O(n^2) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef max_circular_brute(nums):\n    n = len(nums)\n    best = -10**18\n    for i in range(n):\n        cur = 0\n        for j in range(n):\n            v = nums[(i + j) % n]\n            cur = max(v, cur + v)\n            best = max(best, cur)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = [int(x) for x in data[1:1 + n]]\n    print(max_circular_brute(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "环形转线性 + 单调队列：把数组复制一份形成长度 2n 的数组，问题转化为在长度不超过 n 的滑动窗口内求最大子段和（前缀和之差），用单调递增队列维护窗口内最小的前缀和。O(n) 时间、O(n) 空间。",
+      "code": "import sys\nfrom collections import deque\n\ndef max_circular_opt(nums):\n    n = len(nums)\n    if n == 0:\n        return 0\n    arr = nums + nums\n    pref = [0] * (2 * n + 1)\n    for i in range(2 * n):\n        pref[i + 1] = pref[i] + arr[i]\n    dq = deque([0])\n    best = -10**18\n    for j in range(1, 2 * n + 1):\n        while dq and dq[0] < j - n:\n            dq.popleft()\n        best = max(best, pref[j] - pref[dq[0]])\n        while dq and pref[dq[-1]] >= pref[j]:\n            dq.pop()\n        dq.append(j)\n    return best\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = [int(x) for x in data[1:1 + n]]\n    print(max_circular_opt(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "max(中间段, 总和 - 最小段)：用 Kadane 求非环情况的最大子段和 max_sum，再求最小子段和 min_sum，则跨越首尾的环形最大和为 total - min_sum。若 max_sum < 0（全部为负）则直接返回 max_sum。O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef max_circular_best(nums):\n    total = 0\n    cur_max = 0\n    max_sum = -10**18\n    cur_min = 0\n    min_sum = 10**18\n    for x in nums:\n        total += x\n        cur_max = max(x, cur_max + x)\n        max_sum = max(max_sum, cur_max)\n        cur_min = min(x, cur_min + x)\n        min_sum = min(min_sum, cur_min)\n    if max_sum < 0:\n        return max_sum\n    return max(max_sum, total - min_sum)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = [int(x) for x in data[1:1 + n]]\n    print(max_circular_best(nums))\n"
+    }
+  ]
+}

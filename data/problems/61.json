@@ -1,0 +1,51 @@
+{
+  "id": 61,
+  "title": "旋转链表",
+  "titleEn": "Rotate List",
+  "difficulty": "中等",
+  "tags": [
+    "链表",
+    "双指针"
+  ],
+  "description": "给定一个链表的头节点 head 和整数 k，把链表每个节点向右移动 k 个位置，返回旋转后的链表。",
+  "examples": [
+    {
+      "input": "5 2\n1 2 3 4 5",
+      "output": "4 5 1 2 3",
+      "explanation": "向右旋转 2 次后，尾部 2 个节点 4、5 移到链表头部。"
+    },
+    {
+      "input": "3 4\n0 1 2",
+      "output": "2 0 1",
+      "explanation": "链表长度为 3，向右旋转 4 次等价于旋转 1 次。"
+    },
+    {
+      "input": "1 0\n1",
+      "output": "1",
+      "explanation": "k=0，链表不变。"
+    }
+  ],
+  "constraints": [
+    "链表中节点数目在范围 [0, 500] 内",
+    "-100 <= Node.val <= 100",
+    "0 <= k <= 2 * 10^9"
+  ],
+  "ioFormat": "第一行两个整数 n 和 k（n 为链表长度，k 为右旋次数），第二行 n 个空格分隔的整数表示链表值。输出旋转后的链表值，空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "循环 k 次，每次都把末尾节点摘下并接到头部。O(k*n)，k 很大时不适用。",
+      "code": "import sys\n\nclass ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\ndef rotate_brute(head, k):\n    if not head or k == 0:\n        return head\n    for _ in range(k):\n        if not head or not head.next:\n            return head\n        prev = None\n        cur = head\n        while cur.next:\n            prev = cur\n            cur = cur.next\n        prev.next = None\n        cur.next = head\n        head = cur\n    return head\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    vals = list(map(int, data[2:2 + n]))\n    head = None\n    for v in reversed(vals):\n        head = ListNode(v, head)\n    res = rotate_brute(head, k)\n    out = []\n    cur = res\n    while cur:\n        out.append(str(cur.val))\n        cur = cur.next\n    print(' '.join(out))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "先求出链表长度，用 k %= n 去掉整圈；找到新的尾节点（正数第 n-k 个节点）并把其后链表平移到头部。O(n)。",
+      "code": "import sys\n\nclass ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\ndef rotate_opt(head, k):\n    if not head or k == 0:\n        return head\n    n = 1\n    tail = head\n    while tail.next:\n        tail = tail.next\n        n += 1\n    k %= n\n    if k == 0:\n        return head\n    cur = head\n    for _ in range(n - k - 1):\n        cur = cur.next\n    new_head = cur.next\n    cur.next = None\n    tail.next = head\n    return new_head\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    vals = list(map(int, data[2:2 + n]))\n    head = None\n    for v in reversed(vals):\n        head = ListNode(v, head)\n    res = rotate_opt(head, k)\n    out = []\n    cur = res\n    while cur:\n        out.append(str(cur.val))\n        cur = cur.next\n    print(' '.join(out))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "闭环统一处理：先求长并让尾节点指向头节点形成环，再走 n - k%n 步定位新的尾节点，断开环得到结果。O(n) 且逻辑统一。",
+      "code": "import sys\n\nclass ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\ndef rotate_best(head, k):\n    if not head or not head.next:\n        return head\n    n = 1\n    tail = head\n    while tail.next:\n        tail = tail.next\n        n += 1\n    tail.next = head\n    steps = n - (k % n)\n    new_tail = tail\n    for _ in range(steps):\n        new_tail = new_tail.next\n    new_head = new_tail.next\n    new_tail.next = None\n    return new_head\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    k = int(data[1])\n    vals = list(map(int, data[2:2 + n]))\n    head = None\n    for v in reversed(vals):\n        head = ListNode(v, head)\n    res = rotate_best(head, k)\n    out = []\n    cur = res\n    while cur:\n        out.append(str(cur.val))\n        cur = cur.next\n    print(' '.join(out))\n"
+    }
+  ]
+}

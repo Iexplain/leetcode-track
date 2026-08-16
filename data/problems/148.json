@@ -1,0 +1,52 @@
+{
+  "id": 148,
+  "title": "排序链表",
+  "titleEn": "Sort List",
+  "difficulty": "中等",
+  "tags": [
+    "链表",
+    "双指针",
+    "分治",
+    "排序"
+  ],
+  "description": "给你链表的头节点 head，请将其按升序排列并返回排序后的链表。要求满足 O(n log n) 时间复杂度和 O(1) 常量空间复杂度（自底向上归并）。",
+  "examples": [
+    {
+      "input": "4\n4 2 1 3",
+      "output": "1 2 3 4",
+      "explanation": "排序后为 1 -> 2 -> 3 -> 4。"
+    },
+    {
+      "input": "5\n-1 5 3 4 0",
+      "output": "-1 0 3 4 5",
+      "explanation": "排序后为 -1 -> 0 -> 3 -> 4 -> 5。"
+    },
+    {
+      "input": "0",
+      "output": "",
+      "explanation": "空链表。"
+    }
+  ],
+  "constraints": [
+    "0 <= 节点数 <= 5 * 10^4",
+    "-10^5 <= 节点值 <= 10^5"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个值（n=0 时该行可省略）。输出排序后的链表值，空格分隔，一行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "遍历链表把所有节点值收集到数组，用内置 sort 排序后再写回链表节点。O(n log n) 时间、O(n) 空间，不是题目要求的内存最优解但最容易写对。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v\n        self.nxt = nxt\n\ndef build(vals):\n    if not vals:\n        return None\n    head = N(vals[0])\n    cur = head\n    for v in vals[1:]:\n        cur.nxt = N(v)\n        cur = cur.nxt\n    return head\n\ndef to_list(head):\n    res = []\n    cur = head\n    while cur:\n        res.append(str(cur.v))\n        cur = cur.nxt\n    return ' '.join(res)\n\ndef sort_list(head):\n    vals = []\n    cur = head\n    while cur:\n        vals.append(cur.v)\n        cur = cur.nxt\n    vals.sort()\n    cur = head\n    for v in vals:\n        cur.v = v\n        cur = cur.nxt\n    return head\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    head = build(vals)\n    print(to_list(sort_list(head)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "自顶向下归并排序：快慢指针找到中点把链表切成两半，递归排序两半后归并。时间复杂度 O(n log n)，但递归会使用 O(log n) 的调用栈空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v\n        self.nxt = nxt\n\ndef build(vals):\n    if not vals:\n        return None\n    head = N(vals[0])\n    cur = head\n    for v in vals[1:]:\n        cur.nxt = N(v)\n        cur = cur.nxt\n    return head\n\ndef to_list(head):\n    res = []\n    cur = head\n    while cur:\n        res.append(str(cur.v))\n        cur = cur.nxt\n    return ' '.join(res)\n\ndef merge(a, b):\n    dummy = N()\n    tail = dummy\n    while a and b:\n        if a.v <= b.v:\n            tail.nxt = a\n            a = a.nxt\n        else:\n            tail.nxt = b\n            b = b.nxt\n        tail = tail.nxt\n    tail.nxt = a or b\n    return dummy.nxt\n\ndef sort_list(head):\n    if head is None or head.nxt is None:\n        return head\n    slow = fast = head\n    while fast.nxt and fast.nxt.nxt:\n        slow = slow.nxt\n        fast = fast.nxt.nxt\n    mid = slow.nxt\n    slow.nxt = None\n    left = sort_list(head)\n    right = sort_list(mid)\n    return merge(left, right)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    head = build(vals)\n    print(to_list(sort_list(head)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "自底向上归并：先统计链表长度，用 step 从 1 开始逐轮翻倍，每轮按步长把链表切成若干段两两归并，用哑节点串联。不使用递归，达到真正的 O(1) 额外空间与 O(n log n) 时间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v\n        self.nxt = nxt\n\ndef build(vals):\n    if not vals:\n        return None\n    head = N(vals[0])\n    cur = head\n    for v in vals[1:]:\n        cur.nxt = N(v)\n        cur = cur.nxt\n    return head\n\ndef to_list(head):\n    res = []\n    cur = head\n    while cur:\n        res.append(str(cur.v))\n        cur = cur.nxt\n    return ' '.join(res)\n\ndef split_list(head, k):\n    while head and k > 1:\n        head = head.nxt\n        k -= 1\n    if head is None:\n        return None\n    rest = head.nxt\n    head.nxt = None\n    return rest\n\ndef merge(a, b, prev):\n    while a and b:\n        if a.v <= b.v:\n            prev.nxt = a\n            a = a.nxt\n        else:\n            prev.nxt = b\n            b = b.nxt\n        prev = prev.nxt\n    prev.nxt = a or b\n    while prev.nxt:\n        prev = prev.nxt\n    return prev\n\ndef sort_list(head):\n    if head is None or head.nxt is None:\n        return head\n    n = 0\n    cur = head\n    while cur:\n        n += 1\n        cur = cur.nxt\n    dummy = N()\n    dummy.nxt = head\n    step = 1\n    while step < n:\n        prev = dummy\n        cur = dummy.nxt\n        while cur:\n            left = cur\n            right = split_list(left, step)\n            cur = split_list(right, step)\n            prev = merge(left, right, prev)\n        step <<= 1\n    return dummy.nxt\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    vals = list(map(int, data[1:1 + n]))\n    head = build(vals)\n    print(to_list(sort_list(head)))\n"
+    }
+  ]
+}

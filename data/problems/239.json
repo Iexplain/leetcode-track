@@ -1,0 +1,47 @@
+{
+  "id": 239,
+  "title": "滑动窗口最大值",
+  "titleEn": "Sliding Window Maximum",
+  "difficulty": "困难",
+  "tags": [
+    "队列",
+    "数组",
+    "滑动窗口",
+    "堆"
+  ],
+  "description": "给你一个整数数组 nums，有一个大小为 k 的滑动窗口从数组的最左侧移动到最右侧。你只可以看到在滑动窗口内的 k 个数字。滑动窗口每次只向右移动一位。返回滑动窗口中的最大值。",
+  "examples": [
+    {
+      "input": "8 3\n1 3 -1 -3 5 3 6 7",
+      "output": "3 3 5 5 6 7",
+      "explanation": "窗口 [1,3,-1] 最大 3；[3,-1,-3] 最大 3；[-1,-3,5] 最大 5；[-3,5,3] 最大 5；[5,3,6] 最大 6；[3,6,7] 最大 7。"
+    },
+    {
+      "input": "1 1\n1",
+      "output": "1",
+      "explanation": "单元素窗口。"
+    }
+  ],
+  "constraints": [
+    "1 <= k <= nums.length <= 10^5",
+    "-10^4 <= nums[i] <= 10^4"
+  ],
+  "ioFormat": "第一行 n k，第二行 n 个整数。输出一行共 n-k+1 个数，为每个窗口的最大值（空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举每个窗口起点，用 max 求窗口内最大值。O((n-k+1)*k) 时间，k 大时非常慢，但实现最简单。",
+      "code": "import sys\n\ndef max_sliding_brute(nums, k):\n    return [max(nums[i:i + k]) for i in range(len(nums) - k + 1)]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n, k = int(data[0]), int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, max_sliding_brute(nums, k))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "单调队列（存值）：维护一个从队头到队尾单调递减的 deque。每来一个新元素，把队尾所有比它小的弹出再入队；窗口滑动时若离开的元素正好等于队头则弹出队头。O(n) 均摊时间。",
+      "code": "import sys\nfrom collections import deque\n\ndef max_sliding_opt(nums, k):\n    dq = deque()\n    res = []\n    for i, x in enumerate(nums):\n        while dq and dq[-1] < x:\n            dq.pop()\n        dq.append(x)\n        if i >= k and dq and dq[0] == nums[i - k]:\n            dq.popleft()\n        if i >= k - 1:\n            res.append(dq[0])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n, k = int(data[0]), int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, max_sliding_opt(nums, k))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "单调队列（存下标）：队列里存下标而非值，这样离开窗口的元素可以精确地通过 '下标 <= i-k' 判断是否过期。每步先把过期的队头弹出，再按值单调性维护，队头即当前窗口最大值。O(n) 时间、O(k) 空间，写法最稳。",
+      "code": "import sys\nfrom collections import deque\n\ndef max_sliding_best(nums, k):\n    dq = deque()\n    res = []\n    for i, x in enumerate(nums):\n        while dq and nums[dq[-1]] <= x:\n            dq.pop()\n        dq.append(i)\n        if dq[0] <= i - k:\n            dq.popleft()\n        if i >= k - 1:\n            res.append(nums[dq[0]])\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n, k = int(data[0]), int(data[1])\n    nums = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, max_sliding_best(nums, k))))\n"
+    }
+  ]
+}

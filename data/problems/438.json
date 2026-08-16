@@ -1,0 +1,46 @@
+{
+  "id": 438,
+  "title": "找到字符串中所有字母异位词",
+  "titleEn": "Find All Anagrams in a String",
+  "difficulty": "中等",
+  "tags": [
+    "哈希表",
+    "字符串",
+    "滑动窗口"
+  ],
+  "description": "给定两个字符串 s 和 p，找到 s 中所有 p 的异位词的子串，返回这些子串的起始索引（从 0 开始）。异位词指由相同字母重排列形成的字符串（包括相同的字符串）。",
+  "examples": [
+    {
+      "input": "cbaebabacd\nabc",
+      "output": "0 6",
+      "explanation": "子串 \"cba\"（索引 0）与 \"bac\"（索引 6）是 \"abc\" 的异位词。"
+    },
+    {
+      "input": "abab\nab",
+      "output": "0 1 2",
+      "explanation": "子串 \"ab\"（索引 0）、\"ba\"（索引 1）、\"ab\"（索引 2）都是 \"ab\" 的异位词。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length, p.length <= 3 * 10^4",
+    "s 和 p 仅包含小写英文字母"
+  ],
+  "ioFormat": "两行输入，第一行字符串 s，第二行字符串 p。输出一行空格分隔的起始索引；若无匹配则输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举 s 中每一个长度为 len(p) 的窗口，用 Counter 统计窗口与 p 的字符频率并比较是否相等。最坏 O(n * 26) 的时间，实现最简单但每次都要重建计数。",
+      "code": "import sys\n\ndef anagrams_brute(s, p):\n    m, n = len(s), len(p)\n    res = []\n    from collections import Counter\n    pc = Counter(p)\n    for i in range(m - n + 1):\n        if Counter(s[i:i + n]) == pc:\n            res.append(i)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s, p = data[0], data[1]\n    print(' '.join(str(i) for i in anagrams_brute(s, p)))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "定长滑动窗口：先统计 p 与第一个窗口，之后每次右移一位时只更新进入/离开的字符计数，比较 26 长度的计数数组是否与 p 相等。O(n * 26) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef anagrams_opt(s, p):\n    m, n = len(s), len(p)\n    if n > m:\n        return []\n    res = []\n    cnt_p = [0] * 26\n    cnt_w = [0] * 26\n    for ch in p:\n        cnt_p[ord(ch) - 97] += 1\n    for i in range(n):\n        cnt_w[ord(s[i]) - 97] += 1\n    if cnt_w == cnt_p:\n        res.append(0)\n    for i in range(n, m):\n        cnt_w[ord(s[i]) - 97] += 1\n        cnt_w[ord(s[i - n]) - 97] -= 1\n        if cnt_w == cnt_p:\n            res.append(i - n + 1)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s, p = data[0], data[1]\n    print(' '.join(str(i) for i in anagrams_opt(s, p)))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "定长滑动 + 差异计数：维护计数数组与目标频次的差异数量 diff，每次滑动窗口时增量更新 diff（只有从 0 变为非 0 或从非 0 变为 0 时 diff 才变化），当 diff == 0 即匹配。O(n) 时间、O(1) 空间，避免每次比较整个数组。",
+      "code": "import sys\n\ndef anagrams_best(s, p):\n    m, n = len(s), len(p)\n    if n > m:\n        return []\n    res = []\n    cnt = [0] * 26\n    for ch in p:\n        cnt[ord(ch) - 97] += 1\n    for ch in s[:n]:\n        cnt[ord(ch) - 97] -= 1\n    diff = sum(1 for x in cnt if x != 0)\n    if diff == 0:\n        res.append(0)\n    for i in range(n, m):\n        a = ord(s[i - n]) - 97\n        b = ord(s[i]) - 97\n        if cnt[a] == 0: diff += 1\n        cnt[a] += 1\n        if cnt[a] == 0: diff -= 1\n        if cnt[b] == 0: diff += 1\n        cnt[b] -= 1\n        if cnt[b] == 0: diff -= 1\n        if diff == 0:\n            res.append(i - n + 1)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s, p = data[0], data[1]\n    print(' '.join(str(i) for i in anagrams_best(s, p)))\n"
+    }
+  ]
+}

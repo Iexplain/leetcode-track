@@ -1,0 +1,54 @@
+{
+  "id": 30,
+  "title": "串联所有单词的子串",
+  "titleEn": "Substring with Concatenation of All Words",
+  "difficulty": "困难",
+  "tags": [
+    "哈希表",
+    "字符串",
+    "滑动窗口"
+  ],
+  "description": "给定一个字符串 s 和一个由若干等长单词组成的数组 words。找出 s 中所有\"由 words 中全部单词各恰好出现一次并首尾相连\"的子串，返回这些子串的起始下标。子串的总长度固定为所有单词长度之和，单词之间的排列顺序不限。",
+  "examples": [
+    {
+      "input": "barfoothefoobarman\n2\nfoo bar",
+      "output": "0 9",
+      "explanation": "下标 0 开始的子串 \"barfoo\" 和下标 9 开始的 \"foobar\" 都恰好由 foo、bar 各一次组成。"
+    },
+    {
+      "input": "barfoofoobarthefoobarman\n3\nbar foo the",
+      "output": "6 9 12",
+      "explanation": "下标 6、9、12 处开始的三段都恰好由 bar、foo、the 各一次组成。"
+    },
+    {
+      "input": "wordgoodgoodgoodbestword\n4\nword good best word",
+      "output": "",
+      "explanation": "任何位置都无法组成 word、good、best、word 各一次且相连的子串，输出空行。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 10^4",
+    "1 <= words.length <= 5000",
+    "1 <= words[i].length <= 30",
+    "words 中所有单词长度相同",
+    "s 和 words[i] 仅由小写英文字母组成"
+  ],
+  "ioFormat": "第一行为字符串 s；第二行为单词个数 m；之后 m 个空格分隔的单词。输出所有满足条件的起始下标，用空格分隔；无解则输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举所有可能的起始下标 i，把窗口 s[i:i+总长] 按单词长度切成 m 段，复制一份频次表逐一抵消校验。O(n*m*L)。",
+      "code": "import sys\nfrom collections import Counter\n\ndef find_substring_brute(s, words):\n    if not s or not words:\n        return []\n    n, m = len(s), len(words)\n    L = len(words[0])\n    total = m * L\n    need = Counter(words)\n    res = []\n    for i in range(n - total + 1):\n        cnt = need.copy()\n        ok = True\n        for j in range(i, i + total, L):\n            w = s[j:j + L]\n            if cnt.get(w, 0) > 0:\n                cnt[w] -= 1\n            else:\n                ok = False\n                break\n        if ok:\n            res.append(i)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    m = int(data[1])\n    words = data[2:2 + m]\n    res = find_substring_brute(s, words)\n    if res:\n        print(' '.join(map(str, res)))\n    else:\n        print()\n"
+    },
+    {
+      "level": "优化",
+      "idea": "分偏移量的滑动窗口：每个偏移量内左右指针都按单词长度步进，用频次计数和\"已匹配种类数\"维护窗口，左指针只在超额时右移，避免重复校验整段。",
+      "code": "import sys\nfrom collections import Counter\n\ndef find_substring_opt(s, words):\n    if not s or not words:\n        return []\n    n, m = len(s), len(words)\n    L = len(words[0])\n    total = m * L\n    if n < total:\n        return []\n    need = Counter(words)\n    res = []\n    for off in range(L):\n        left = off\n        cnt = {}\n        matched = 0\n        for right in range(off, n - L + 1, L):\n            w = s[right:right + L]\n            if w in need:\n                cnt[w] = cnt.get(w, 0) + 1\n                if cnt[w] == need[w]:\n                    matched += 1\n                while cnt[w] > need[w]:\n                    lw = s[left:left + L]\n                    if cnt[lw] == need[lw]:\n                        matched -= 1\n                    cnt[lw] -= 1\n                    left += L\n                if matched == len(need):\n                    res.append(left)\n                    lw = s[left:left + L]\n                    if cnt[lw] == need[lw]:\n                        matched -= 1\n                    cnt[lw] -= 1\n                    left += L\n            else:\n                cnt.clear()\n                matched = 0\n                left = right + L\n    res.sort()\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    m = int(data[1])\n    words = data[2:2 + m]\n    res = find_substring_opt(s, words)\n    if res:\n        print(' '.join(map(str, res)))\n    else:\n        print()\n"
+    },
+    {
+      "level": "最优",
+      "idea": "同样按偏移量分组，但用\"计数归零即删除键\"的方式维持窗口内各单词都不超额的约束，只要窗口长度恰好等于单词总长即为合法起点，实现更简洁，整体 O(n)。",
+      "code": "import sys\nfrom collections import Counter\n\ndef find_substring_best(s, words):\n    if not s or not words:\n        return []\n    n, m = len(s), len(words)\n    L = len(words[0])\n    total = m * L\n    need = Counter(words)\n    res = []\n    for off in range(L):\n        cnt = {}\n        left = off\n        for right in range(off, n - L + 1, L):\n            w = s[right:right + L]\n            if w not in need:\n                cnt.clear()\n                left = right + L\n                continue\n            cnt[w] = cnt.get(w, 0) + 1\n            while cnt[w] > need[w]:\n                lw = s[left:left + L]\n                cnt[lw] -= 1\n                if cnt[lw] == 0:\n                    del cnt[lw]\n                left += L\n            if right - left + L == total:\n                res.append(left)\n    res.sort()\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s = data[0]\n    m = int(data[1])\n    words = data[2:2 + m]\n    res = find_substring_best(s, words)\n    if res:\n        print(' '.join(map(str, res)))\n    else:\n        print()\n"
+    }
+  ]
+}

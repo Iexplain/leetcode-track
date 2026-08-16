@@ -1,0 +1,47 @@
+{
+  "id": 399,
+  "title": "除法求值",
+  "titleEn": "Evaluate Division",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "字符串",
+    "深度优先搜索",
+    "广度优先搜索",
+    "并查集",
+    "图",
+    "最短路径"
+  ],
+  "description": "给你一个变量对数组 equations 和一个实数值数组 values 作为已知条件，其中 equations[i] = [Ai, Bi] 且 values[i] 共同表示等式 Ai / Bi = values[i]。每个 Ai 或 Bi 是一个表示变量的字符串。另有一些以数组 queries 表示的问题，其中 queries[j] = [Cj, Dj] 表示第 j 个问题，请你根据已知条件求出 Cj / Dj 的结果。如果无法确定结果，则用 -1.0 表示该结果。",
+  "examples": [
+    {
+      "input": "2\na b 2.0\nb c 3.0\n5\na c\nb a\na e\na a\nx x",
+      "output": "6.0\n0.5\n-1.0\n1.0\n-1.0",
+      "explanation": "a/c = (a/b)*(b/c) = 2.0*3.0 = 6.0；b/a = 1/(a/b) = 0.5；a/e 不可达；a/a = 1.0；x 不在图中，x/x = -1.0。"
+    }
+  ],
+  "constraints": [
+    "1 <= equations.length <= 20",
+    "变量名长度为 1~5，只含小写字母或数字",
+    "1 <= queries.length <= 20",
+    "0.0 < values[i] <= 100.0"
+  ],
+  "ioFormat": "第一行整数 e（等式数），随后 e 行每行两个变量名和一个实数值 w（表示 u/v = w）。接着一行整数 q（问题数），随后 q 行每行两个变量名。每行输出一个查询结果，保留 1 位小数，无法确定输出 -1.0。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "对每个查询单独做 DFS：从 u 出发沿边累乘比值，走到 v 即返回乘积，回溯访问状态。O(q * (V+E)) 时间，查询多时会重复计算，但实现直观。",
+      "code": "import sys\n\ndef calc_brute(equations, queries):\n    graph = {}\n    for (u, v), w in equations:\n        graph.setdefault(u, []).append((v, w))\n        graph.setdefault(v, []).append((u, 1.0 / w))\n\n    def dfs(u, v, acc, visited):\n        if u == v:\n            return acc\n        visited.add(u)\n        for nxt, w in graph.get(u, []):\n            if nxt not in visited:\n                r = dfs(nxt, v, acc * w, visited)\n                if r != -1.0:\n                    return r\n        return -1.0\n\n    res = []\n    for u, v in queries:\n        if u == v and u in graph:\n            res.append(1.0)\n        elif u in graph:\n            res.append(dfs(u, v, 1.0, set()))\n        else:\n            res.append(-1.0)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    e = int(data[0])\n    idx = 1\n    eqs = []\n    for _ in range(e):\n        a, b = data[idx], data[idx + 1]\n        w = float(data[idx + 2])\n        eqs.append(((a, b), w))\n        idx += 3\n    q = int(data[idx]); idx += 1\n    qs = []\n    for _ in range(q):\n        qs.append((data[idx], data[idx + 1]))\n        idx += 2\n    for r in calc_brute(eqs, qs):\n        print('%.1f' % r)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "建好无向加权图后，对每个查询用 BFS 求路径乘积。避免递归带来的深度限制，也天然按层扩展，代码清晰。O(q * (V+E)) 时间。",
+      "code": "import sys\nfrom collections import deque\n\ndef calc_opt(equations, queries):\n    graph = {}\n    for (u, v), w in equations:\n        graph.setdefault(u, []).append((v, w))\n        graph.setdefault(v, []).append((u, 1.0 / w))\n\n    def bfs(u, v):\n        if u not in graph or v not in graph:\n            return -1.0\n        if u == v:\n            return 1.0\n        q = deque([(u, 1.0)])\n        seen = {u}\n        while q:\n            cur, acc = q.popleft()\n            if cur == v:\n                return acc\n            for nxt, w in graph.get(cur, []):\n                if nxt not in seen:\n                    seen.add(nxt)\n                    q.append((nxt, acc * w))\n        return -1.0\n\n    return [bfs(u, v) for u, v in queries]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    e = int(data[0])\n    idx = 1\n    eqs = []\n    for _ in range(e):\n        a, b = data[idx], data[idx + 1]\n        w = float(data[idx + 2])\n        eqs.append(((a, b), w))\n        idx += 3\n    q = int(data[idx]); idx += 1\n    qs = []\n    for _ in range(q):\n        qs.append((data[idx], data[idx + 1]))\n        idx += 2\n    for r in calc_opt(eqs, qs):\n        print('%.1f' % r)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "Floyd-Warshall 预处理所有变量对之间的比值：先填直接已知的比值，再松弛所有中间点 k，把可达对的比值提前算好。之后每个查询 O(1) 回答。V 为变量数，O(V^3 + q) 时间，查询非常多时最优。",
+      "code": "import sys\n\ndef calc_best(equations, queries):\n    nodes = []\n    graph = {}\n    for (u, v), w in equations:\n        graph.setdefault(u, {})[v] = w\n        graph.setdefault(v, {})[u] = 1.0 / w\n        if u not in nodes: nodes.append(u)\n        if v not in nodes: nodes.append(v)\n\n    dist = {a: {b: 0.0 for b in nodes} for a in nodes}\n    for a in nodes:\n        dist[a][a] = 1.0\n    for a in nodes:\n        for b, w in graph[a].items():\n            dist[a][b] = w\n\n    for k in nodes:\n        for i in nodes:\n            for j in nodes:\n                if dist[i][k] and dist[k][j]:\n                    cand = dist[i][k] * dist[k][j]\n                    if dist[i][j] == 0.0:\n                        dist[i][j] = cand\n\n    res = []\n    for u, v in queries:\n        if u in dist and v in dist and dist[u][v] != 0.0:\n            res.append(dist[u][v])\n        else:\n            res.append(-1.0)\n    return res\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    e = int(data[0])\n    idx = 1\n    eqs = []\n    for _ in range(e):\n        a, b = data[idx], data[idx + 1]\n        w = float(data[idx + 2])\n        eqs.append(((a, b), w))\n        idx += 3\n    q = int(data[idx]); idx += 1\n    qs = []\n    for _ in range(q):\n        qs.append((data[idx], data[idx + 1]))\n        idx += 2\n    for r in calc_best(eqs, qs):\n        print('%.1f' % r)\n"
+    }
+  ]
+}

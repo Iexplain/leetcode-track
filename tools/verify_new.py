@@ -17,28 +17,12 @@ except Exception:
     pass
 
 ROOT = Path(__file__).resolve().parent.parent
-NEW_IDS = [
-    # Round 1
-    9, 14, 21, 26, 35, 58, 66, 67, 69, 136,
-    # Round 2 batch 1 (arrays/strings/bits)
-    28, 118, 121, 125, 169, 190, 191, 202, 205, 219,
-    228, 242, 283, 290, 383, 392,
-    # Round 2 batch 2 (trees + lists)
-    94, 100, 101, 104, 108, 112, 222, 226, 530, 543, 637,
-    141, 160, 234,
-    # Round 3 medium batch
-    5, 46, 78, 200, 208, 215, 300, 347, 394, 739,
-    # Round 4 medium batch
-    2, 4, 22, 31, 42, 72, 79, 84, 128, 146,
-    # Round 5 medium batch
-    6, 10, 17, 19, 23, 24, 25, 29, 32,
-    # Round 6 medium batch
-    33, 34, 39, 40, 47, 48, 49, 50, 54, 75,
-    # Round 7 medium batch
-    56, 57, 62, 63, 64, 71, 73, 91, 97, 113,
-    # Batch 11
-    189, 238, 274, 424, 452, 503, 621, 1004,
-]
+_PREEXISTING = {1, 3, 11, 13, 15, 20, 27, 53, 70, 88, 206, 322, 704}
+NEW_IDS = sorted(
+    int(p.stem)
+    for p in (ROOT / "data" / "problems").glob("*.json")
+    if p.stem.isdigit() and int(p.stem) not in _PREEXISTING
+)
 
 
 def normalize_output(text: str) -> str:

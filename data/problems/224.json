@@ -1,0 +1,54 @@
+{
+  "id": 224,
+  "title": "基本计算器",
+  "titleEn": "Basic Calculator",
+  "difficulty": "困难",
+  "tags": [
+    "数学",
+    "字符串",
+    "栈",
+    "递归"
+  ],
+  "description": "给你一个字符串表达式 s，请你实现一个基本计算器来计算并返回它的值。表达式只包含非负整数、'+'、'-'、'('、')' 和空格。注意表达式保证是有效的，且只含加减与括号。",
+  "examples": [
+    {
+      "input": "1 + 1",
+      "output": "2",
+      "explanation": "1 + 1 = 2。"
+    },
+    {
+      "input": " 2-1 + 2 ",
+      "output": "3",
+      "explanation": "2 - 1 + 2 = 3。"
+    },
+    {
+      "input": "(1+(4+5+2)-3)+(6+8)",
+      "output": "23",
+      "explanation": "(1 + 11 - 3) + 14 = 9 + 14 = 23。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length <= 3*10^5",
+    "s 由数字、'+'、'-'、'('、')' 和空格组成",
+    "s 表示一个有效的表达式",
+    "保证结果与中间值均可用 32 位有符号整数表示"
+  ],
+  "ioFormat": "输入为一行表达式（可能含前导与中间空格）。直接输出计算结果（整数）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接把表达式交给 Python 的 eval() 求值。虽然语法恰好支持本表达式的运算符，但 eval 存在安全隐患且不符合算法题本意，仅作为最简思路参考。",
+      "code": "import sys\n\nif __name__ == '__main__':\n    expr = sys.stdin.read().strip()\n    if not expr:\n        sys.exit(0)\n    print(eval(expr))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "栈 + 符号位：用 sign 记录当前数字的正负号，遇到 '(' 把当前结果与 sign 压栈并清零，遇到 ')' 弹出并合并。数字可能有多位，用连续读取累加。O(n) 时间、O(n) 空间。",
+      "code": "import sys\n\ndef calc_opt(expr):\n    stack = []\n    result = 0\n    sign = 1\n    i = 0\n    n = len(expr)\n    while i < n:\n        c = expr[i]\n        if c.isdigit():\n            num = 0\n            while i < n and expr[i].isdigit():\n                num = num * 10 + int(expr[i])\n                i += 1\n            result += sign * num\n            continue\n        elif c == '+':\n            sign = 1\n        elif c == '-':\n            sign = -1\n        elif c == '(':\n            stack.append(result)\n            stack.append(sign)\n            result = 0\n            sign = 1\n        elif c == ')':\n            result = stack.pop() * result + stack.pop()\n        i += 1\n    return result\n\nif __name__ == '__main__':\n    expr = sys.stdin.read().strip()\n    if not expr:\n        sys.exit(0)\n    print(calc_opt(expr))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "与“优化”相同的栈 + 符号位思路，改为逐字符扫描并在结束统一收尾累加 ans += sign * num，代码更紧凑。O(n) 时间、O(n) 空间，是标准解法。",
+      "code": "import sys\n\ndef calc_best(expr):\n    stack = []\n    num = 0\n    sign = 1\n    ans = 0\n    for ch in expr:\n        if ch.isdigit():\n            num = num * 10 + int(ch)\n        elif ch == '+':\n            ans += sign * num\n            num = 0\n            sign = 1\n        elif ch == '-':\n            ans += sign * num\n            num = 0\n            sign = -1\n        elif ch == '(':\n            stack.append(ans)\n            stack.append(sign)\n            ans = 0\n            num = 0\n            sign = 1\n        elif ch == ')':\n            ans += sign * num\n            num = 0\n            ans = stack.pop() * ans + stack.pop()\n    ans += sign * num\n    return ans\n\nif __name__ == '__main__':\n    expr = sys.stdin.read().strip()\n    if not expr:\n        sys.exit(0)\n    print(calc_best(expr))\n"
+    }
+  ]
+}

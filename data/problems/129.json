@@ -1,0 +1,47 @@
+{
+  "id": 129,
+  "title": "求根节点到叶节点数字之和",
+  "titleEn": "Sum Root to Leaf Numbers",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "二叉树"
+  ],
+  "description": "给你一个二叉树的根节点 root，树中每个节点都存放有一个 0 到 9 之间的数字。每条从根节点到叶节点的路径都代表一个数字。计算从根到叶节点生成的所有数字之和。",
+  "examples": [
+    {
+      "input": "3\n1 2 3",
+      "output": "25",
+      "explanation": "根到叶路径 1->2 表示 12，1->3 表示 13，和为 25。"
+    },
+    {
+      "input": "5\n4 9 0 5 1",
+      "output": "1026",
+      "explanation": "路径 4-9-5=495，4-9-1=491，4-0=40，和为 495+491+40=1026。"
+    }
+  ],
+  "constraints": [
+    "树中节点数目在 [1, 1000] 范围内",
+    "0 <= Node.val <= 9",
+    "树的深度不超过 10"
+  ],
+  "ioFormat": "第一行 n（节点数），第二行 n 个层序 token，'n' 表示空。输出所有根到叶路径数字之和。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "DFS 把所有根到叶路径先收集成数字列表 nums，最后再求和。路径用字符串拼接，叶节点时转 int，直观但多一步收集。O(n) 时间 O(h) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef sum_brute(root):\n    nums = []\n    def dfs(node, path):\n        if not node:\n            return\n        cur = path + str(node.v)\n        if not node.l and not node.r:\n            nums.append(int(cur))\n            return\n        dfs(node.l, cur)\n        dfs(node.r, cur)\n    dfs(root, '')\n    return sum(nums)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(sum_brute(root))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "DFS 携带前缀数字：进入子节点时把前缀 *10+当前值传入，到叶节点直接返回该数，非叶返回左右子树之和。省去收集与转字符串的开销。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef sum_opt(root):\n    def dfs(node, pre):\n        if not node:\n            return 0\n        cur = pre * 10 + node.v\n        if not node.l and not node.r:\n            return cur\n        return dfs(node.l, cur) + dfs(node.r, cur)\n    return dfs(root, 0)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(sum_opt(root))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "显式栈迭代 DFS：栈元素为 (node, 前缀和)，遇到叶节点累加，避免递归栈溢出风险，工程上更稳。O(n) 时间 O(n) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\n\ndef sum_best(root):\n    if not root:\n        return 0\n    stack = [(root, 0)]\n    total = 0\n    while stack:\n        node, pre = stack.pop()\n        cur = pre * 10 + node.v\n        if not node.l and not node.r:\n            total += cur\n        else:\n            if node.l:\n                stack.append((node.l, cur))\n            if node.r:\n                stack.append((node.r, cur))\n    return total\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    print(sum_best(root))\n"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "id": 153,
+  "title": "寻找旋转排序数组中的最小值",
+  "titleEn": "Find Minimum in Rotated Sorted Array",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "二分查找"
+  ],
+  "description": "已知一个长度为 n 的升序排列数组在某个未知点发生了旋转（例如 [0,1,2,4,5,6,7] 旋转为 [4,5,6,7,0,1,2]），数组中不含重复元素。请找出并返回数组中的最小元素。",
+  "examples": [
+    {
+      "input": "5\n3 4 5 1 2",
+      "output": "1",
+      "explanation": "旋转点为 1，最小值为 1。"
+    },
+    {
+      "input": "7\n4 5 6 7 0 1 2",
+      "output": "0",
+      "explanation": "旋转点为 0，最小值为 0。"
+    },
+    {
+      "input": "3\n1 2 3",
+      "output": "1",
+      "explanation": "未旋转，最小值就是第一个元素。"
+    }
+  ],
+  "constraints": [
+    "1 <= n <= 5000",
+    "-5000 <= nums[i] <= 5000",
+    "nums 中所有元素互不相同"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个整数。输出数组中的最小值。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接调用 min() 遍历数组找最小值。O(n) 时间，不利用旋转有序的性质，但实现最直观。",
+      "code": "import sys\n\ndef find_min(nums):\n    return min(nums)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_min(nums))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二分查找旋转点：比较 nums[mid] 与 nums[hi]，若 mid 侧更大说明最小值在右半部分，否则在左半部分，不断缩小区间。O(log n) 时间，O(1) 空间。",
+      "code": "import sys\n\ndef find_min(nums):\n    lo, hi = 0, len(nums) - 1\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if nums[mid] > nums[hi]:\n            lo = mid + 1\n        else:\n            hi = mid\n    return nums[lo]\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_min(nums))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在二分基础上加早停：若当前区间 nums[lo] < nums[hi] 说明该段已完全有序，直接返回 nums[lo]，对未旋转或已排序区间可提前结束，常数更小。",
+      "code": "import sys\n\ndef find_min(nums):\n    lo, hi = 0, len(nums) - 1\n    while lo < hi:\n        if nums[lo] < nums[hi]:\n            return nums[lo]\n        mid = (lo + hi) // 2\n        if nums[mid] > nums[hi]:\n            lo = mid + 1\n        else:\n            hi = mid\n    return nums[lo]\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    print(find_min(nums))\n"
+    }
+  ]
+}

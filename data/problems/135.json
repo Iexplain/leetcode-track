@@ -1,0 +1,46 @@
+{
+  "id": 135,
+  "title": "分发糖果",
+  "titleEn": "Candy",
+  "difficulty": "困难",
+  "tags": [
+    "数组",
+    "贪心"
+  ],
+  "description": "n 个孩子站成一排。给你一个整数数组 ratings 表示每个孩子的评分。你需要按照以下要求，给这些孩子分发糖果：每个孩子至少分配到 1 个糖果；相邻两个孩子中，评分更高的孩子会获得更多的糖果。请你给每个孩子分发糖果，计算并返回需要准备的最少糖果数目。",
+  "examples": [
+    {
+      "input": "3\n1 0 2",
+      "output": "5",
+      "explanation": "分发 2、1、2 颗糖果：评分 0 的孩子 1 颗，两边的孩子各 2 颗，共 5 颗。"
+    },
+    {
+      "input": "3\n1 2 2",
+      "output": "4",
+      "explanation": "分发 1、2、1 颗糖果，评分相等的相邻孩子不强制更多，共 4 颗。"
+    }
+  ],
+  "constraints": [
+    "n == ratings.length",
+    "1 <= n <= 2 * 10^4",
+    "0 <= ratings[i] <= 2 * 10^4"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个评分。输出最少需要的糖果总数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "反复扫描调整：初始化每人 1 颗，只要存在评分高于相邻孩子而糖果不满足的情况就把该孩子糖果加一，直到一轮扫描没有任何调整。最坏 O(n^2) 时间。",
+      "code": "import sys\n\n\ndef candy_brute(ratings):\n    n = len(ratings)\n    c = [1] * n\n    changed = True\n    while changed:\n        changed = False\n        for i in range(n):\n            if i > 0 and ratings[i] > ratings[i - 1] and c[i] <= c[i - 1]:\n                c[i] = c[i - 1] + 1\n                changed = True\n            if i < n - 1 and ratings[i] > ratings[i + 1] and c[i] <= c[i + 1]:\n                c[i] = c[i + 1] + 1\n                changed = True\n    return sum(c)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ratings = list(map(int, data[1:1 + n]))\n    print(candy_brute(ratings))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "两次贪心：分别从左向右（只看左边评分高）和从右向左（只看右边评分高）构造两个糖果数组 left、right，最终每个孩子取两者的较大值。O(n) 时间 O(n) 空间。",
+      "code": "import sys\n\n\ndef candy_opt(ratings):\n    n = len(ratings)\n    left = [1] * n\n    for i in range(1, n):\n        if ratings[i] > ratings[i - 1]:\n            left[i] = left[i - 1] + 1\n    right = [1] * n\n    for i in range(n - 2, -1, -1):\n        if ratings[i] > ratings[i + 1]:\n            right[i] = right[i + 1] + 1\n    return sum(max(left[i], right[i]) for i in range(n))\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ratings = list(map(int, data[1:1 + n]))\n    print(candy_opt(ratings))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "单数组两次扫描：只用一个数组 c，先从左到右满足左侧规则，再从右到左用 max 合并右侧规则。O(n) 时间 O(n) 空间但只用一份数组，代码最紧凑。",
+      "code": "import sys\n\n\ndef candy_best(ratings):\n    n = len(ratings)\n    c = [1] * n\n    for i in range(1, n):\n        if ratings[i] > ratings[i - 1]:\n            c[i] = c[i - 1] + 1\n    for i in range(n - 2, -1, -1):\n        if ratings[i] > ratings[i + 1]:\n            c[i] = max(c[i], c[i + 1] + 1)\n    return sum(c)\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    ratings = list(map(int, data[1:1 + n]))\n    print(candy_best(ratings))\n"
+    }
+  ]
+}

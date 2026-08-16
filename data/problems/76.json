@@ -1,0 +1,51 @@
+{
+  "id": 76,
+  "title": "最小覆盖子串",
+  "titleEn": "Minimum Window Substring",
+  "difficulty": "困难",
+  "tags": [
+    "哈希表",
+    "字符串",
+    "滑动窗口"
+  ],
+  "description": "给定一个字符串 s 和一个字符串 t，请在 s 中找出包含 t 全部字符（含每个字符出现次数）的最短连续子串，并返回该子串。子串中的字符顺序不限，只需覆盖 t 中每种字符的全部数量。如果不存在这样的子串，则返回空字符串。",
+  "examples": [
+    {
+      "input": "ADOBECODEBANC\nABC",
+      "output": "BANC",
+      "explanation": "子串 BANC 覆盖了 A、B、C 各一次，且是所有覆盖子串中最短的。"
+    },
+    {
+      "input": "a\naa",
+      "output": "",
+      "explanation": "s 中只有一个 a，无法凑齐 t 中的两个 a，故不存在满足条件的子串。"
+    },
+    {
+      "input": "ab\nb",
+      "output": "b",
+      "explanation": "子串 b 已经覆盖 t 中的 b。"
+    }
+  ],
+  "constraints": [
+    "1 <= s.length, t.length <= 10^5",
+    "s 和 t 由英文字母组成"
+  ],
+  "ioFormat": "两行输入：第一行为字符串 s，第二行为字符串 t。输出最短覆盖子串；若不存在则输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举 s 的所有子串，用 Counter 检查每个子串是否覆盖 t 的全部字符（含数量），取满足条件的最短者。时间复杂度 O(n^3) 量级，仅适合极短的输入。",
+      "code": "import sys\nfrom collections import Counter\n\ndef min_window_brute(s, t):\n    need = Counter(t)\n    best = None\n    for i in range(len(s)):\n        for j in range(i + 1, len(s) + 1):\n            sub = s[i:j]\n            if all(sub.count(c) >= need[c] for c in need):\n                if best is None or len(sub) < len(best):\n                    best = sub\n    return best or ''\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s, t = data[0], data[1]\n    print(min_window_brute(s, t))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "滑动窗口 + 双计数：用 need 记录 t 的字符需求，用 have 记录当前窗口内的字符数，并统计已满足需求种类数 have_cnt。右指针扩展窗口直至覆盖全部需求，再收缩左指针寻找最短窗口。O(n) 时间。",
+      "code": "import sys\nfrom collections import Counter\n\ndef min_window_opt(s, t):\n    need = Counter(t)\n    have = Counter()\n    need_cnt = len(need)\n    have_cnt = 0\n    left = 0\n    best = None\n    for right, ch in enumerate(s):\n        if ch in need:\n            have[ch] += 1\n            if have[ch] == need[ch]:\n                have_cnt += 1\n        while have_cnt == need_cnt:\n            if best is None or right - left + 1 < len(best):\n                best = s[left:right + 1]\n            lc = s[left]\n            if lc in need:\n                have[lc] -= 1\n                if have[lc] < need[lc]:\n                    have_cnt -= 1\n            left += 1\n    return best or ''\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s, t = data[0], data[1]\n    print(min_window_opt(s, t))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "滑动窗口 + 单计数：只用一个计数器 need，need[ch] 为负表示窗口内该字符多余。维护 missing 表示还缺多少字符，missing == 0 时尝试收缩左边界并更新答案。常数更小、代码更紧凑。",
+      "code": "import sys\nfrom collections import Counter\n\ndef min_window_best(s, t):\n    need = Counter(t)\n    missing = len(t)\n    left = 0\n    start, length = 0, len(s) + 1\n    for right, ch in enumerate(s):\n        if need[ch] > 0:\n            missing -= 1\n        need[ch] -= 1\n        if missing == 0:\n            while need[s[left]] < 0:\n                need[s[left]] += 1\n                left += 1\n            if right - left + 1 < length:\n                start, length = left, right - left + 1\n            need[s[left]] += 1\n            missing += 1\n            left += 1\n    return s[start:start + length] if length <= len(s) else ''\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    s, t = data[0], data[1]\n    print(min_window_best(s, t))\n"
+    }
+  ]
+}

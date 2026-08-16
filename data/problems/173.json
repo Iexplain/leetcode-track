@@ -1,0 +1,46 @@
+{
+  "id": 173,
+  "title": "二叉搜索树迭代器",
+  "titleEn": "Binary Search Tree Iterator",
+  "difficulty": "中等",
+  "tags": [
+    "栈",
+    "树",
+    "设计",
+    "二叉搜索树",
+    "二叉树",
+    "迭代器"
+  ],
+  "description": "实现一个二叉搜索树迭代器 BSTIterator，表示按中序遍历（左-根-右）二叉搜索树（BST）的迭代器。构造时传入根节点 root；next() 返回下一个最小的数；hasNext() 返回是否还有下一个元素。",
+  "examples": [
+    {
+      "input": "7\n7 3 15 n n 9 20\n6\nhasNext next next hasNext next hasNext",
+      "output": "true\n3\n7\ntrue\n9\ntrue",
+      "explanation": "该树中序遍历为 3、7、9、15、20。依次调用：hasNext→true，next→3，next→7，hasNext→true（还有 9），next→9，hasNext→true（还有 15）。"
+    }
+  ],
+  "constraints": [
+    "树中节点数在 [0, 10^5] 内",
+    "0 <= Node.val <= 10^6",
+    "next() 与 hasNext() 调用总数 <= 10^5",
+    "保证在 hasNext() 为 true 时才调用 next()"
+  ],
+  "ioFormat": "第一行 n（层序数组长度），第二行层序数组（'n' 表示 None），第三行操作数 q，之后 q 行每行一个操作（hasNext 或 next）。hasNext 输出 true/false，next 输出节点值，每行一个。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "构造时对整棵树做一次完整的中序遍历，把结果存进列表 seq，再用下标 idx 模拟 next / hasNext。O(n) 构造时间、O(n) 空间，简单但不符合迭代器懒加载的要求。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\nclass BSTIteratorBrute:\n    def __init__(self, root):\n        self.seq = []\n        self.idx = 0\n        self._inorder(root)\n    def _inorder(self, node):\n        if not node:\n            return\n        self._inorder(node.l)\n        self.seq.append(node.v)\n        self._inorder(node.r)\n    def hasNext(self):\n        return self.idx < len(self.seq)\n    def next(self):\n        v = self.seq[self.idx]\n        self.idx += 1\n        return v\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    q = int(data[1 + n])\n    it = BSTIteratorBrute(root)\n    ops = data[2 + n:2 + n + q]\n    for op in ops:\n        if op == 'hasNext':\n            print('true' if it.hasNext() else 'false')\n        elif op == 'next':\n            print(it.next())\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用栈做懒加载：构造时只把根节点出发的整条左链压栈。next() 弹出栈顶（即当前最小），若它有右子树，再把右子树的左链压栈；hasNext() 直接看栈是否为空。均摊 O(1) 时间、O(h) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\nclass BSTIteratorOpt:\n    def __init__(self, root):\n        self.stack = []\n        self._push_left(root)\n    def _push_left(self, node):\n        while node:\n            self.stack.append(node)\n            node = node.l\n    def hasNext(self):\n        return bool(self.stack)\n    def next(self):\n        cur = self.stack.pop()\n        if cur.r:\n            self._push_left(cur.r)\n        return cur.v\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    q = int(data[1 + n])\n    it = BSTIteratorOpt(root)\n    ops = data[2 + n:2 + n + q]\n    for op in ops:\n        if op == 'hasNext':\n            print('true' if it.hasNext() else 'false')\n        elif op == 'next':\n            print(it.next())\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”的基础上保持相同的“每次只推左链”的迭代式 DFS 结构，代码整理得更紧凑清晰。时间均摊 O(1)，空间 O(h)，是标准答案。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        n = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            n.l = T(int(arr[i])); q.append(n.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            n.r = T(int(arr[i])); q.append(n.r)\n        i += 1\n    return root\n\nclass BSTIteratorBest:\n    def __init__(self, root):\n        self.stack = []\n        self._push_left(root)\n    def _push_left(self, node):\n        while node:\n            self.stack.append(node)\n            node = node.l\n    def hasNext(self):\n        return bool(self.stack)\n    def next(self):\n        cur = self.stack.pop()\n        if cur.r:\n            self._push_left(cur.r)\n        return cur.v\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    root = build(data[1:1 + n])\n    q = int(data[1 + n])\n    it = BSTIteratorBest(root)\n    ops = data[2 + n:2 + n + q]\n    for op in ops:\n        if op == 'hasNext':\n            print('true' if it.hasNext() else 'false')\n        elif op == 'next':\n            print(it.next())\n"
+    }
+  ]
+}

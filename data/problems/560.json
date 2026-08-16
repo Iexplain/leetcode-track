@@ -1,0 +1,47 @@
+{
+  "id": 560,
+  "title": "和为 K 的子数组",
+  "titleEn": "Subarray Sum Equals K",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "哈希表",
+    "前缀和"
+  ],
+  "description": "给你一个整数数组 nums 和一个整数 k ，请你统计并返回该数组中和为 k 的连续子数组的个数。",
+  "examples": [
+    {
+      "input": "3\n1 1 1\n2",
+      "output": "2",
+      "explanation": "两个和为 2 的子数组：[1,1]（索引 0-1）和 [1,1]（索引 1-2）。"
+    },
+    {
+      "input": "3\n1 2 3\n3",
+      "output": "2",
+      "explanation": "两个和为 3 的子数组：[1,2] 和 [3]。"
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 2 * 10^4",
+    "-1000 <= nums[i] <= 1000",
+    "-10^7 <= k <= 10^7"
+  ],
+  "ioFormat": "第一行整数 n 表示数组长度，第二行 n 个整数，第三行 k。输出一个整数表示和为 k 的子数组个数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举所有子数组：对每个起点 i 累加计算以 i 开始的所有子数组和，等于 k 则计数。O(n^2) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef count_brute(nums, k):\n    n = len(nums)\n    cnt = 0\n    for i in range(n):\n        s = 0\n        for j in range(i, n):\n            s += nums[j]\n            if s == k:\n                cnt += 1\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = [int(x) for x in data[1:1 + n]]\n    k = int(data[1 + n])\n    print(count_brute(nums, k))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "前缀和：预先计算前缀和数组 pref，子数组 [i, j) 的和为 pref[j] - pref[i]，两重循环枚举 i < j。O(n^2) 时间、O(n) 空间。",
+      "code": "import sys\n\ndef count_opt(nums, k):\n    n = len(nums)\n    pref = [0] * (n + 1)\n    for i in range(n):\n        pref[i + 1] = pref[i] + nums[i]\n    cnt = 0\n    for i in range(n):\n        for j in range(i + 1, n + 1):\n            if pref[j] - pref[i] == k:\n                cnt += 1\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = [int(x) for x in data[1:1 + n]]\n    k = int(data[1 + n])\n    print(count_opt(nums, k))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "前缀和 + 哈希表：边遍历边维护当前前缀和，用哈希表记录每个前缀和出现的次数，当前前缀和减 k 在哈希表中出现的次数即为以当前位置结尾的和为 k 的子数组个数。O(n) 时间、O(n) 空间。",
+      "code": "import sys\nfrom collections import defaultdict\n\ndef count_best(nums, k):\n    pref = defaultdict(int)\n    pref[0] = 1\n    s = 0\n    cnt = 0\n    for x in nums:\n        s += x\n        cnt += pref[s - k]\n        pref[s] += 1\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = [int(x) for x in data[1:1 + n]]\n    k = int(data[1 + n])\n    print(count_best(nums, k))\n"
+    }
+  ]
+}

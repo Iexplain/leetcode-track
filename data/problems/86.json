@@ -1,0 +1,41 @@
+{
+  "id": 86,
+  "title": "分隔链表",
+  "titleEn": "Partition List",
+  "difficulty": "中等",
+  "tags": [
+    "链表",
+    "双指针"
+  ],
+  "description": "给定一个链表头节点 head 和一个指定值 x，请对链表进行分隔，使得所有小于 x 的节点都出现在大于或等于 x 的节点之前，并且保持两部分中节点原有的相对顺序不变。",
+  "examples": [
+    {
+      "input": "6 3\n1 4 3 2 5 2",
+      "output": "1 2 2 4 3 5",
+      "explanation": "小于 3 的节点 1、2、2 排在前面，其余 4、3、5 保持原顺序排在后面。"
+    }
+  ],
+  "constraints": [
+    "节点数范围 0 ~ 200",
+    "0 <= 节点值 <= 100",
+    "0 <= x <= 100"
+  ],
+  "ioFormat": "第一行两个整数 n x（节点数、分隔值），第二行 n 个节点值。输出分隔后的链表（空格分隔），空链表输出空行。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "新建两条链表：小于 x 的节点复制为新的 N 节点挂到 less 链，其余挂到 ge 链，最后把两链拼接。O(n) 时间 O(n) 空间（复制了全部节点）。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef partition_brute(head, x):\n    less_head = less_tail = None\n    ge_head = ge_tail = None\n    cur = head\n    while cur:\n        node = N(cur.v)\n        if cur.v < x:\n            if less_head is None:\n                less_head = node\n            else:\n                less_tail.nxt = node\n            less_tail = node\n        else:\n            if ge_head is None:\n                ge_head = node\n            else:\n                ge_tail.nxt = node\n            ge_tail = node\n        cur = cur.nxt\n    if less_tail:\n        less_tail.nxt = ge_head\n    return less_head or ge_head\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    x = int(data[1])\n    vals = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, to_list(partition_brute(build(vals), x)))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "原链表原地重连：同样分成 less/ge 两条链，但复用原有节点（仅修改 next 指针，不再新建节点），O(n) 时间 O(1) 额外空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef partition_opt(head, x):\n    less_head = less_tail = None\n    ge_head = ge_tail = None\n    cur = head\n    while cur:\n        nxt = cur.nxt\n        cur.nxt = None\n        if cur.v < x:\n            if less_head is None:\n                less_head = cur\n            else:\n                less_tail.nxt = cur\n            less_tail = cur\n        else:\n            if ge_head is None:\n                ge_head = cur\n            else:\n                ge_tail.nxt = cur\n            ge_tail = cur\n        cur = nxt\n    if less_tail:\n        less_tail.nxt = ge_head\n    return less_head or ge_head\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    x = int(data[1])\n    vals = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, to_list(partition_opt(build(vals), x)))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "dummy 双尾：用两个带哨兵头的链 less、ge 和各自的尾指针 lt、gt，单遍重连所有节点，最后把 gt.nxt 置空并拼接两链。写法最简洁、边界最稳。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef partition_best(head, x):\n    less = N(0)\n    ge = N(0)\n    lt, gt = less, ge\n    cur = head\n    while cur:\n        if cur.v < x:\n            lt.nxt = cur\n            lt = cur\n        else:\n            gt.nxt = cur\n            gt = cur\n        cur = cur.nxt\n    gt.nxt = None\n    lt.nxt = ge.nxt\n    return less.nxt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    x = int(data[1])\n    vals = list(map(int, data[2:2 + n]))\n    print(' '.join(map(str, to_list(partition_best(build(vals), x)))))\n"
+    }
+  ]
+}

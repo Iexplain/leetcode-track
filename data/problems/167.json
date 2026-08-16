@@ -1,0 +1,54 @@
+{
+  "id": 167,
+  "title": "两数之和 II - 输入有序数组",
+  "titleEn": "Two Sum II - Input Array Is Sorted",
+  "difficulty": "中等",
+  "tags": [
+    "数组",
+    "双指针",
+    "二分查找"
+  ],
+  "description": "给你一个下标从 1 开始的整数数组 numbers，该数组已按非递减顺序排列。请你找出两个数，使得它们的和等于目标数 target。函数应返回这两个数的下标（从 1 开始），两个下标不能相同，且保证只有一组答案。",
+  "examples": [
+    {
+      "input": "4\n2 7 11 15\n9",
+      "output": "1 2",
+      "explanation": "2 与 7 之和等于 9，因此返回下标 1 和 2。"
+    },
+    {
+      "input": "3\n2 3 4\n6",
+      "output": "1 3",
+      "explanation": "2 与 4 之和等于 6，返回下标 1 和 3。"
+    },
+    {
+      "input": "2\n-1 0\n-1",
+      "output": "1 2",
+      "explanation": "-1 与 0 之和等于 -1，返回下标 1 和 2。"
+    }
+  ],
+  "constraints": [
+    "2 <= numbers.length <= 3*10^4",
+    "-1000 <= numbers[i] <= 1000",
+    "numbers 已按非递减顺序排列",
+    "-1000 <= target <= 1000",
+    "仅存在一个有效答案"
+  ],
+  "ioFormat": "第一行 n（数组长度），第二行 n 个整数（已排序），第三行 target。输出两个下标（从 1 开始），空格分隔。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "双重循环枚举所有数对 (i, j)，找到和等于 target 的那一对，返回 [i+1, j+1]。O(n^2) 时间、O(1) 空间，不利用有序性。",
+      "code": "import sys\n\ndef two_sum_brute(nums, target):\n    n = len(nums)\n    for i in range(n):\n        for j in range(i + 1, n):\n            if nums[i] + nums[j] == target:\n                return [i + 1, j + 1]\n    return [-1, -1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    a, b = two_sum_brute(nums, target)\n    print(a, b)\n"
+    },
+    {
+      "level": "优化",
+      "idea": "用哈希表记录“已见过的值 -> 下标”。扫描时若 target - numbers[i] 已在表中，说明找到答案；否则把当前值存入。O(n) 时间、O(n) 空间，但同样未利用有序性。",
+      "code": "import sys\n\ndef two_sum_hash(nums, target):\n    seen = {}\n    for i, v in enumerate(nums):\n        need = target - v\n        if need in seen:\n            return [seen[need] + 1, i + 1]\n        seen[v] = i\n    return [-1, -1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    a, b = two_sum_hash(nums, target)\n    print(a, b)\n"
+    },
+    {
+      "level": "最优",
+      "idea": "双指针：左指针 l 指向开头、右指针 r 指向结尾。若 numbers[l] + numbers[r] < target 则左移 l；若 > target 则右移 r；相等即返回 [l+1, r+1]。充分利用有序性，O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\ndef two_sum_tp(nums, target):\n    l, r = 0, len(nums) - 1\n    while l < r:\n        s = nums[l] + nums[r]\n        if s == target:\n            return [l + 1, r + 1]\n        elif s < target:\n            l += 1\n        else:\n            r -= 1\n    return [-1, -1]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    nums = list(map(int, data[1:1 + n]))\n    target = int(data[1 + n])\n    a, b = two_sum_tp(nums, target)\n    print(a, b)\n"
+    }
+  ]
+}

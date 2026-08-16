@@ -1,0 +1,47 @@
+{
+  "id": 437,
+  "title": "路径总和 III",
+  "titleEn": "Path Sum III",
+  "difficulty": "中等",
+  "tags": [
+    "树",
+    "深度优先搜索",
+    "二叉树"
+  ],
+  "description": "给定一个二叉树的根节点 root ，和一个整数 targetSum ，求该二叉树里节点值之和等于 targetSum 的路径的数目。路径不需要从根节点开始，也不需要在叶子节点结束，但是路径方向必须是向下的（只能从父节点到子节点）。",
+  "examples": [
+    {
+      "input": "11\n10 5 -3 3 2 n 11 3 -2 n 1\n8",
+      "output": "3",
+      "explanation": "有三条和为 8 的路径：5 -> 3、5 -> 2 -> 1、-3 -> 11。"
+    },
+    {
+      "input": "1\nn\n5",
+      "output": "0",
+      "explanation": "空树没有任何路径，结果为 0。"
+    }
+  ],
+  "constraints": [
+    "二叉树的节点个数的范围是 [0, 1000]",
+    "-10^9 <= Node.val <= 10^9",
+    "-1000 <= targetSum <= 1000"
+  ],
+  "ioFormat": "第一行整数 n 表示层序数组长度，第二行 n 个 token 表示二叉树层序（'n' 代表 null），第三行 targetSum。输出一个整数表示路径数目。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "双重递归：外层以每个节点作为路径起点，内层 from_node 向下累加并统计当前和等于 targetSum 的路径数。O(n^2) 时间，最坏情况下（链状树）会退化到 O(n^2)。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\ndef path_brute(root, target):\n    def from_node(node, cur):\n        if node is None:\n            return 0\n        cur += node.v\n        c = 1 if cur == target else 0\n        c += from_node(node.l, cur) + from_node(node.r, cur)\n        return c\n    if root is None:\n        return 0\n    cnt = from_node(root, 0)\n    cnt += path_brute(root.l, target) + path_brute(root.r, target)\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    target = int(data[1 + n])\n    root = build(data[1:1 + n])\n    print(path_brute(root, target))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "在 DFS 中记录根到当前节点的路径前缀和，用哈希表统计每个前缀和出现的次数：到达当前节点时，前缀和为 cur - targetSum 的路径数即为以当前节点为终点、和为 targetSum 的路径数。O(n) 时间、O(n) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\ndef path_opt(root, target):\n    from collections import defaultdict\n    cnt = 0\n    pref = defaultdict(int)\n    pref[0] = 1\n    def dfs(node, cur):\n        nonlocal cnt\n        if node is None:\n            return\n        cur += node.v\n        cnt += pref[cur - target]\n        pref[cur] += 1\n        dfs(node.l, cur)\n        dfs(node.r, cur)\n        pref[cur] -= 1\n    dfs(root, 0)\n    return cnt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    target = int(data[1 + n])\n    root = build(data[1:1 + n])\n    print(path_opt(root, target))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "前缀和 + 回溯：与优化版等价，但把累加逻辑直接并入递归返回值，并在递归返回前回溯撤销当前前缀和的出现次数，代码更紧凑。O(n) 时间、O(n) 空间。",
+      "code": "import sys\nfrom collections import deque\n\nclass T:\n    __slots__ = ('v', 'l', 'r')\n    def __init__(self, v=0, l=None, r=None):\n        self.v = v; self.l = l; self.r = r\n\ndef build(arr):\n    if not arr or arr[0] == 'n':\n        return None\n    root = T(int(arr[0]))\n    q = deque([root]); i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] != 'n':\n            node.l = T(int(arr[i])); q.append(node.l)\n        i += 1\n        if i < len(arr) and arr[i] != 'n':\n            node.r = T(int(arr[i])); q.append(node.r)\n        i += 1\n    return root\n\ndef path_best(root, target):\n    from collections import defaultdict\n    pref = defaultdict(int)\n    pref[0] = 1\n    def dfs(node, cur):\n        if node is None:\n            return 0\n        cur += node.v\n        c = pref[cur - target]\n        pref[cur] += 1\n        c += dfs(node.l, cur) + dfs(node.r, cur)\n        pref[cur] -= 1\n        return c\n    return dfs(root, 0)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    target = int(data[1 + n])\n    root = build(data[1:1 + n])\n    print(path_best(root, target))\n"
+    }
+  ]
+}

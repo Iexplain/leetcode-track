@@ -1,0 +1,50 @@
+{
+  "id": 1143,
+  "title": "最长公共子序列",
+  "titleEn": "Longest Common Subsequence",
+  "difficulty": "中等",
+  "tags": [
+    "字符串",
+    "动态规划"
+  ],
+  "description": "给定两个字符串 text1 和 text2，返回这两个字符串的最长公共子序列的长度。子序列是指在保持字符相对顺序不变的前提下，删除一些（或不删除）字符后得到的新字符串。如果不存在公共子序列则返回 0。",
+  "examples": [
+    {
+      "input": "abcde\nace",
+      "output": "3",
+      "explanation": "最长公共子序列是 \"ace\"，长度为 3。"
+    },
+    {
+      "input": "abc\nabc",
+      "output": "3",
+      "explanation": "最长公共子序列是 \"abc\"，长度为 3。"
+    },
+    {
+      "input": "abc\ndef",
+      "output": "0",
+      "explanation": "两个字符串没有公共字符，公共子序列长度为 0。"
+    }
+  ],
+  "constraints": [
+    "1 <= text1.length, text2.length <= 1000",
+    "text1 和 text2 仅由小写英文字符组成"
+  ],
+  "ioFormat": "两行输入，第一行字符串 text1，第二行字符串 text2。输出一个整数表示最长公共子序列长度。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "直接递归：f(i, j) 表示 text1[i:] 与 text2[j:] 的最长公共子序列，若两字符相等则 1 + f(i+1, j+1)，否则取 f(i+1, j) 与 f(i, j+1) 的较大值。不做记忆化，最坏是指数级时间，仅适合小规模输入。",
+      "code": "import sys\n\ndef lcs_brute(a, b):\n    def f(i, j):\n        if i == len(a) or j == len(b):\n            return 0\n        if a[i] == b[j]:\n            return 1 + f(i + 1, j + 1)\n        return max(f(i + 1, j), f(i, j + 1))\n    return f(0, 0)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    a, b = data[0], data[1]\n    print(lcs_brute(a, b))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "二维 DP：dp[i][j] 表示 text1 前 i 个字符与 text2 前 j 个字符的最长公共子序列。转移：字符相等时 dp[i][j] = dp[i-1][j-1] + 1，否则取左/上的较大值。O(mn) 时间、O(mn) 空间。",
+      "code": "import sys\n\ndef lcs_opt(a, b):\n    m, n = len(a), len(b)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if a[i - 1] == b[j - 1]:\n                dp[i][j] = dp[i - 1][j - 1] + 1\n            else:\n                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])\n    return dp[m][n]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    a, b = data[0], data[1]\n    print(lcs_opt(a, b))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "一维 DP 滚动数组：由于转移只依赖上一行与当前行的前一个值，用长度为 n+1 的一维数组滚动更新，prev 记录上一行 dp[i-1][j-1]。O(mn) 时间、O(n) 空间。",
+      "code": "import sys\n\ndef lcs_best(a, b):\n    m, n = len(a), len(b)\n    dp = [0] * (n + 1)\n    for i in range(1, m + 1):\n        prev = 0\n        for j in range(1, n + 1):\n            tmp = dp[j]\n            if a[i - 1] == b[j - 1]:\n                dp[j] = prev + 1\n            else:\n                dp[j] = max(dp[j], dp[j - 1])\n            prev = tmp\n    return dp[n]\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    a, b = data[0], data[1]\n    print(lcs_best(a, b))\n"
+    }
+  ]
+}

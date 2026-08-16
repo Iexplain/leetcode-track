@@ -1,0 +1,52 @@
+{
+  "id": 142,
+  "title": "环形链表 II",
+  "titleEn": "Linked List Cycle II",
+  "difficulty": "中等",
+  "tags": [
+    "哈希表",
+    "链表",
+    "双指针"
+  ],
+  "description": "给定一个链表的头节点 head，返回链表开始入环的第一个节点的值；如果链表无环，则返回 -1。pos 表示尾节点 next 指向的下标（0-indexed，-1 表示无环），仅用于构造测试链表。",
+  "examples": [
+    {
+      "input": "4\n3 2 0 -4\n1",
+      "output": "2",
+      "explanation": "尾节点 -4 的 next 指向下标 1（值 2），入环节点为值 2。"
+    },
+    {
+      "input": "2\n1 2\n0",
+      "output": "1",
+      "explanation": "尾节点 2 指向头节点，整条链表成环，入环节点为值 1。"
+    },
+    {
+      "input": "3\n1 2 1\n-1",
+      "output": "-1",
+      "explanation": "尾节点指向空，无环，输出 -1。"
+    }
+  ],
+  "constraints": [
+    "0 <= 节点数 <= 10^4",
+    "-10^5 <= 节点值 <= 10^5",
+    "pos 为 -1 或链表中的一个有效下标"
+  ],
+  "ioFormat": "第一行 n，第二行 n 个值（n=0 时该行可省略），第三行 pos。输出入环节点的值；若无环输出 -1。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "哈希集合记录访问过的节点 id，第一次重复访问到的节点就是入环点。O(n) 时间、O(n) 空间，实现最简单。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v\n        self.nxt = nxt\n\ndef build(vals, pos):\n    if not vals:\n        return None\n    head = N(vals[0])\n    nodes = [head]\n    for v in vals[1:]:\n        nodes[-1].nxt = N(v)\n        nodes.append(nodes[-1].nxt)\n    if pos >= 0:\n        nodes[-1].nxt = nodes[pos]\n    return head\n\ndef cycle_start(head):\n    seen = set()\n    cur = head\n    while cur:\n        if id(cur) in seen:\n            return cur.v\n        seen.add(id(cur))\n        cur = cur.nxt\n    return -1\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    if n == 0:\n        vals = []\n        pos = int(data[1])\n    else:\n        vals = list(map(int, data[1:1 + n]))\n        pos = int(data[1 + n])\n    head = build(vals, pos)\n    print(cycle_start(head))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "Floyd 快慢指针：slow 走一步、fast 走两步，相遇说明有环；相遇后把一个指针重置回头节点，两者再同时走一步，再次相遇的位置即入环点。O(n) 时间、O(1) 空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v\n        self.nxt = nxt\n\ndef build(vals, pos):\n    if not vals:\n        return None\n    head = N(vals[0])\n    nodes = [head]\n    for v in vals[1:]:\n        nodes[-1].nxt = N(v)\n        nodes.append(nodes[-1].nxt)\n    if pos >= 0:\n        nodes[-1].nxt = nodes[pos]\n    return head\n\ndef cycle_start(head):\n    slow = fast = head\n    while fast and fast.nxt:\n        slow = slow.nxt\n        fast = fast.nxt.nxt\n        if slow is fast:\n            p = head\n            while p is not slow:\n                p = p.nxt\n                slow = slow.nxt\n            return p.v\n    return -1\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    if n == 0:\n        vals = []\n        pos = int(data[1])\n    else:\n        vals = list(map(int, data[1:1 + n]))\n        pos = int(data[1 + n])\n    head = build(vals, pos)\n    print(cycle_start(head))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在 Floyd 基础上推导：设头到入环点距离为 a、入环点到相遇点距离为 b、相遇点回到入环点距离为 c，则 slow 走了 a+b、fast 走了 a+b+c+b，由 fast=2*slow 得 a=c。因此相遇后从 head 与 meet 同速前进，必在入环点相遇。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v\n        self.nxt = nxt\n\ndef build(vals, pos):\n    if not vals:\n        return None\n    head = N(vals[0])\n    nodes = [head]\n    for v in vals[1:]:\n        nodes[-1].nxt = N(v)\n        nodes.append(nodes[-1].nxt)\n    if pos >= 0:\n        nodes[-1].nxt = nodes[pos]\n    return head\n\ndef cycle_start(head):\n    slow = fast = head\n    meet = None\n    while fast and fast.nxt:\n        slow = slow.nxt\n        fast = fast.nxt.nxt\n        if slow is fast:\n            meet = slow\n            break\n    if meet is None:\n        return -1\n    p = head\n    q = meet\n    while p is not q:\n        p = p.nxt\n        q = q.nxt\n    return p.v\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    if n == 0:\n        vals = []\n        pos = int(data[1])\n    else:\n        vals = list(map(int, data[1:1 + n]))\n        pos = int(data[1 + n])\n    head = build(vals, pos)\n    print(cycle_start(head))\n"
+    }
+  ]
+}

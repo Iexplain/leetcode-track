@@ -1,0 +1,44 @@
+{
+  "id": 211,
+  "title": "添加与搜索单词 - 数据结构设计",
+  "titleEn": "Design Add and Search Words Data Structure",
+  "difficulty": "中等",
+  "tags": [
+    "字符串",
+    "深度优先搜索",
+    "设计",
+    "字典树"
+  ],
+  "description": "请你设计一个支持添加新单词与查找字符串是否与之前添加的任何字符串匹配的数据结构：addWord(word) 添加一个单词；search(word) 查找一个字符串是否匹配之前添加的任意单词，其中字符 '.' 可以匹配任意一个字母。",
+  "examples": [
+    {
+      "input": "7\naddWord bad\naddWord dad\naddWord mad\nsearch pad\nsearch bad\nsearch .ad\nsearch b..",
+      "output": "false\ntrue\ntrue\ntrue",
+      "explanation": "先添加 bad、dad、mad。search(\"pad\")→false；search(\"bad\")→true；search(\".ad\") 可匹配 bad/dad/mad→true；search(\"b..\") 可匹配 bad→true。"
+    }
+  ],
+  "constraints": [
+    "1 <= word.length <= 25",
+    "addWord 中的 word 仅由小写字母 a-z 组成",
+    "search 中的 word 由小写字母 a-z 与 '.' 组成",
+    "addWord 与 search 调用总次数不超过 10^4"
+  ],
+  "ioFormat": "第一行操作数 q；接下来 q 行每行一条操作（addWord word / search word）。对 search 输出一行 true/false；addWord 不输出。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "用数组存储所有已添加的单词。search 时遍历每个单词，长度相同才逐字符比较，'.' 视为通配。O(L·N) 时间（N 为单词数、L 为单词长度），实现最简单。",
+      "code": "import sys\n\nclass WordDictionaryBrute:\n    def __init__(self):\n        self.words = []\n    def addWord(self, word):\n        self.words.append(word)\n    def search(self, word):\n        for w in self.words:\n            if len(w) != len(word):\n                continue\n            ok = True\n            for a, b in zip(w, word):\n                if b != '.' and a != b:\n                    ok = False\n                    break\n            if ok:\n                return True\n        return False\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data:\n        sys.exit(0)\n    q = int(data[0].strip())\n    wd = WordDictionaryBrute()\n    for i in range(1, q + 1):\n        parts = data[i].split(' ', 1)\n        op = parts[0]\n        arg = parts[1] if len(parts) > 1 else ''\n        if op == 'addWord':\n            wd.addWord(arg)\n        elif op == 'search':\n            print('true' if wd.search(arg) else 'false')\n"
+    },
+    {
+      "level": "优化",
+      "idea": "字典树（Trie）存储单词，addWord 沿字符建链。search 遇到 '.' 时对当前节点的所有子节点做 DFS，遇到普通字符则沿对应子节点走。O(L) 均摊时间（'.' 时 O(26^L) 最坏）。",
+      "code": "import sys\n\nclass Node:\n    __slots__ = ('children', 'is_end')\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n\nclass WordDictionaryTrie:\n    def __init__(self):\n        self.root = Node()\n    def addWord(self, word):\n        cur = self.root\n        for ch in word:\n            if ch not in cur.children:\n                cur.children[ch] = Node()\n            cur = cur.children[ch]\n        cur.is_end = True\n    def search(self, word):\n        def dfs(node, i):\n            if i == len(word):\n                return node.is_end\n            ch = word[i]\n            if ch == '.':\n                for nxt in node.children.values():\n                    if dfs(nxt, i + 1):\n                        return True\n                return False\n            if ch in node.children:\n                return dfs(node.children[ch], i + 1)\n            return False\n        return dfs(self.root, 0)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data:\n        sys.exit(0)\n    q = int(data[0].strip())\n    wd = WordDictionaryTrie()\n    for i in range(1, q + 1):\n        parts = data[i].split(' ', 1)\n        op = parts[0]\n        arg = parts[1] if len(parts) > 1 else ''\n        if op == 'addWord':\n            wd.addWord(arg)\n        elif op == 'search':\n            print('true' if wd.search(arg) else 'false')\n"
+    },
+    {
+      "level": "最优",
+      "idea": "在“优化”的 Trie + DFS 基础上，把递归写法整理得更紧凑清晰。遇到 '.' 遍历 children.values() 深度优先搜索，遇到普通字符只走对应分支。结构与标准答案一致。",
+      "code": "import sys\n\nclass NodeB:\n    __slots__ = ('children', 'is_end')\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n\nclass WordDictionaryBest:\n    def __init__(self):\n        self.root = NodeB()\n    def addWord(self, word):\n        cur = self.root\n        for ch in word:\n            if ch not in cur.children:\n                cur.children[ch] = NodeB()\n            cur = cur.children[ch]\n        cur.is_end = True\n    def search(self, word):\n        def dfs(node, i):\n            if i == len(word):\n                return node.is_end\n            ch = word[i]\n            if ch == '.':\n                for nxt in node.children.values():\n                    if dfs(nxt, i + 1):\n                        return True\n                return False\n            if ch in node.children:\n                return dfs(node.children[ch], i + 1)\n            return False\n        return dfs(self.root, 0)\n\nif __name__ == '__main__':\n    data = sys.stdin.read().splitlines()\n    if not data:\n        sys.exit(0)\n    q = int(data[0].strip())\n    wd = WordDictionaryBest()\n    for i in range(1, q + 1):\n        parts = data[i].split(' ', 1)\n        op = parts[0]\n        arg = parts[1] if len(parts) > 1 else ''\n        if op == 'addWord':\n            wd.addWord(arg)\n        elif op == 'search':\n            print('true' if wd.search(arg) else 'false')\n"
+    }
+  ]
+}

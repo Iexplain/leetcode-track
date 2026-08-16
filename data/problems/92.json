@@ -1,0 +1,40 @@
+{
+  "id": 92,
+  "title": "反转链表 II",
+  "titleEn": "Reverse Linked List II",
+  "difficulty": "中等",
+  "tags": [
+    "链表"
+  ],
+  "description": "给定一个单链表的头节点 head 和两个整数 left、right（1 <= left <= right），请反转从位置 left 到位置 right 的链表节点，并返回反转后的链表头节点。位置从 1 开始计数。",
+  "examples": [
+    {
+      "input": "5 2 4\n1 2 3 4 5",
+      "output": "1 4 3 2 5",
+      "explanation": "反转第 2 到第 4 个节点 [2,3,4] 得到 [4,3,2]，拼接后为 1 -> 4 -> 3 -> 2 -> 5。"
+    }
+  ],
+  "constraints": [
+    "1 <= 节点数 <= 500",
+    "1 <= left <= right <= 节点数",
+    "0 <= 节点值 <= 100"
+  ],
+  "ioFormat": "第一行三个整数 n left right（节点数、左边界、右边界），第二行 n 个节点值。输出反转后的链表（空格分隔）。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "把链表切成三段（前缀、待反转区间、后缀），单独反转中间段后用指针重新拼接。逻辑直观，但要小心处理 left=1 时没有前缀的情况。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef reverse_brute(head, left, right):\n    pre = None\n    cur = head\n    pos = 1\n    while cur and pos < left:\n        pre = cur\n        cur = cur.nxt\n        pos += 1\n    mid_start = cur\n    while cur and pos <= right:\n        cur = cur.nxt\n        pos += 1\n    mid_end = cur\n    prev = None\n    cur = mid_start\n    while cur != mid_end:\n        nxt = cur.nxt\n        cur.nxt = prev\n        prev = cur\n        cur = nxt\n    mid_start.nxt = mid_end\n    if pre:\n        pre.nxt = prev\n        return head\n    return prev\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    left = int(data[1])\n    right = int(data[2])\n    vals = list(map(int, data[3:3 + n]))\n    print(' '.join(map(str, to_list(reverse_brute(build(vals), left, right)))))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "局部反转：先定位到 left 前一个节点，再用三个指针在区间内做经典反转，最后把反转后的头尾接回原链。O(n) 时间 O(1) 空间。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef reverse_opt(head, left, right):\n    if not head or left == right:\n        return head\n    pre = None\n    cur = head\n    for _ in range(left - 1):\n        pre = cur\n        cur = cur.nxt\n    tail = cur\n    prev = None\n    for _ in range(right - left + 1):\n        nxt = cur.nxt\n        cur.nxt = prev\n        prev = cur\n        cur = nxt\n    tail.nxt = cur\n    if pre:\n        pre.nxt = prev\n        return head\n    return prev\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    left = int(data[1])\n    right = int(data[2])\n    vals = list(map(int, data[3:3 + n]))\n    print(' '.join(map(str, to_list(reverse_opt(build(vals), left, right)))))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "哨兵 + 头插法：用 dummy 哨兵统一边界，通过“把 cur 后面的节点依次头插到 prev 之后”完成区间反转。left=1 时无需特判，代码最紧凑。",
+      "code": "import sys\n\nclass N:\n    __slots__ = ('v', 'nxt')\n    def __init__(self, v=0, nxt=None):\n        self.v = v; self.nxt = nxt\n\ndef build(vals):\n    head = None\n    tail = None\n    for v in vals:\n        node = N(v)\n        if head is None:\n            head = node\n        else:\n            tail.nxt = node\n        tail = node\n    return head\n\ndef to_list(head):\n    out = []\n    cur = head\n    while cur:\n        out.append(cur.v)\n        cur = cur.nxt\n    return out\n\ndef reverse_best(head, left, right):\n    if not head or left == right:\n        return head\n    dummy = N(0, head)\n    prev = dummy\n    for _ in range(left - 1):\n        prev = prev.nxt\n    cur = prev.nxt\n    for _ in range(right - left):\n        nxt = cur.nxt\n        cur.nxt = nxt.nxt\n        nxt.nxt = prev.nxt\n        prev.nxt = nxt\n    return dummy.nxt\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    left = int(data[1])\n    right = int(data[2])\n    vals = list(map(int, data[3:3 + n]))\n    print(' '.join(map(str, to_list(reverse_best(build(vals), left, right)))))\n"
+    }
+  ]
+}

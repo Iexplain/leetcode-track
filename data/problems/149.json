@@ -1,0 +1,48 @@
+{
+  "id": 149,
+  "title": "直线上最多的点数",
+  "titleEn": "Max Points on a Line",
+  "difficulty": "困难",
+  "tags": [
+    "数组",
+    "哈希表",
+    "数学",
+    "几何"
+  ],
+  "description": "给你一个数组 points，其中 points[i] = [xi, yi] 表示 X-Y 平面上的一个点。求最多有多少个点在同一条直线上。",
+  "examples": [
+    {
+      "input": "6\n1 1\n3 2\n5 3\n4 1\n2 3\n1 4",
+      "output": "4",
+      "explanation": "(4,1)、(3,2)、(2,3)、(1,4) 四点共线于 y = -x + 5。"
+    },
+    {
+      "input": "6\n1 1\n2 2\n3 3\n0 0\n1 3\n1 2",
+      "output": "4",
+      "explanation": "(0,0)、(1,1)、(2,2)、(3,3) 四点共线于 y = x。"
+    }
+  ],
+  "constraints": [
+    "1 <= points.length <= 300",
+    "-10^4 <= xi, yi <= 10^4",
+    "所有点互不相同"
+  ],
+  "ioFormat": "第一行 n（点数），随后 n 行每行两个整数 x y。输出同一条直线上最多的点数。",
+  "solutions": [
+    {
+      "level": "暴力",
+      "idea": "枚举任意两点确定一条直线，再用叉积判断其余点是否在该直线上，统计每条直线上的点数。O(n^3) 时间，n<=300 时可勉强接受。",
+      "code": "import sys\n\ndef max_points(pts):\n    n = len(pts)\n    if n <= 2:\n        return n\n    best = 1\n    for i in range(n):\n        x1, y1 = pts[i]\n        for j in range(i + 1, n):\n            x2, y2 = pts[j]\n            dx, dy = x2 - x1, y2 - y1\n            cnt = 0\n            for k in range(n):\n                x3, y3 = pts[k]\n                if dx * (y3 - y1) == dy * (x3 - x1):\n                    cnt += 1\n            if cnt > best:\n                best = cnt\n    return best\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pts = []\n    idx = 1\n    for _ in range(n):\n        pts.append((int(data[idx]), int(data[idx + 1])))\n        idx += 2\n    print(max_points(pts))\n"
+    },
+    {
+      "level": "优化",
+      "idea": "以每个点作为基准，计算它到其他所有点的斜率并用哈希表统计相同斜率的个数；与基准斜率相同的点数加 1 就是过基准的共线点数。O(n^2) 时间，用浮点斜率，实现简单。",
+      "code": "import sys\n\ndef max_points(pts):\n    n = len(pts)\n    if n <= 2:\n        return n\n    best = 1\n    for i in range(n):\n        slopes = {}\n        x1, y1 = pts[i]\n        for j in range(n):\n            if i == j:\n                continue\n            x2, y2 = pts[j]\n            if x2 == x1:\n                s = float('inf')\n            else:\n                s = (y2 - y1) / (x2 - x1)\n            slopes[s] = slopes.get(s, 0) + 1\n        if slopes:\n            best = max(best, max(slopes.values()) + 1)\n    return best\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pts = []\n    idx = 1\n    for _ in range(n):\n        pts.append((int(data[idx]), int(data[idx + 1])))\n        idx += 2\n    print(max_points(pts))\n"
+    },
+    {
+      "level": "最优",
+      "idea": "用 (dx/gcd, dy/gcd) 的约简分数表示斜率，并用符号归一化（保证 dx 非负）避免浮点误差与方向歧义，垂直、水平、任意斜线都被映射为同一 key。O(n^2) 时间、O(n) 空间，最稳。",
+      "code": "import sys\nfrom math import gcd\n\ndef max_points(pts):\n    n = len(pts)\n    if n <= 2:\n        return n\n    best = 1\n    for i in range(n):\n        slopes = {}\n        x1, y1 = pts[i]\n        same = 0\n        for j in range(n):\n            if i == j:\n                continue\n            x2, y2 = pts[j]\n            dx, dy = x2 - x1, y2 - y1\n            if dx == 0 and dy == 0:\n                same += 1\n                continue\n            g = gcd(abs(dx), abs(dy))\n            dx //= g\n            dy //= g\n            if dx < 0 or (dx == 0 and dy < 0):\n                dx = -dx\n                dy = -dy\n            slopes[(dx, dy)] = slopes.get((dx, dy), 0) + 1\n        if slopes:\n            best = max(best, max(slopes.values()) + 1 + same)\n        else:\n            best = max(best, 1 + same)\n    return best\n\n\nif __name__ == '__main__':\n    data = sys.stdin.read().split()\n    if not data:\n        sys.exit(0)\n    n = int(data[0])\n    pts = []\n    idx = 1\n    for _ in range(n):\n        pts.append((int(data[idx]), int(data[idx + 1])))\n        idx += 2\n    print(max_points(pts))\n"
+    }
+  ]
+}
