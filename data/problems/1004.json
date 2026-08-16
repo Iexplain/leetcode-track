@@ -13,8 +13,8 @@
   "examples": [
     {
       "input": "8 1\n1 1 0 1 1 1 1 1",
-      "output": "7",
-      "explanation": "翻 0 → 7 个 1。"
+      "output": "8",
+      "explanation": "整串 8 个元素仅 1 个 0,翻 → 8。"
     },
     {
       "input": "4 2\n0 0 1 1",
