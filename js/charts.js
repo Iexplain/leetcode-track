@@ -56,17 +56,17 @@
     // 自然年：[1月1日, 12月31日]
     var jan1 = new Date(year, 0, 1);
     var dec31 = new Date(year, 11, 31);
-    // 以 1月1日 所在周的「周日」为第 1 列起点，保证 1月 从最左开始
-    var startSunday = new Date(jan1); startSunday.setDate(startSunday.getDate() - jan1.getDay());
+    // 以 1月1日 所在周的「周一」为第 1 列起点（周一在上，符合中文习惯），保证 1月 从最左开始
+    var startMonday = new Date(jan1); startMonday.setDate(startMonday.getDate() - ((jan1.getDay() + 6) % 7));
     // 列数：从起点到年末的整周数（ceil，留白到年末那周结束）
-    var totalDays = Math.round((dec31 - startSunday) / 86400000) + 1;
+    var totalDays = Math.round((dec31 - startMonday) / 86400000) + 1;
     var weeks = Math.ceil(totalDays / 7);
 
     // 月份标签：每周首日的月份变化时记录一列（仅本年内可见）
     var monthAt = [];
     var lastMonth = -1;
     for (var w = 0; w < weeks; w++) {
-      var md = new Date(startSunday); md.setDate(md.getDate() + w * 7);
+      var md = new Date(startMonday); md.setDate(md.getDate() + w * 7);
       var m = md.getMonth();
       var inY = md >= jan1 && md <= dec31;
       monthAt.push(inY && m !== lastMonth ? MONTHS[m] : '');
@@ -74,11 +74,11 @@
     }
     var monthsHtml = monthAt.map(function (t) { return '<span class="gh-month">' + t + '</span>'; }).join('');
 
-    // 单元格：weeks 列 × 7 行（周日在上）
+    // 单元格：weeks 列 × 7 行（周一在上）
     var cells = '';
     for (var col = 0; col < weeks; col++) {
       for (var row = 0; row < 7; row++) {
-        var d = new Date(startSunday); d.setDate(d.getDate() + col * 7 + row);
+        var d = new Date(startMonday); d.setDate(d.getDate() + col * 7 + row);
         var key = fmt(d);
         var inYear = d >= jan1 && d <= dec31;       // 是否在本自然年内
         if (!inYear) {
@@ -93,8 +93,8 @@
       }
     }
 
-    // 星期标签：仅一/三/五（GitHub 习惯）
-    var dayLabels = ['', '一', '', '三', '', '五', ''];
+    // 星期标签：一~日 全部显示（周一在上，符合中文习惯）
+    var dayLabels = ['一', '二', '三', '四', '五', '六', '日'];
     var daysHtml = dayLabels.map(function (t) { return '<span class="gh-day">' + t + '</span>'; }).join('');
 
     var legendCells = GH_GREEN.map(function (c) {
