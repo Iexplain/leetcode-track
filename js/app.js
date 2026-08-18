@@ -9,6 +9,11 @@
   // ---------- 数据加载 ----------
   function fetchIndex() {
     if (indexData) return Promise.resolve(indexData);
+    // 优先用「从 GitHub 拉取」的本地缓存，避免每次切页面都重新下载
+    var cached = localStorage.getItem('lc_index_remote_v1');
+    if (cached) {
+      try { indexData = JSON.parse(cached); return Promise.resolve(indexData); } catch (e) { localStorage.removeItem('lc_index_remote_v1'); }
+    }
     return fetch('data/index.json', { cache: 'no-cache' }).then(function (r) {
       if (!r.ok) throw new Error('无法加载题目列表 data/index.json');
       return r.json();
@@ -631,6 +636,13 @@
         };
         r.readAsText(f);
       });
+
+      // 「GitHub 云同步」入口：从备份面板跳到 GitHub 设置页
+      var gh = sheet.querySelector('[data-act="github"]');
+      if (gh) gh.addEventListener('click', function () {
+        closeSheet();
+        setTimeout(openGhSheet, 200);
+      });
     }
   }
 
@@ -639,39 +651,88 @@
     var sheet = $('ghSheet');
     if (!sheet) return;
     var cfg = GitHub.getConfig() || {};
+    var fullRepo = (cfg.owner && cfg.repo) ? (cfg.owner + '/' + cfg.repo) : '';
     if ($('ghToken') && cfg.token) $('ghToken').value = cfg.token;
-    if ($('ghOwner') && cfg.owner) $('ghOwner').value = cfg.owner;
-    if ($('ghRepo') && cfg.repo) $('ghRepo').value = cfg.repo;
+    if ($('ghRepoFull')) $('ghRepoFull').value = fullRepo || (cfg.repoFull || '');
     if ($('ghBranch') && cfg.branch) $('ghBranch').value = cfg.branch;
+    if ($('ghFilePath')) $('ghFilePath').value = cfg.filePath || '';
     sheet.hidden = false;
     requestAnimationFrame(function () { sheet.classList.add('open'); });
   }
 
-  function wireGithub() {
-    var btn = $('ghBtn');
+  function closeGhSheet() {
     var sheet = $('ghSheet');
-    function closeSheet() {
-      if (!sheet) return;
-      sheet.classList.remove('open');
-      setTimeout(function () { sheet.hidden = true; }, 260);
+    if (!sheet) return;
+    sheet.classList.remove('open');
+    setTimeout(function () { sheet.hidden = true; }, 260);
+  }
+
+  function readGhForm() {
+    var token = $('ghToken').value.trim();
+    var repoFull = $('ghRepoFull').value.trim();
+    var branch = $('ghBranch').value.trim() || 'main';
+    var filePath = $('ghFilePath').value.trim();
+    var owner = '', repo = '';
+    if (repoFull) {
+      var m = repoFull.split('/');
+      owner = (m[0] || '').trim();
+      repo = (m[1] || '').trim();
     }
-    if (btn) btn.addEventListener('click', openGhSheet);
-    if (sheet) {
-      sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
-      var cancel = sheet.querySelector('[data-act="ghcancel"]');
-      if (cancel) cancel.addEventListener('click', closeSheet);
-      var save = sheet.querySelector('[data-act="ghsave"]');
-      if (save) save.addEventListener('click', function () {
-        var token = $('ghToken').value.trim();
-        var owner = $('ghOwner').value.trim();
-        var repo = $('ghRepo').value.trim();
-        var branch = $('ghBranch').value.trim() || 'main';
-        if (!token || !owner || !repo) { toast('请填写 token / owner / repo'); return; }
-        GitHub.setConfig({ token: token, owner: owner, repo: repo, branch: branch });
-        closeSheet();
-        toast('GitHub 设置已保存');
+    return { token: token, owner: owner, repo: repo, branch: branch, filePath: filePath, repoFull: repoFull };
+  }
+
+  function wireGithub() {
+    var sheet = $('ghSheet');
+    if (!sheet) return;
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) closeGhSheet(); });
+    var cancel = sheet.querySelector('[data-act="ghcancel"]');
+    if (cancel) cancel.addEventListener('click', closeGhSheet);
+
+    var up = sheet.querySelector('[data-act="ghupload"]');
+    if (up) up.addEventListener('click', function () {
+      var f = readGhForm();
+      if (!f.token || !f.owner || !f.repo) { toast('请先填写 Token 与「用户名/仓库名」'); return; }
+      GitHub.setConfig({ token: f.token, owner: f.owner, repo: f.repo, branch: f.branch, filePath: f.filePath });
+      // 上传所有本地未同步的题解覆盖
+      var ids = Store.listOverrides();
+      if (ids.length === 0) { toast('没有未同步的题解改动'); return; }
+      toast('正在上传 ' + ids.length + ' 道题…');
+      var chain = Promise.resolve();
+      var okCount = 0, failCount = 0;
+      ids.forEach(function (id) {
+        chain = chain.then(function () {
+          return Store.getOverride(id).then(function (obj) {
+            if (!obj) return;
+            return GitHub.uploadProblem(id, obj).then(function () {
+              Store.clearOverride(id);
+              okCount++;
+            }).catch(function (err) {
+              failCount++;
+              console.warn('[gh] upload ' + id + ' failed', err);
+            });
+          });
+        });
       });
-    }
+      chain.then(function () {
+        toast('上传完成：成功 ' + okCount + '，失败 ' + failCount);
+        closeGhSheet();
+        // 刷新详情页（如果当前在详情页）
+        var m = location.hash.match(/^#\/problem\/(\d+)/);
+        if (m) renderProblem(m[1]);
+      });
+    });
+
+    var pull = sheet.querySelector('[data-act="ghpull"]');
+    if (pull) pull.addEventListener('click', function () {
+      var f = readGhForm();
+      if (!f.token || !f.owner || !f.repo) { toast('请先填写 Token 与「用户名/仓库名」'); return; }
+      GitHub.setConfig({ token: f.token, owner: f.owner, repo: f.repo, branch: f.branch, filePath: f.filePath });
+      toast('正在拉取仓库的题目数据…');
+      GitHub.pullIndex().then(function (count) {
+        toast('已更新 ' + count + ' 道题到本地');
+        closeGhSheet();
+      }).catch(function (err) { toast('拉取失败：' + err.message); });
+    });
   }
 
   // ---------- Service Worker ----------

@@ -30,7 +30,6 @@
           <span class="brand-slogan">题海翻遍千行泪，AC难求一寸光</span>
         </span>
       </a>
-      <button class="icon-btn" id="ghBtn" type="button" aria-label="GitHub 上传设置" title="GitHub 上传设置">⚙</button>
       <button class="add-btn" id="backupBtn" type="button" aria-label="数据备份" title="数据备份">＋</button>
     </div>
     <nav class="nav">
@@ -44,27 +43,41 @@
   <div class="action-sheet-backdrop" id="backupSheet" hidden>
     <div class="action-sheet">
       <div class="action-sheet-handle"></div>
-      <div class="action-sheet-title">数据备份</div>
-      <button class="action-sheet-item" data-act="export">⬇︎ 导出全部记录 (JSON)</button>
-      <label class="action-sheet-item" data-act="import">⬆︎ 导入 JSON 备份<input type="file" id="fileImport" accept="application/json" hidden /></label>
-      <button class="action-sheet-item danger" data-act="clear">🗑 清空全部记录</button>
+      <div class="action-sheet-title">数据导出 / 备份</div>
+      <button class="action-sheet-item" data-act="export">
+        <span class="ic">⬇︎</span><span class="t">备份全部数据（JSON）<span class="d">完整备份，换手机时可导入恢复</span></span>
+      </button>
+      <label class="action-sheet-item" data-act="import">
+        <span class="ic">⬆︎</span><span class="t">从备份导入恢复<span class="d">选择之前导出的 JSON 备份文件</span></span>
+        <input type="file" id="fileImport" accept="application/json" hidden />
+      </label>
+      <button class="action-sheet-item danger" data-act="clear">
+        <span class="ic">🗑</span><span class="t">清空全部数据<span class="d">仅删除本机数据，操作前请先备份</span></span>
+      </button>
+      <button class="action-sheet-item gh-item" data-act="github">
+        <span class="ic">⌥</span><span class="t">GitHub 云同步<span class="d">把题解改动备份到你的 GitHub 仓库，换手机也能恢复</span></span>
+      </button>
       <button class="action-sheet-item cancel" data-act="cancel">取消</button>
     </div>
   </div>
 
-  <div class="action-sheet-backdrop" id="ghSheet" hidden>
-    <div class="action-sheet">
-      <div class="action-sheet-handle"></div>
-      <div class="action-sheet-title">GitHub 上传设置</div>
+  <div class="action-sheet-backdrop gh-sheet" id="ghSheet" hidden>
+    <div class="action-sheet gh-panel">
+      <button class="gh-close" data-act="ghcancel" aria-label="关闭">×</button>
+      <div class="gh-title">GitHub 云同步</div>
       <div class="gh-form">
-        <label class="gh-field"><span>个人访问令牌 (PAT)</span><input type="password" id="ghToken" placeholder="ghp_... 或 github_pat_..." autocomplete="off" /></label>
-        <label class="gh-field"><span>仓库 owner</span><input id="ghOwner" placeholder="Iexplain" autocomplete="off" /></label>
-        <label class="gh-field"><span>仓库名 repo</span><input id="ghRepo" placeholder="leetcode-track" autocomplete="off" /></label>
-        <label class="gh-field"><span>分支 branch</span><input id="ghBranch" placeholder="main" autocomplete="off" /></label>
+        <label class="gh-field"><span>Personal Access Token</span><input type="password" id="ghToken" placeholder="ghp_xxx" autocomplete="off" /></label>
+        <p class="gh-hint">在 GitHub → Settings → Developer settings → Personal access tokens 创建，勾选 <code>repo</code> 权限。Token 仅保存在本机。</p>
+        <label class="gh-field"><span>仓库</span><input id="ghRepoFull" placeholder="用户名/仓库名（如 Iexplain/leetcode-track）" autocomplete="off" /></label>
+        <p class="gh-hint">格式：用户名/仓库名</p>
+        <label class="gh-field"><span>分支</span><input id="ghBranch" placeholder="main" autocomplete="off" /></label>
+        <label class="gh-field"><span>备份文件路径</span><input id="ghFilePath" placeholder="data/problems/{id}.json（留空默认）" autocomplete="off" /></label>
+        <p class="gh-hint">题解改动会上传到上面路径的 JSON（每题一个文件）。留空则写到 data/problems/{id}.json。</p>
       </div>
-      <p class="gh-tip">令牌仅保存在本机浏览器。建议用 fine-grained token 并只授权本仓库的 Contents 读写权限。</p>
-      <button class="action-sheet-item" data-act="ghsave">保存设置</button>
-      <button class="action-sheet-item cancel" data-act="ghcancel">取消</button>
+      <div class="gh-actions">
+        <button class="btn btn-primary" data-act="ghupload">↑ 上传到 GitHub</button>
+        <button class="btn btn-ghost" data-act="ghpull">↓ 从 GitHub 拉取</button>
+      </div>
     </div>
   </div>
 

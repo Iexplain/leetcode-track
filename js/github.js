@@ -22,23 +22,29 @@
     for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
     return btoa(bin);
   }
+  function b64decode(b64str) {
+    var bin = atob(b64str);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
 
   function apiBase(cfg) {
     return 'https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo + '/contents/';
   }
 
-  // 写回 data/problems/{id}.json：先 GET 拿 SHA，再 PUT。409（SHA 过期）自动重试一次。
+  // 写回题目 JSON：路径支持 {id} 占位替换（默认 data/problems/{id}.json）
   function uploadProblem(id, obj) {
     var cfg = getConfig();
     if (!isConfigured()) return Promise.reject(new Error('GitHub 未配置（缺少 token / owner / repo）'));
-    var path = 'data/problems/' + id + '.json';
+    var path = (cfg.filePath || 'data/problems/{id}.json').replace('{id}', String(id));
     var branch = cfg.branch || 'main';
     var url = apiBase(cfg) + path;
     var headers = { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json' };
 
     function getSha() {
       return fetch(url + '?ref=' + branch, { headers: headers }).then(function (r) {
-        if (r.status === 404) return null; // 文件不存在（理论上不会发生，仅作容错）
+        if (r.status === 404) return null;
         if (!r.ok) return r.json().then(function (j) { throw new Error(j.message || ('获取文件失败 HTTP ' + r.status)); });
         return r.json().then(function (m) { return m.sha || null; });
       });
@@ -54,7 +60,6 @@
         body: JSON.stringify(body)
       }).then(function (r) {
         if (r.status === 409 && attempt < 1) {
-          // SHA 过期（并发改动），重新取 SHA 后重试一次
           return getSha().then(function (newSha) { return put(newSha, attempt + 1); });
         }
         if (!r.ok) return r.json().then(function (j) { throw new Error(j.message || ('上传失败 HTTP ' + r.status)); });
@@ -65,10 +70,34 @@
     return getSha().then(function (sha) { return put(sha, 0); });
   }
 
+  // 从仓库拉取 data/index.json，强制刷新本地缓存与索引
+  function pullIndex() {
+    var cfg = getConfig();
+    if (!isConfigured()) return Promise.reject(new Error('GitHub 未配置'));
+    var branch = cfg.branch || 'main';
+    var url = apiBase(cfg) + 'data/index.json?ref=' + branch;
+    var headers = { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json' };
+    return fetch(url, { headers: headers, cache: 'no-store' }).then(function (r) {
+      if (r.status === 404) return 0; // 仓库还没有 index.json
+      if (!r.ok) return r.json().then(function (j) { throw new Error(j.message || ('拉取失败 HTTP ' + r.status)); });
+      return r.json().then(function (m) {
+        if (!m.content) return 0;
+        // 把仓库内容写进 localStorage 一个独立 key，下次 fetchIndex 优先用
+        var text = b64decode(m.content.replace(/\n/g, ''));
+        localStorage.setItem('lc_index_remote_v1', text);
+        try {
+          var arr = JSON.parse(text);
+          return Array.isArray(arr.problems) ? arr.problems.length : 0;
+        } catch (e) { return 0; }
+      });
+    });
+  }
+
   global.GitHub = {
     getConfig: getConfig,
     setConfig: setConfig,
     isConfigured: isConfigured,
-    uploadProblem: uploadProblem
+    uploadProblem: uploadProblem,
+    pullIndex: pullIndex
   };
 })(window);

@@ -212,6 +212,9 @@
   function hasProblemOverride(pid) {
     return !!getOverrides()[String(pid)];
   }
+  function listOverrides() {
+    return Object.keys(getOverrides());
+  }
 
   global.Store = {
     load: load, save: save,
@@ -225,6 +228,7 @@
     countPendingReviews: countPendingReviews,
     exportData: exportData, importData: importData, clearAll: clearAll,
     getProblemOverride: getProblemOverride, setProblemOverride: setProblemOverride,
-    clearProblemOverride: clearProblemOverride, hasProblemOverride: hasProblemOverride
+    clearProblemOverride: clearProblemOverride, hasProblemOverride: hasProblemOverride,
+    listOverrides: listOverrides, getOverride: getProblemOverride, clearOverride: clearProblemOverride
   };
 })(window);
