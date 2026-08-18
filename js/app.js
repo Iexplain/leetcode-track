@@ -212,6 +212,8 @@
     setNav('');
     app.innerHTML = '<div class="page"><div id="pBody">加载中…</div></div>';
     fetchProblem(id).then(function (p) {
+      var ov = Store.getProblemOverride(id);
+      if (ov) p = Object.assign({}, p, ov);
       renderProblemDetail(p);
     }).catch(function (err) {
       $('pBody').innerHTML = '<div class="err">' + esc(err.message) + '</div>';
@@ -275,6 +277,13 @@
       (examples ? '<div class="ex-list">' + examples + '</div>' : '') +
       (constraints ? '<div class="cons"><b>约束：</b><ul>' + constraints + '</ul></div>' : '') +
       '<div class="sol">' +
+      '<div class="sol-head">' +
+        '<span class="sol-head-title">题解</span>' +
+        '<div class="sol-head-actions">' +
+          (Store.hasProblemOverride(p.id) ? '<button id="uploadBtn" class="btn prob-upload" type="button">↑ 上传未同步改动</button>' : '') +
+          '<button id="editBtn" class="btn prob-edit" type="button">✎ 编辑解法</button>' +
+        '</div>' +
+      '</div>' +
       '<div class="sol-tabs">' + solTabs + '</div>' +
       '<div class="sol-stage">' + solCards + '</div>' +
       '</div>' +
@@ -347,6 +356,132 @@
       }
       renderProblemDetail(p); // 刷新状态
     });
+
+    // 编辑解法：打开模态编辑器
+    var editBtn = $('editBtn');
+    if (editBtn) editBtn.addEventListener('click', function () { openEditor(p); });
+
+    // 上传未同步改动：直接写回 GitHub
+    var upBtn = $('uploadBtn');
+    if (upBtn) upBtn.addEventListener('click', function () { doUpload(p); });
+  }
+
+  // ---------- 解法编辑 + 上传 GitHub ----------
+  function openEditor(p) {
+    var sols = p.solutions || [];
+    var sections = sols.map(function (s, i) {
+      return '<div class="edit-sol">' +
+        '<div class="edit-sol-head"><span class="diff ' + diffClass(s.level) + '">' + esc(s.level) + '</span></div>' +
+        '<label class="edit-label">核心思想</label>' +
+        '<textarea class="edit-idea" data-sol="' + i + '" rows="3" placeholder="这档解法的思路说明"></textarea>' +
+        '<label class="edit-label">代码（ACM Python3）</label>' +
+        '<textarea class="edit-code" data-sol="' + i + '" rows="10" spellcheck="false" placeholder="完整可运行程序"></textarea>' +
+      '</div>';
+    }).join('');
+
+    var backdrop = document.getElementById('editBackdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'editBackdrop';
+      backdrop.className = 'modal-backdrop';
+      document.body.appendChild(backdrop);
+    }
+    backdrop.innerHTML =
+      '<div class="modal">' +
+        '<div class="modal-head">' +
+          '<span class="modal-title">编辑 #' + esc(p.id) + ' 解法</span>' +
+          '<button class="modal-close" id="editClose" aria-label="关闭">✕</button>' +
+        '</div>' +
+        '<div class="modal-body">' + sections + '</div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn" id="editCancel" type="button">取消</button>' +
+          '<button class="btn" id="editSaveLocal" type="button">保存本地</button>' +
+          '<button class="btn btn-done" id="editUpload" type="button">上传 GitHub</button>' +
+        '</div>' +
+      '</div>';
+
+    // textarea 用 .value 赋值，避免代码中的 < > & 破坏 HTML
+    backdrop.querySelectorAll('.edit-idea').forEach(function (ta) {
+      ta.value = (sols[+ta.getAttribute('data-sol')].idea) || '';
+    });
+    backdrop.querySelectorAll('.edit-code').forEach(function (ta) {
+      ta.value = (sols[+ta.getAttribute('data-sol')].code) || '';
+    });
+
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    function close() {
+      backdrop.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function buildEdited() {
+      var edited = Object.assign({}, p);
+      edited.solutions = sols.map(function (s, i) {
+        return {
+          level: s.level,
+          idea: backdrop.querySelector('.edit-idea[data-sol="' + i + '"]').value,
+          code: backdrop.querySelector('.edit-code[data-sol="' + i + '"]').value
+        };
+      });
+      return edited;
+    }
+
+    $('editClose').addEventListener('click', close);
+    $('editCancel').addEventListener('click', close);
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+
+    $('editSaveLocal').addEventListener('click', function () {
+      var edited = buildEdited();
+      Store.setProblemOverride(p.id, edited);
+      problemCache[p.id] = edited;
+      close();
+      renderProblemDetail(edited);
+      toast('已保存到本地（未上传）');
+    });
+
+    $('editUpload').addEventListener('click', function () {
+      var edited = buildEdited();
+      Store.setProblemOverride(p.id, edited);
+      problemCache[p.id] = edited;
+      close();
+      renderProblemDetail(edited);
+      doUpload(edited);
+    });
+  }
+
+  // 把整题对象写回 GitHub；成功则清覆盖层
+  function doUpload(p) {
+    if (!GitHub.isConfigured()) {
+      openGhSheet();
+      toast('请先在设置中填写 GitHub 令牌');
+      return;
+    }
+    var btn = $('uploadBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '上传中…'; }
+    GitHub.uploadProblem(p.id, p).then(function () {
+      Store.clearProblemOverride(p.id);
+      renderProblemDetail(p);
+      toast('已上传到 GitHub ✓');
+    }).catch(function (err) {
+      if (btn) { btn.disabled = false; btn.textContent = '↑ 上传未同步改动'; }
+      toast('上传失败：' + err.message);
+    });
+  }
+
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'toast';
+      t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove('show'); }, 2600);
   }
 
   function fallbackCopy(text) {
@@ -499,6 +634,46 @@
     }
   }
 
+  // ---------- GitHub 设置 ----------
+  function openGhSheet() {
+    var sheet = $('ghSheet');
+    if (!sheet) return;
+    var cfg = GitHub.getConfig() || {};
+    if ($('ghToken') && cfg.token) $('ghToken').value = cfg.token;
+    if ($('ghOwner') && cfg.owner) $('ghOwner').value = cfg.owner;
+    if ($('ghRepo') && cfg.repo) $('ghRepo').value = cfg.repo;
+    if ($('ghBranch') && cfg.branch) $('ghBranch').value = cfg.branch;
+    sheet.hidden = false;
+    requestAnimationFrame(function () { sheet.classList.add('open'); });
+  }
+
+  function wireGithub() {
+    var btn = $('ghBtn');
+    var sheet = $('ghSheet');
+    function closeSheet() {
+      if (!sheet) return;
+      sheet.classList.remove('open');
+      setTimeout(function () { sheet.hidden = true; }, 260);
+    }
+    if (btn) btn.addEventListener('click', openGhSheet);
+    if (sheet) {
+      sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
+      var cancel = sheet.querySelector('[data-act="ghcancel"]');
+      if (cancel) cancel.addEventListener('click', closeSheet);
+      var save = sheet.querySelector('[data-act="ghsave"]');
+      if (save) save.addEventListener('click', function () {
+        var token = $('ghToken').value.trim();
+        var owner = $('ghOwner').value.trim();
+        var repo = $('ghRepo').value.trim();
+        var branch = $('ghBranch').value.trim() || 'main';
+        if (!token || !owner || !repo) { toast('请填写 token / owner / repo'); return; }
+        GitHub.setConfig({ token: token, owner: owner, repo: repo, branch: branch });
+        closeSheet();
+        toast('GitHub 设置已保存');
+      });
+    }
+  }
+
   // ---------- Service Worker ----------
   function registerSW() {
     if ('serviceWorker' in navigator) {
@@ -514,5 +689,6 @@
     fetchIndex().then(function () { router(); }).catch(function () { router(); });
     registerSW();
     wireBackup();
+    wireGithub();
   });
 })();

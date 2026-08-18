@@ -188,6 +188,31 @@
     save();
   }
 
+  // ---------- 解法编辑覆盖层（localStorage） ----------
+  // 存「整题对象」：渲染时与拉取的 JSON 浅合并，solutions 整体替换。
+  var OVERRIDE_KEY = 'lc_overrides_v1';
+  function getOverrides() {
+    try { return JSON.parse(localStorage.getItem(OVERRIDE_KEY) || '{}'); } catch (e) { return {}; }
+  }
+  function getProblemOverride(pid) {
+    return getOverrides()[String(pid)] || null;
+  }
+  function setProblemOverride(pid, obj) {
+    var a = getOverrides();
+    a[String(pid)] = obj;
+    localStorage.setItem(OVERRIDE_KEY, JSON.stringify(a));
+  }
+  function clearProblemOverride(pid) {
+    var a = getOverrides();
+    if (a[String(pid)]) {
+      delete a[String(pid)];
+      localStorage.setItem(OVERRIDE_KEY, JSON.stringify(a));
+    }
+  }
+  function hasProblemOverride(pid) {
+    return !!getOverrides()[String(pid)];
+  }
+
   global.Store = {
     load: load, save: save,
     isSolved: isSolved, getSolved: getSolved, toggleSolved: toggleSolved,
@@ -198,6 +223,8 @@
     isReviewScheduled: isReviewScheduled, cancelReview: cancelReview,
     completeReview: completeReview, getDueReviews: getDueReviews,
     countPendingReviews: countPendingReviews,
-    exportData: exportData, importData: importData, clearAll: clearAll
+    exportData: exportData, importData: importData, clearAll: clearAll,
+    getProblemOverride: getProblemOverride, setProblemOverride: setProblemOverride,
+    clearProblemOverride: clearProblemOverride, hasProblemOverride: hasProblemOverride
   };
 })(window);
